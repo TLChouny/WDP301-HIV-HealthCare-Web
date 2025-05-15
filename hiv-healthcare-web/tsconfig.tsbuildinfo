@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/pages/arvtreatment.tsx","./src/pages/appointment.tsx","./src/pages/doctor.tsx","./src/pages/home.tsx","./src/pages/reminder.tsx","./src/pages/testresults.tsx","./src/services/api.ts","./src/types/appointment.ts","./src/types/arvoption.ts","./src/types/doctor.ts","./src/types/testresult.ts"],"version":"5.8.3"}
