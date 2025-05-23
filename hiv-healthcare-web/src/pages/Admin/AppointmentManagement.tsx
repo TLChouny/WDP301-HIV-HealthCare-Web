@@ -154,8 +154,8 @@ const AppointmentManagement: React.FC = () => {
         </Button>
       </Box>
 
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={6}>
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexDirection: { xs: 'column', md: 'row' } }}>
+        <Box sx={{ flex: 1 }}>
           <TextField
             fullWidth
             variant="outlined"
@@ -170,8 +170,8 @@ const AppointmentManagement: React.FC = () => {
               ),
             }}
           />
-        </Grid>
-        <Grid item xs={12} md={6}>
+        </Box>
+        <Box sx={{ flex: 1 }}>
           <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={vi}>
             <DatePicker
               label="Chọn ngày"
@@ -180,8 +180,8 @@ const AppointmentManagement: React.FC = () => {
               slotProps={{ textField: { fullWidth: true } }}
             />
           </LocalizationProvider>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       <TableContainer component={Paper}>
         <Table>
