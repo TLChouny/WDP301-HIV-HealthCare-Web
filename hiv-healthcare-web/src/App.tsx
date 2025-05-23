@@ -18,6 +18,9 @@ import ForgotPassword from './components/Home/ForgotPassword';
 // Admin Pages
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import PatientManagement from './pages/Admin/PatientManagement';
+import DoctorManagement from './pages/Admin/DoctorManagement';
+import MedicationManagement from './pages/Admin/MedicationManagement';
+import AppointmentManagement from './pages/Admin/AppointmentManagement';
 
 // Fallback component
 const FallbackComponent: React.FC = () => (
@@ -47,6 +50,9 @@ const App: React.FC = () => {
         <Route index element={<AdminDashboard />} />
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="patients" element={<PatientManagement />} />
+        <Route path="doctors" element={<DoctorManagement />} />
+        <Route path="medications" element={<MedicationManagement />} />
+        <Route path="appointments" element={<AppointmentManagement />} />
         {/* Add more admin routes here */}
       </Route>
 
