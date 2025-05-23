@@ -10,7 +10,7 @@ import './index.css'
 import Register from './components/Home/Register';
 import Login from './components/Home/Login';
 import ForgotPassword from './components/Home/ForgotPassword';
-
+import AdminDashboard from './pages/Admin/AdminDashboard';
 // Fallback nếu component không load
 const FallbackComponent: React.FC = () => (
   <div className="text-center text-red-500">Component không tìm thấy. Vui lòng kiểm tra đường dẫn hoặc cài đặt.</div>
@@ -27,6 +27,7 @@ const App: React.FC = () => {
         <Route path="/appointment" element={<Appointment />} />
         <Route path="/test-results" element={<TestResults />} />
         <Route path="/arv-treatment" element={<ARVTreatment />} />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="*" element={<FallbackComponent />} />
       </Routes>
     </Layout>
