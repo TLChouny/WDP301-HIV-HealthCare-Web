@@ -16,7 +16,6 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Grid,
   MenuItem,
   InputAdornment,
 } from '@mui/material';
@@ -195,16 +194,16 @@ const PatientManagement: React.FC = () => {
           {isEditMode ? 'Chỉnh sửa thông tin bệnh nhân' : 'Thêm bệnh nhân mới'}
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2, mt: 1 }}>
+            <Box>
               <TextField
                 fullWidth
                 label="Họ và tên"
                 value={selectedPatient.fullName}
                 onChange={(e) => setSelectedPatient({ ...selectedPatient, fullName: e.target.value })}
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </Box>
+            <Box>
               <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={vi}>
                 <DatePicker
                   label="Ngày sinh"
@@ -213,8 +212,8 @@ const PatientManagement: React.FC = () => {
                   slotProps={{ textField: { fullWidth: true } }}
                 />
               </LocalizationProvider>
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </Box>
+            <Box>
               <TextField
                 fullWidth
                 select
@@ -226,24 +225,24 @@ const PatientManagement: React.FC = () => {
                 <MenuItem value="female">Nữ</MenuItem>
                 <MenuItem value="other">Khác</MenuItem>
               </TextField>
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </Box>
+            <Box>
               <TextField
                 fullWidth
                 label="Số điện thoại"
                 value={selectedPatient.phoneNumber}
                 onChange={(e) => setSelectedPatient({ ...selectedPatient, phoneNumber: e.target.value })}
               />
-            </Grid>
-            <Grid item xs={12}>
+            </Box>
+            <Box sx={{ gridColumn: 'span 2' }}>
               <TextField
                 fullWidth
                 label="Địa chỉ"
                 value={selectedPatient.address}
                 onChange={(e) => setSelectedPatient({ ...selectedPatient, address: e.target.value })}
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </Box>
+            <Box>
               <TextField
                 fullWidth
                 label="Email"
@@ -251,8 +250,8 @@ const PatientManagement: React.FC = () => {
                 value={selectedPatient.email}
                 onChange={(e) => setSelectedPatient({ ...selectedPatient, email: e.target.value })}
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </Box>
+            <Box>
               <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={vi}>
                 <DatePicker
                   label="Ngày chẩn đoán"
@@ -261,8 +260,8 @@ const PatientManagement: React.FC = () => {
                   slotProps={{ textField: { fullWidth: true } }}
                 />
               </LocalizationProvider>
-            </Grid>
-            <Grid item xs={12}>
+            </Box>
+            <Box sx={{ gridColumn: 'span 2' }}>
               <TextField
                 fullWidth
                 select
@@ -273,8 +272,8 @@ const PatientManagement: React.FC = () => {
                 <MenuItem value="active">Đang điều trị</MenuItem>
                 <MenuItem value="inactive">Ngừng điều trị</MenuItem>
               </TextField>
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Hủy</Button>
