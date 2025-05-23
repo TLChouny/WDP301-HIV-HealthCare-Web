@@ -3,15 +3,11 @@
 import { ChevronDown, Clock, Facebook, Instagram, Mail, MapPin, Menu, Phone, Twitter, X, Youtube } from "lucide-react"
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, Outlet } from "react-router-dom"
 import { ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 
-interface LayoutProps {
-  children: React.ReactNode
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
@@ -306,8 +302,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         </div>
       </header>
 
-      {/* Main */}
-      <main className="flex-grow">{children}</main>
+      {/* Main Content */}
+      <main className="flex-grow">
+        <Outlet />
+      </main>
 
       {/* Footer */}
       <footer className="bg-gradient-to-r from-teal-800 to-teal-900 text-white shadow-inner relative">

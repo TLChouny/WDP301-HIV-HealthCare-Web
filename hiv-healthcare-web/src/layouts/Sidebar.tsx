@@ -23,6 +23,7 @@ import {
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
 } from '@mui/icons-material';
+import { Link, useLocation } from 'react-router-dom';
 
 export const drawerWidth = 240;
 export const collapsedDrawerWidth = 65;
@@ -35,6 +36,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ open, onClose, variant }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const location = useLocation();
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin' },
@@ -105,6 +107,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, variant }) => {
             placement="right"
           >
             <ListItemButton
+              component={Link}
+              to={item.path}
+              selected={location.pathname === item.path}
               sx={{
                 minHeight: 48,
                 justifyContent: isCollapsed ? 'center' : 'initial',
@@ -123,14 +128,22 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, variant }) => {
               <ListItemIcon 
                 sx={{
                   minWidth: 0,
-                  mr: isCollapsed ? 'auto' : 3,
+                  mr: isCollapsed ? 0 : 3,
                   justifyContent: 'center',
                   color: 'white',
                 }}
               >
                 {item.icon}
               </ListItemIcon>
-              {!isCollapsed && <ListItemText primary={item.text} />}
+              {!isCollapsed && (
+                <ListItemText 
+                  primary={item.text} 
+                  sx={{ 
+                    opacity: 1,
+                    transition: 'opacity 0.2s ease-in-out',
+                  }}
+                />
+              )}
             </ListItemButton>
           </Tooltip>
         ))}
@@ -152,14 +165,22 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, variant }) => {
             <ListItemIcon 
               sx={{
                 minWidth: 0,
-                mr: isCollapsed ? 'auto' : 3,
+                mr: isCollapsed ? 0 : 3,
                 justifyContent: 'center',
                 color: 'white',
               }}
             >
               <LogoutIcon />
             </ListItemIcon>
-            {!isCollapsed && <ListItemText primary="Đăng xuất" />}
+            {!isCollapsed && (
+              <ListItemText 
+                primary="Đăng xuất" 
+                sx={{ 
+                  opacity: 1,
+                  transition: 'opacity 0.2s ease-in-out',
+                }}
+              />
+            )}
           </ListItemButton>
         </Tooltip>
       </List>
