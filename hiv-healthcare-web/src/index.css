@@ -2,9 +2,138 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --primary: 15 118 110; /* teal-700 */
+  --primary-foreground: 255 255 255;
+  --secondary: 240 253 250; /* teal-50 */
+  --secondary-foreground: 15 118 110; /* teal-700 */
+  --accent: 20 184 166; /* teal-500 */
+  --accent-foreground: 255 255 255;
+  --background: 249 250 251; /* gray-50 */
+  --foreground: 31 41 55; /* gray-800 */
+  --muted: 243 244 246; /* gray-100 */
+  --muted-foreground: 107 114 128; /* gray-500 */
+  --border: 229 231 235; /* gray-200 */
+  --input: 229 231 235; /* gray-200 */
+  --ring: 20 184 166; /* teal-500 */
+}
 
 body {
-  font-family: 'Inter', sans-serif;
-  margin: 0;
-  padding: 0;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: rgb(var(--foreground));
+  background-color: rgb(var(--background));
+  scroll-behavior: smooth;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-weight: 700;
+  }
+}
+
+@layer components {
+  .container {
+    @apply px-4 mx-auto;
+    max-width: 1280px;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #0d9488;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #0f766e;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Toast animations */
+.Toastify__toast-enter {
+  transform: translateX(100%);
+}
+
+.Toastify__toast-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms ease-in-out;
+}
+
+.Toastify__toast-exit {
+  transform: translateX(0);
+}
+
+.Toastify__toast-exit-active {
+  transform: translateX(100%);
+  transition: transform 300ms ease-in-out;
+}
+
+.clip-path-background {
+  clip-path: polygon(
+    70% 14%,    /* Góc trên bên trái, cắt xén nhẹ */
+    25% 20%,    /* Góc trên bên phải, gần sát biên */
+    50% 20%,  /* Góc trên bên phải, bo tròn xuống */
+    10% 0%,  /* Góc dưới bên phải, sát biên */
+    59% 0%,  /* Góc dưới bên phải, cắt xén nhẹ */
+    47% 86%,  /* Góc dưới bên trái, sát biên */
+    0% 90%,    /* Góc dưới bên trái, bo tròn lên */
+    10% 0%     /* Góc trên bên trái, bo tròn lên */
+  );
+}
+
+.clip-path-foreground {
+  clip-path: polygon(
+    20% 0%,
+    72% 0%,
+    78% 95%,
+    70% 93%,
+    23% 82%,
+    20% 1%
+  );
 }

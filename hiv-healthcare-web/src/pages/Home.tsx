@@ -1,290 +1,944 @@
-import type React from "react"
+"use client"
+
+import React, { useEffect, useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { Heart, BookOpen, Calendar, Phone, Shield, Users, FileText } from "lucide-react"
+import { Search, ArrowRight, Phone, Calendar, FileText, Shield, Users, Heart, Info, MapPin } from "lucide-react"
+import doingubacsi from "../assets/doingubacsi.png"
+import doingubacsi2 from "../assets/doingubacsi2.png"
+import doingubacsi3 from "../assets/doingubacsi3.png"
+
+// Hàm tiện ích để kiểm tra nếu element trong viewport
+const useInView = (ref: React.RefObject<HTMLElement>, threshold = 0.1) => {
+  const [isVisible, setIsVisible] = useState(false)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          // Ngừng theo dõi sau khi hiển thị để tối ưu hiệu suất
+          observer.unobserve(entry.target)
+        }
+      },
+      { threshold },
+    )
+
+    const currentRef = ref.current
+    if (currentRef) {
+      observer.observe(currentRef)
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef)
+      }
+    }
+  }, [ref, threshold])
+
+  return isVisible
+}
+
+// Component Animation để bọc các phần tử cần animation
+interface AnimatedElementProps {
+  children: React.ReactNode
+  className?: string
+  delay?: number
+  duration?: number
+  animationType?: "fade-up" | "fade-down" | "fade-left" | "fade-right" | "zoom-in" | "zoom-out" | "flip" | "bounce"
+}
+
+const AnimatedElement: React.FC<AnimatedElementProps> = ({
+  children,
+  className = "",
+  delay = 0,
+  duration = 800,
+  animationType = "fade-up",
+}) => {
+  const ref = useRef<HTMLDivElement>(null)
+  const isVisible = useInView(ref)
+
+  // Xác định các style animation dựa trên type
+  const getAnimationStyles = () => {
+    const baseStyles = {
+      opacity: isVisible ? 1 : 0,
+      transition: `opacity ${duration}ms, transform ${duration}ms`,
+      transitionDelay: `${delay}ms`,
+    }
+
+    // Thêm transform dựa trên loại animation
+    switch (animationType) {
+      case "fade-up":
+        return {
+          ...baseStyles,
+          transform: isVisible ? "translateY(0)" : "translateY(40px)",
+        }
+      case "fade-down":
+        return {
+          ...baseStyles,
+          transform: isVisible ? "translateY(0)" : "translateY(-40px)",
+        }
+      case "fade-left":
+        return {
+          ...baseStyles,
+          transform: isVisible ? "translateX(0)" : "translateX(-40px)",
+        }
+      case "fade-right":
+        return {
+          ...baseStyles,
+          transform: isVisible ? "translateX(0)" : "translateX(40px)",
+        }
+      case "zoom-in":
+        return {
+          ...baseStyles,
+          transform: isVisible ? "scale(1)" : "scale(0.9)",
+        }
+      case "zoom-out":
+        return {
+          ...baseStyles,
+          transform: isVisible ? "scale(1)" : "scale(1.1)",
+        }
+      case "flip":
+        return {
+          ...baseStyles,
+          transform: isVisible ? "rotateY(0)" : "rotateY(90deg)",
+        }
+      case "bounce":
+        if (isVisible) {
+          return {
+            opacity: 1,
+            animation: `bounce ${duration}ms ${delay}ms`,
+          }
+        }
+        return {
+          opacity: 0,
+        }
+      default:
+        return baseStyles
+    }
+  }
+
+  return (
+    <div ref={ref} className={className} style={getAnimationStyles()}>
+      {children}
+    </div>
+  )
+}
+
+// Component để tạo hiệu ứng stagger cho các phần tử con
+interface StaggerContainerProps {
+  children: React.ReactNode
+  className?: string
+  staggerDelay?: number
+  initialDelay?: number
+}
+
+const StaggerContainer: React.FC<StaggerContainerProps> = ({
+  children,
+  className = "",
+  staggerDelay = 100,
+  initialDelay = 0,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const isVisible = useInView(containerRef)
+
+  // Clone các phần tử con và thêm delay tăng dần
+  const staggeredChildren = React.Children.map(children, (child, index) => {
+    if (React.isValidElement(child)) {
+      return React.cloneElement(child, {
+        ...child.props,
+        style: {
+          ...child.props.style,
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? "none" : "translateY(20px)",
+          transition: "opacity 500ms, transform 500ms",
+          transitionDelay: `${initialDelay + index * staggerDelay}ms`,
+        },
+      })
+    }
+    return child
+  })
+
+  return (
+    <div ref={containerRef} className={className}>
+      {staggeredChildren}
+    </div>
+  )
+}
+
+// Component tạo hiệu ứng parallax khi cuộn
+interface ParallaxSectionProps {
+  children: React.ReactNode
+  speed?: number
+  className?: string
+}
+
+const ParallaxSection: React.FC<ParallaxSectionProps> = ({ children, speed = 0.2, className = "" }) => {
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const [offset, setOffset] = useState(0)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!sectionRef.current) return
+      const { top } = sectionRef.current.getBoundingClientRect()
+      const newOffset = top * speed
+      setOffset(newOffset)
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    handleScroll() // Gọi ngay lập tức để thiết lập giá trị ban đầu
+
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [speed])
+
+  return (
+    <div ref={sectionRef} className={`relative overflow-hidden ${className}`}>
+      <div
+        style={{
+          transform: `translateY(${offset}px)`,
+          transition: "transform 0.1s linear",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
 
 const Home: React.FC = () => {
+  // Scroll progress indicator
+  const [scrollProgress, setScrollProgress] = useState(0)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.body.scrollHeight - window.innerHeight
+      const progress = (window.scrollY / totalHeight) * 100
+      setScrollProgress(progress)
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+    <div className="min-h-screen relative">
+      {/* Scroll Progress Indicator */}
+      <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
+        <div
+          className="h-full bg-gradient-to-r from-teal-500 to-teal-700 transition-all duration-150 ease-out"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-teal-500 to-teal-600 shadow-xl">
-        <div className="absolute inset-0 opacity-10 bg-[url('/placeholder.svg?height=800&width=1200')] bg-cover bg-center"></div>
-        <div className="relative z-10 flex flex-col lg:flex-row items-center p-8 lg:p-12">
-          <div className="lg:w-3/5 text-white space-y-6">
-            <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-sm text-white text-sm font-medium mb-2">
-              <Heart className="w-4 h-4 mr-2 text-red-400" />
-              <span>Chăm sóc sức khỏe toàn diện</span>
+      <section className="bg-gradient-to-r from-teal-700 to-teal-900 text-white py-16 relative overflow-hidden">
+        {/* Background Animation Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500 rounded-full opacity-10 blur-3xl animate-pulse"></div>
+          <div
+            className="absolute bottom-0 left-0 w-64 h-64 bg-teal-400 rounded-full opacity-10 blur-3xl animate-pulse"
+            style={{ animationDelay: "1s" }}
+          ></div>
+        </div>
+
+        <div className="container mx-auto px-4 flex flex-col lg:flex-row items-center relative z-10">
+          <AnimatedElement animationType="fade-right" duration={1000} className="lg:w-1/2 mb-10 lg:mb-0">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+              Tìm Bác Sĩ <br />
+              Chuyên Khoa HIV.
+            </h1>
+
+            <AnimatedElement animationType="fade-up" delay={300} duration={800}>
+              <p className="text-teal-100 mb-8 text-lg">
+                Đội ngũ y bác sĩ chuyên khoa giàu kinh nghiệm, tận tâm và không kỳ thị
+              </p>
+            </AnimatedElement>
+
+            <AnimatedElement animationType="zoom-in" delay={600} duration={800}>
+              <div className="bg-white p-6 rounded-lg shadow-xl max-w-md transform transition-all duration-500 hover:shadow-2xl">
+                <div className="mb-4">
+                  <label htmlFor="location" className="block text-gray-700 text-sm font-medium mb-1">
+                    Nhập địa chỉ, tỉnh/thành phố
+                  </label>
+                  <div className="relative group">
+                    <input
+                      type="text"
+                      id="location"
+                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
+                      placeholder="Nhập địa chỉ của bạn..."
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <Search className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" />
+                    </div>
+                  </div>
+                </div>
+                <button className="w-full bg-teal-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800">
+                  Tìm Kiếm
+                </button>
+              </div>
+            </AnimatedElement>
+          </AnimatedElement>
+
+          <AnimatedElement animationType="fade-left" delay={300} duration={1000} className="lg:w-1/2 lg:pl-10">
+            <div className="relative group">
+              {/* Lớp nền thứ nhất (khung cyan giống ảnh) */}
+              <div className="absolute inset-0 z-0">
+                <div className="w-full h-full bg-cyan-800 rounded-lg clip-path-background transform scale-105 shadow-lg">
+                  <div className="absolute w-full h-full bg-[radial-gradient(circle_at_top_left,#00ff00_0%,transparent_50%)] opacity-20"></div>
+                  <div className="absolute w-full h-full bg-[length:20px_20px] bg-[radial-gradient(circle,rgba(0,255,0,0.1)_10%,transparent_10%)] opacity-30 animate-pulse"></div>
+                </div>
+              </div>
+              {/* Lớp thứ hai (hình ảnh và viền cắt xén gốc) */}
+              <div className="relative z-10">
+                <img
+                  src={doingubacsi}
+                  alt="Đội ngũ y bác sĩ"
+                  className="rounded-lg transition-transform duration-500 group-hover:scale-105 clip-path-foreground ring-2 ring-cyan-200 shadow-xl"
+                />
+              </div>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight">Hệ Thống Dịch Vụ Y Tế HIV</h1>
-            <p className="text-lg md:text-xl text-white/90 max-w-2xl">
-              Hỗ trợ điều trị HIV toàn diện, đặt lịch khám dễ dàng, tra cứu xét nghiệm, và đồng hành cùng bạn trên hành
-              trình chăm sóc sức khỏe.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
-              <Link
-                to="/appointment"
-                className="inline-flex items-center justify-center bg-white text-teal-700 px-6 py-3 rounded-lg font-medium hover:bg-teal-50 transition-all hover:shadow-lg"
-              >
-                <Calendar className="w-5 h-5 mr-2" />
-                Đặt Lịch Khám
-              </Link>
-              <Link
-                to="/contact"
-                className="inline-flex items-center justify-center bg-teal-700/30 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-lg font-medium hover:bg-teal-700/50 transition-all"
-              >
-                <Phone className="w-5 h-5 mr-2" />
-                Tư Vấn Ngay
-              </Link>
-            </div>
-          </div>
-          <div className="lg:w-2/5 mt-8 lg:mt-0 flex justify-center">
-            <img
-              src="/placeholder.svg?height=300&width=300"
-              alt="Chăm sóc sức khỏe"
-              className="w-64 h-64 object-cover rounded-full border-4 border-white/30 shadow-lg"
-            />
+          </AnimatedElement>
+        </div>
+      </section>
+
+      {/* Services Icons Section */}
+      <section className="py-16 bg-white relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <AnimatedElement animationType="fade-up" duration={800} className="mb-12">
+            <h2 className="text-3xl font-bold text-center text-gray-800 relative inline-block mx-auto">
+              <span className="relative z-10">Dịch Vụ Nổi Bật</span>
+              <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
+            </h2>
+          </AnimatedElement>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                icon: (
+                  <FileText className="h-10 w-10 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                ),
+                title: "Tư Vấn Xét Nghiệm",
+                description: "Tư vấn trước và sau xét nghiệm HIV miễn phí, bảo mật và không kỳ thị",
+              },
+              {
+                icon: (
+                  <Shield className="h-10 w-10 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                ),
+                title: "Điều Trị ARV",
+                description: "Điều trị ARV hiện đại, theo dõi sát sao và hỗ trợ tuân thủ điều trị",
+              },
+              {
+                icon: (
+                  <Heart className="h-10 w-10 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                ),
+                title: "Chăm Sóc Toàn Diện",
+                description: "Chăm sóc sức khỏe toàn diện cho người sống chung với HIV",
+              },
+              {
+                icon: (
+                  <Users className="h-10 w-10 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                ),
+                title: "Hỗ Trợ Tâm Lý",
+                description: "Tư vấn tâm lý và hỗ trợ xã hội cho người nhiễm và gia đình",
+              },
+            ].map((service, index) => (
+              <AnimatedElement key={index} animationType="zoom-in" delay={300 + index * 150} duration={800}>
+                <div className="group text-center p-6 border border-gray-100 rounded-lg transition-all duration-500 hover:shadow-xl hover:border-teal-100 hover:-translate-y-2 bg-white relative overflow-hidden">
+                  {/* Background hover effect */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                  <div className="relative z-10">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-50 mb-4 transition-all duration-500 group-hover:bg-teal-100 group-hover:scale-110 group-hover:shadow-md">
+                      {service.icon}
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-gray-800 transition-transform duration-300 group-hover:translate-y-[-2px]">
+                      {service.title}
+                    </h3>
+                    <p className="text-gray-600 transition-all duration-300 group-hover:text-gray-700">
+                      {service.description}
+                    </p>
+                  </div>
+                </div>
+              </AnimatedElement>
+            ))}
           </div>
         </div>
-        <div className="bg-gradient-to-r from-red-500 to-red-600 h-2 w-full"></div>
+      </section>
+
+      {/* Home Care Section */}
+      <ParallaxSection speed={0.15} className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-center">
+            <AnimatedElement animationType="fade-right" duration={1000} className="lg:w-1/2 mb-10 lg:mb-0">
+              <div className="group">
+                <div className="relative">
+                  <div className="absolute top-4 left-4 w-full h-full bg-teal-500/20 rounded-lg -z-10"></div>
+                  <img
+                    src={doingubacsi2 || "/placeholder.svg"}
+                    alt="Chăm sóc tại nhà"
+                    className="rounded-lg shadow-xl transition-all duration-800 group-hover:shadow-2xl relative z-10"
+                  />
+
+                  {/* Decorative elements */}
+                  <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-teal-100 rounded-full opacity-70 z-0 transition-transform duration-500 group-hover:scale-125"></div>
+                </div>
+              </div>
+            </AnimatedElement>
+
+            <div className="lg:w-1/2 lg:pl-16">
+              <AnimatedElement animationType="fade-left" duration={800}>
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
+                  Mang Dịch Vụ Chăm Sóc Đến Tận Nhà Chỉ Với Một Cú Nhấp Chuột
+                </h2>
+              </AnimatedElement>
+
+              <AnimatedElement animationType="fade-up" delay={300} duration={800}>
+                <p className="text-gray-600 mb-8 text-lg">
+                  Chúng tôi hiểu rằng việc di chuyển có thể khó khăn đối với một số bệnh nhân. Vì vậy, chúng tôi cung
+                  cấp dịch vụ chăm sóc tại nhà, tư vấn trực tuyến và giao thuốc tận nơi.
+                </p>
+              </AnimatedElement>
+
+              <AnimatedElement animationType="fade-up" delay={500} duration={800}>
+                <div className="flex flex-wrap items-center gap-4">
+                  <button className="bg-teal-600 text-white py-3 px-6 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 flex items-center group">
+                    <Phone className="h-5 w-5 mr-2 transition-transform duration-300 group-hover:rotate-12" />
+                    <span>Gọi Ngay</span>
+                  </button>
+                  <button className="bg-white border border-teal-600 text-teal-600 py-3 px-6 rounded-lg font-medium transition-all duration-300 hover:bg-teal-50 hover:shadow-md active:scale-95 active:bg-teal-100 flex items-center group">
+                    <Calendar className="h-5 w-5 mr-2 transition-transform duration-300 group-hover:rotate-12" />
+                    <span>Đặt Lịch</span>
+                  </button>
+                </div>
+              </AnimatedElement>
+            </div>
+          </div>
+        </div>
+      </ParallaxSection>
+
+      {/* Experienced Staff Section */}
+      <section className="py-16 bg-white relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-50 rounded-full opacity-70 -z-10 transform translate-x-1/3 -translate-y-1/3"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-50 rounded-full opacity-70 -z-10 transform -translate-x-1/3 translate-y-1/3"></div>
+
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-center">
+            <div className="lg:w-1/2 lg:pr-16 mb-10 lg:mb-0">
+              <AnimatedElement animationType="fade-right" duration={800}>
+                <h2 className="text-3xl font-bold text-teal-700 mb-6 relative">
+                  <span className="relative z-10">Đội Ngũ Y Bác Sĩ Giàu Kinh Nghiệm</span>
+                  <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
+                </h2>
+              </AnimatedElement>
+
+              <AnimatedElement animationType="fade-up" delay={200} duration={800}>
+                <p className="text-gray-600 mb-8">
+                  Đội ngũ y bác sĩ của chúng tôi có nhiều năm kinh nghiệm trong lĩnh vực điều trị và chăm sóc HIV/AIDS.
+                  Họ không chỉ giỏi chuyên môn mà còn tận tâm, nhiệt tình và luôn đặt bệnh nhân lên hàng đầu.
+                </p>
+              </AnimatedElement>
+
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                {[
+                  {
+                    icon: (
+                      <Shield className="h-6 w-6 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                    ),
+                    title: "Chuyên Môn Cao",
+                    description: "Được đào tạo bài bản",
+                  },
+                  {
+                    icon: (
+                      <Heart className="h-6 w-6 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                    ),
+                    title: "Tận Tâm",
+                    description: "Đặt bệnh nhân lên hàng đầu",
+                  },
+                  {
+                    icon: (
+                      <Users className="h-6 w-6 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                    ),
+                    title: "Không Kỳ Thị",
+                    description: "Môi trường thân thiện",
+                  },
+                  {
+                    icon: (
+                      <Info className="h-6 w-6 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                    ),
+                    title: "Cập Nhật",
+                    description: "Phương pháp điều trị mới nhất",
+                  },
+                ].map((feature, index) => (
+                  <AnimatedElement key={index} animationType="fade-up" delay={400 + index * 150} duration={800}>
+                    <div className="group flex items-center transition-all duration-500 hover:bg-teal-50 p-3 rounded-lg hover:shadow-md">
+                      <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center mr-4 transition-all duration-300 group-hover:bg-teal-200 group-hover:scale-110">
+                        {feature.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-gray-800 transition-transform duration-300 group-hover:translate-y-[-2px]">
+                          {feature.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 transition-all duration-300 group-hover:text-gray-700">
+                          {feature.description}
+                        </p>
+                      </div>
+                    </div>
+                  </AnimatedElement>
+                ))}
+              </div>
+
+              <AnimatedElement animationType="fade-up" delay={800} duration={800}>
+                <button className="bg-teal-600 text-white py-3 px-6 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 relative overflow-hidden group">
+                  <span className="relative z-10">Tìm Hiểu Thêm</span>
+                </button>
+              </AnimatedElement>
+            </div>
+
+            <AnimatedElement animationType="fade-left" delay={300} duration={1000} className="lg:w-1/2">
+              <div className="relative group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-teal-200 rounded-full opacity-50 -z-10 transform translate-x-10 -translate-y-10 transition-all duration-500 group-hover:scale-110"></div>
+                <div className="relative z-10 transition-transform duration-700 group-hover:scale-105">
+                  <img
+                    src={doingubacsi3 || "/placeholder.svg"}
+                    alt="Bác sĩ chuyên khoa"
+                    className="rounded-lg shadow-xl transition-all duration-500 group-hover:shadow-2xl"
+                  />
+                </div>
+              </div>
+            </AnimatedElement>
+          </div>
+        </div>
       </section>
 
       {/* Services Section */}
-      <section className="py-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">Dịch Vụ Của Chúng Tôi</h2>
-          <p className="text-gray-600 max-w-3xl mx-auto">
-            Cung cấp các dịch vụ chăm sóc sức khỏe toàn diện cho người sống chung với HIV
-          </p>
+      <section className="py-16 bg-gradient-to-br from-teal-800 to-teal-900 text-white relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-teal-600 rounded-full opacity-10 blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-500 rounded-full opacity-10 blur-3xl"></div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            {
-              icon: <Calendar className="w-10 h-10 text-teal-600" />,
-              title: "Đặt Lịch Khám",
-              desc: "Đặt lịch khám trực tuyến nhanh chóng, tiết kiệm thời gian chờ đợi.",
-            },
-            {
-              icon: <FileText className="w-10 h-10 text-teal-600" />,
-              title: "Kết Quả Xét Nghiệm",
-              desc: "Tra cứu kết quả xét nghiệm trực tuyến, bảo mật và an toàn.",
-            },
-            {
-              icon: <Shield className="w-10 h-10 text-teal-600" />,
-              title: "Tư Vấn Điều Trị",
-              desc: "Đội ngũ bác sĩ chuyên khoa tư vấn phác đồ điều trị phù hợp.",
-            },
-          ].map((service, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all p-6 border border-gray-100 flex flex-col items-center text-center group hover:border-teal-200"
-            >
-              <div className="p-3 bg-teal-50 rounded-full mb-4 group-hover:bg-teal-100 transition-colors">
-                {service.icon}
-              </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">{service.title}</h3>
-              <p className="text-gray-600">{service.desc}</p>
-              <Link to="#" className="mt-4 text-teal-600 font-medium hover:text-teal-700 inline-flex items-center">
-                Tìm hiểu thêm
-                <svg
-                  className="w-4 h-4 ml-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </Link>
-            </div>
-          ))}
+        <div className="container mx-auto px-4 relative z-10">
+          <AnimatedElement animationType="fade-up" duration={800} className="mb-12">
+            <h2 className="text-3xl font-bold text-center relative inline-block mx-auto">
+              <span className="relative z-10">Dịch Vụ Dành Cho Bạn</span>
+              <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-600/50 -z-10 transform -rotate-1"></span>
+            </h2>
+          </AnimatedElement>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                icon: (
+                  <FileText className="h-10 w-10 text-teal-200 transition-transform duration-300 group-hover:scale-110" />
+                ),
+                title: "Tư Vấn & Xét Nghiệm",
+                description: "Tư vấn trước và sau xét nghiệm HIV, xét nghiệm nhanh và bảo mật kết quả.",
+                link: "/services/testing",
+              },
+              {
+                icon: (
+                  <Shield className="h-10 w-10 text-teal-200 transition-transform duration-300 group-hover:scale-110" />
+                ),
+                title: "Điều Trị ARV",
+                description: "Điều trị ARV hiện đại, theo dõi tải lượng virus và tư vấn tuân thủ điều trị.",
+                link: "/services/treatment",
+              },
+              {
+                icon: (
+                  <Users className="h-10 w-10 text-teal-200 transition-transform duration-300 group-hover:scale-110" />
+                ),
+                title: "Hỗ Trợ Tâm Lý",
+                description: "Tư vấn tâm lý cá nhân và nhóm, hỗ trợ vượt qua khó khăn và kỳ thị.",
+                link: "/services/support",
+              },
+            ].map((service, index) => (
+              <AnimatedElement key={index} animationType="zoom-in" delay={300 + index * 150} duration={800}>
+                <div className="group bg-teal-700/80 backdrop-blur-sm rounded-lg p-6 transition-all duration-500 hover:bg-teal-600 hover:-translate-y-2 hover:shadow-lg relative overflow-hidden">
+                  <div className="relative z-10">
+                    <div className="mb-4 transition-transform duration-500 group-hover:scale-110">{service.icon}</div>
+                    <h3 className="text-xl font-semibold mb-3 transition-transform duration-300 group-hover:translate-y-[-2px]">
+                      {service.title}
+                    </h3>
+                    <p className="text-teal-100 mb-4 transition-all duration-300 group-hover:text-white">
+                      {service.description}
+                    </p>
+                    <Link
+                      to={service.link}
+                      className="inline-flex items-center text-teal-200 hover:text-white transition-all duration-300 group-hover:translate-x-2 relative"
+                    >
+                      <span>Tìm hiểu thêm</span>
+                      <ArrowRight className="h-4 w-4 ml-2 transition-all duration-300 group-hover:ml-3" />
+                    </Link>
+                  </div>
+                </div>
+              </AnimatedElement>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Educational Resources */}
-      <section className="py-4 bg-gray-50 rounded-2xl p-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Tài Liệu Giáo Dục</h2>
-            <p className="text-gray-600">Kiến thức cần thiết về HIV và cách chăm sóc sức khỏe</p>
-          </div>
-          <Link
-            to="/resources"
-            className="mt-4 md:mt-0 inline-flex items-center text-teal-600 font-medium hover:text-teal-700"
-          >
-            Xem tất cả tài liệu
-            <svg
-              className="w-4 h-4 ml-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
+      {/* CTA Section */}
+      <section className="py-12 bg-gradient-to-r from-teal-600 to-teal-700 text-white relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col md:flex-row items-center justify-between">
+            <AnimatedElement animationType="fade-right" duration={800} className="mb-6 md:mb-0">
+              <h2 className="text-2xl font-bold mb-2">Nhận thông tin mới nhất về HIV/AIDS</h2>
+              <p className="text-teal-100">Đăng ký nhận bản tin của chúng tôi ngay hôm nay</p>
+            </AnimatedElement>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            {
-              icon: <BookOpen className="w-6 h-6 text-red-500" />,
-              title: "Hiểu Biết HIV",
-              desc: "Tài liệu cơ bản về HIV/AIDS, cách phòng ngừa và điều trị.",
-              link: "#",
-              color: "bg-red-50 border-red-100",
-            },
-            {
-              icon: <Users className="w-6 h-6 text-teal-500" />,
-              title: "Sống Chung Với HIV",
-              desc: "Hành trình vượt qua kỳ thị và sống tích cực với HIV.",
-              link: "#",
-              color: "bg-teal-50 border-teal-100",
-            },
-            {
-              icon: <Shield className="w-6 h-6 text-blue-500" />,
-              title: "Phác Đồ ARV",
-              desc: "Thông tin chi tiết về các phác đồ điều trị HIV hiện đại.",
-              link: "#",
-              color: "bg-blue-50 border-blue-100",
-            },
-          ].map((item, index) => (
-            <div
-              key={index}
-              className={`p-6 bg-white rounded-xl shadow-sm hover:shadow-md transition-all border ${item.color} flex flex-col h-full`}
-            >
-              <div className="flex items-start mb-4">
-                <div className={`p-2 rounded-lg ${item.color}`}>{item.icon}</div>
+            <AnimatedElement animationType="fade-left" delay={300} duration={800}>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative group">
+                  <input
+                    type="email"
+                    placeholder="Nhập email của bạn"
+                    className="px-4 py-3 rounded-lg focus:outline-none text-gray-800 min-w-[250px] transition-all duration-300 focus:ring-2 focus:ring-teal-400 group-hover:shadow-lg"
+                  />
+                </div>
+                <button className="bg-teal-800 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:bg-teal-900 hover:shadow-lg active:scale-95 active:bg-teal-950 relative overflow-hidden group">
+                  <span className="relative z-10">Đăng Ký</span>
+                </button>
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">{item.title}</h3>
-              <p className="text-gray-600 flex-grow">{item.desc}</p>
-              <a
-                href={item.link}
-                className="mt-4 inline-flex items-center text-teal-600 font-medium hover:text-teal-700"
+            </AnimatedElement>
+          </div>
+        </div>
+      </section>
+
+      {/* Specialists Section */}
+      <section className="py-16 bg-white relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <AnimatedElement animationType="fade-up" duration={800} className="mb-12">
+            <h2 className="text-3xl font-bold text-center text-gray-800 relative inline-block mx-auto">
+              <span className="relative z-10">Tìm Kiếm Theo Chuyên Khoa</span>
+              <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
+            </h2>
+          </AnimatedElement>
+
+          <StaggerContainer
+            staggerDelay={100}
+            initialDelay={300}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6"
+          >
+            {[
+              {
+                icon: (
+                  <FileText className="h-8 w-8 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                ),
+                name: "Tư Vấn Xét Nghiệm",
+              },
+              {
+                icon: (
+                  <Shield className="h-8 w-8 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                ),
+                name: "Điều Trị ARV",
+              },
+              {
+                icon: (
+                  <Heart className="h-8 w-8 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                ),
+                name: "Dinh Dưỡng",
+              },
+              {
+                icon: (
+                  <Users className="h-8 w-8 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                ),
+                name: "Tâm Lý",
+              },
+              {
+                icon: (
+                  <Info className="h-8 w-8 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
+                ),
+                name: "Bệnh Đồng Nhiễm",
+              },
+            ].map((specialist, index) => (
+              <div
+                key={index}
+                className="group flex flex-col items-center p-4 border border-gray-100 rounded-lg transition-all duration-500 hover:shadow-xl hover:border-teal-200 hover:-translate-y-2 bg-white relative overflow-hidden"
               >
-                Tải xuống
-                <svg
-                  className="w-4 h-4 ml-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                </svg>
-              </a>
-            </div>
-          ))}
+                {/* Background hover effect */}
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                <div className="relative z-10">
+                  <div className="w-16 h-16 rounded-full bg-teal-50 flex items-center justify-center mb-3 transition-all duration-500 group-hover:bg-teal-100 group-hover:shadow-md">
+                    {specialist.icon}
+                  </div>
+                  <h3 className="font-medium text-gray-800 transition-transform duration-300 group-hover:translate-y-[-2px] text-center">
+                    {specialist.name}
+                  </h3>
+                </div>
+              </div>
+            ))}
+          </StaggerContainer>
+        </div>
+      </section>
+
+      {/* Doctors Section */}
+      <ParallaxSection speed={0.1} className="py-16 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <AnimatedElement animationType="fade-up" duration={800} className="mb-4">
+            <h2 className="text-3xl font-bold text-center text-gray-800 relative inline-block mx-auto">
+              <span className="relative z-10">Đội Ngũ Chuyên Gia</span>
+              <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
+            </h2>
+          </AnimatedElement>
+
+          <AnimatedElement animationType="fade-up" delay={200} duration={800} className="mb-12">
+            <p className="text-gray-600 text-center max-w-3xl mx-auto">
+              Đội ngũ y bác sĩ giàu kinh nghiệm, tận tâm và được đào tạo chuyên sâu về HIV/AIDS
+            </p>
+          </AnimatedElement>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              { name: "BS. Nguyễn Văn A", role: "Chuyên Gia Điều Trị HIV" },
+              { name: "BS. Trần Thị B", role: "Chuyên Gia Tư Vấn Xét Nghiệm" },
+              { name: "ThS. Lê Văn C", role: "Chuyên Viên Tâm Lý" },
+              { name: "BS. Phạm Thị D", role: "Chuyên Gia Dinh Dưỡng" },
+            ].map((doctor, index) => (
+              <AnimatedElement key={index} animationType="fade-up" delay={300 + index * 150} duration={800}>
+                <div className="group bg-white rounded-lg overflow-hidden shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-2 relative">
+                  <div className="overflow-hidden">
+                    <img
+                      src="/placeholder.svg?height=300&width=300"
+                      alt={doctor.name}
+                      className="w-full h-64 object-cover object-center transition-transform duration-700 group-hover:scale-110"
+                    />
+                    {/* Overlay on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-teal-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  </div>
+
+                  <div className="p-6 relative">
+                    <h3 className="text-xl font-semibold mb-1 text-gray-800 transition-transform duration-300 group-hover:translate-y-[-2px]">
+                      {doctor.name}
+                    </h3>
+                    <p className="text-teal-600 mb-4">{doctor.role}</p>
+                    <button className="text-teal-600 font-medium flex items-center transition-all duration-300 group-hover:text-teal-700 relative">
+                      <span>Xem hồ sơ</span>
+                      <ArrowRight className="h-4 w-4 ml-1 transition-all duration-300 group-hover:ml-2" />
+                    </button>
+                  </div>
+                </div>
+              </AnimatedElement>
+            ))}
+          </div>
+        </div>
+      </ParallaxSection>
+
+      {/* Contact Section */}
+      <section className="py-16 bg-gradient-to-br from-teal-700 to-teal-800 text-white relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex flex-col lg:flex-row">
+            <AnimatedElement animationType="fade-right" duration={800} className="lg:w-1/2 mb-10 lg:mb-0 lg:pr-10">
+              <h2 className="text-3xl font-bold mb-6 relative inline-block">
+                <span className="relative z-10">Liên Hệ Với Chúng Tôi</span>
+                <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-600/50 -z-10 transform -rotate-1"></span>
+              </h2>
+              <p className="text-teal-100 mb-8">
+                Hãy liên hệ với chúng tôi nếu bạn có bất kỳ câu hỏi nào về dịch vụ chăm sóc HIV/AIDS. Đội ngũ tư vấn
+                viên của chúng tôi luôn sẵn sàng hỗ trợ bạn.
+              </p>
+              <div className="mb-8 space-y-4">
+                <AnimatedElement animationType="fade-up" delay={200} duration={800}>
+                  <div className="group flex items-start transition-all duration-300 hover:bg-teal-600/30 p-3 rounded-lg">
+                    <div className="p-2 bg-teal-600/30 rounded-full mr-3 mt-1 transition-all duration-300 group-hover:bg-teal-600/50 group-hover:scale-110">
+                      <MapPin className="h-6 w-6 text-teal-200" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-1">Địa Chỉ</h3>
+                      <p className="text-teal-100">123 Đường Nguyễn Văn A, Quận 1, TP. Hồ Chí Minh</p>
+                    </div>
+                  </div>
+                </AnimatedElement>
+
+                <AnimatedElement animationType="fade-up" delay={300} duration={800}>
+                  <div className="group flex items-start transition-all duration-300 hover:bg-teal-600/30 p-3 rounded-lg">
+                    <div className="p-2 bg-teal-600/30 rounded-full mr-3 mt-1 transition-all duration-300 group-hover:bg-teal-600/50 group-hover:scale-110">
+                      <Phone className="h-6 w-6 text-teal-200" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold mb-1">Hotline</h3>
+                      <p className="text-teal-100">1800-1234 (Miễn phí)</p>
+                    </div>
+                  </div>
+                </AnimatedElement>
+              </div>
+            </AnimatedElement>
+
+            <AnimatedElement animationType="fade-left" delay={300} duration={800} className="lg:w-1/2">
+              <div className="bg-white rounded-lg shadow-xl p-8 text-gray-800 relative overflow-hidden">
+                <h3 className="text-2xl font-bold mb-6 text-gray-800 relative inline-block">
+                  <span className="relative z-10">Gửi Tin Nhắn</span>
+                  <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
+                </h3>
+
+                <div className="space-y-4">
+                  <div className="mb-4">
+                    <label htmlFor="name" className="block text-gray-700 text-sm font-medium mb-1">
+                      Họ và tên
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <label htmlFor="email" className="block text-gray-700 text-sm font-medium mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
+                    />
+                  </div>
+                  <div className="mb-6">
+                    <label htmlFor="message" className="block text-gray-700 text-sm font-medium mb-1">
+                      Tin nhắn
+                    </label>
+                    <textarea
+                      id="message"
+                      rows={4}
+                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
+                    ></textarea>
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-teal-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 relative overflow-hidden group"
+                  >
+                    <span className="relative z-10">Gửi</span>
+                  </button>
+                </div>
+              </div>
+            </AnimatedElement>
+          </div>
         </div>
       </section>
 
       {/* Blog Section */}
-      <section className="py-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Blog Chia Sẻ</h2>
-            <p className="text-gray-600">Câu chuyện và kinh nghiệm từ cộng đồng</p>
-          </div>
-          <Link
-            to="/blog"
-            className="mt-4 md:mt-0 inline-flex items-center text-teal-600 font-medium hover:text-teal-700"
-          >
-            Xem tất cả bài viết
-            <svg
-              className="w-4 h-4 ml-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
-        </div>
+      <section className="py-16 bg-white relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <AnimatedElement animationType="fade-up" duration={800} className="mb-12">
+            <h2 className="text-3xl font-bold text-center text-gray-800 relative inline-block mx-auto">
+              <span className="relative z-10">Bài Viết Mới Nhất</span>
+              <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
+            </h2>
+          </AnimatedElement>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {[
-            {
-              image: "/placeholder.svg?height=400&width=600",
-              title: "Hành Trình Sống Chung Với HIV",
-              desc: "Câu chuyện truyền cảm hứng từ những người đã vượt qua khó khăn và sống tích cực với HIV.",
-              author: "Bs. Nguyễn Văn A",
-              date: "15/05/2025",
-              link: "#",
-            },
-            {
-              image: "/placeholder.svg?height=400&width=600",
-              title: "Giảm Kỳ Thị HIV Trong Cộng Đồng",
-              desc: "Những nỗ lực và giải pháp giúp giảm kỳ thị và phân biệt đối xử với người sống chung với HIV.",
-              author: "Ths. Trần Thị B",
-              date: "10/05/2025",
-              link: "#",
-            },
-          ].map((item, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all overflow-hidden flex flex-col h-full border border-gray-100"
-            >
-              <img src={item.image || "/placeholder.svg"} alt={item.title} className="w-full h-48 object-cover" />
-              <div className="p-6 flex flex-col flex-grow">
-                <h3 className="text-xl font-semibold text-gray-800 mb-3">{item.title}</h3>
-                <p className="text-gray-600 mb-4 flex-grow">{item.desc}</p>
-                <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100">
-                  <div className="flex items-center">
-                    <div className="text-sm text-gray-500">
-                      <span className="font-medium text-gray-700">{item.author}</span>
-                      <span className="mx-1">•</span>
-                      <span>{item.date}</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                title: "Hiểu đúng về HIV/AIDS trong thời đại mới",
+                excerpt:
+                  "Những thông tin cập nhật và chính xác về HIV/AIDS, giúp bạn hiểu đúng và phòng ngừa hiệu quả.",
+                date: "15/05/2025",
+                comments: 5,
+                author: "BS. Nguyễn Văn A",
+              },
+              {
+                title: "Sống khỏe mạnh với HIV - Những điều cần biết",
+                excerpt:
+                  "Chia sẻ kinh nghiệm và lời khuyên giúp người sống chung với HIV duy trì lối sống khỏe mạnh và tích cực.",
+                date: "10/05/2025",
+                comments: 8,
+                author: "ThS. Lê Văn C",
+              },
+              {
+                title: "Tiến bộ mới trong điều trị HIV",
+                excerpt:
+                  "Cập nhật những tiến bộ mới nhất trong điều trị HIV, mang lại hy vọng và cải thiện chất lượng cuộc sống.",
+                date: "05/05/2025",
+                comments: 3,
+                author: "BS. Trần Thị B",
+              },
+            ].map((article, index) => (
+              <AnimatedElement key={index} animationType="fade-up" delay={300 + index * 150} duration={800}>
+                <div className="group border border-gray-200 rounded-lg overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-2 bg-white relative">
+                  <div className="overflow-hidden">
+                    <img
+                      src="/placeholder.svg?height=200&width=400"
+                      alt={article.title}
+                      className="w-full h-48 object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  </div>
+
+                  <div className="p-6 relative">
+                    <div className="flex items-center text-sm text-gray-500 mb-2">
+                      <span>{article.date}</span>
+                      <span className="mx-2">•</span>
+                      <span>{article.comments} bình luận</span>
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-gray-800 transition-transform duration-300 group-hover:translate-y-[-2px]">
+                      {article.title}
+                    </h3>
+                    <p className="text-gray-600 mb-4">{article.excerpt}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-500">{article.author}</span>
+                      <Link
+                        to="/blog"
+                        className="text-teal-600 font-medium flex items-center transition-all duration-300 group-hover:text-teal-700 relative"
+                      >
+                        <span>Đọc tiếp</span>
+                        <ArrowRight className="h-4 w-4 ml-1 transition-all duration-300 group-hover:ml-2" />
+                      </Link>
                     </div>
                   </div>
-                  <a
-                    href={item.link}
-                    className="inline-flex items-center text-teal-600 font-medium hover:text-teal-700"
-                  >
-                    Đọc thêm
-                    <svg
-                      className="w-4 h-4 ml-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </a>
                 </div>
-              </div>
-            </div>
-          ))}
+              </AnimatedElement>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* Support Section */}
-      <section className="bg-gradient-to-r from-red-500 to-red-600 rounded-2xl p-8 text-white">
-        <div className="flex flex-col md:flex-row items-center justify-between">
-          <div className="md:w-2/3 mb-6 md:mb-0">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Cần Hỗ Trợ Ngay?</h2>
-            <p className="text-white/90 text-lg">
-              Đội ngũ tư vấn viên của chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7. Hãy liên hệ ngay để được giải đáp mọi
-              thắc mắc.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link
-              to="/hotline"
-              className="inline-flex items-center justify-center bg-white text-red-600 px-6 py-3 rounded-lg font-medium hover:bg-red-50 transition-all"
-            >
-              <Phone className="w-5 h-5 mr-2" />
-              Gọi Hotline
-            </Link>
-            <Link
-              to="/chat"
-              className="inline-flex items-center justify-center bg-red-700/30 backdrop-blur-sm text-white border border-white/30 px-6 py-3 rounded-lg font-medium hover:bg-red-700/50 transition-all"
-            >
-              Tư Vấn Trực Tuyến
-            </Link>
-          </div>
+      {/* Partners Section */}
+      <section className="py-12 bg-gray-50 relative overflow-hidden">
+        <div className="container mx-auto px-4">
+          <AnimatedElement animationType="fade-up" duration={800} className="mb-8">
+            <h2 className="text-xl font-semibold text-center text-gray-600 relative inline-block mx-auto">
+              <span className="relative z-10">Đối Tác Của Chúng Tôi</span>
+              <span className="absolute bottom-0 left-0 w-full h-1 bg-teal-100 -z-10 transform -rotate-1"></span>
+            </h2>
+          </AnimatedElement>
+
+          <StaggerContainer
+            staggerDelay={150}
+            initialDelay={300}
+            className="flex flex-wrap justify-center items-center gap-8 md:gap-16"
+          >
+            {[1, 2, 3, 4, 5].map((partner) => (
+              <div
+                key={partner}
+                className="group grayscale transition-all duration-500 hover:grayscale-0 hover:scale-110 hover:drop-shadow-md"
+              >
+                <img
+                  src="/placeholder.svg?height=60&width=120"
+                  alt={`Đối tác ${partner}`}
+                  className="h-12 object-contain"
+                />
+              </div>
+            ))}
+          </StaggerContainer>
         </div>
       </section>
+
+      {/* Floating Action Button */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        // className="fixed bottom-8 right-8 w-12 h-12 bg-teal-600 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:bg-teal-700 hover:scale-110 z-50 group"
+        aria-label="Lên đầu trang"
+      >
+
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6 transition-transform duration-300 group-hover:-translate-y-1"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+        </svg>
+      </button>
     </div>
   )
 }
