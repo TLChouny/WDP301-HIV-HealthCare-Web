@@ -26,17 +26,18 @@ import {
   MoreVert as MoreVertIcon,
   Person as PersonIcon,
   Assignment as AssignmentIcon,
+  AccountCircle as AccountCircleIcon,
 } from '@mui/icons-material';
-import Sidebar, { drawerWidth } from './Sidebar';
+import Sidebar, { drawerWidth, collapsedDrawerWidth } from './Sidebar';
 import { Outlet } from 'react-router-dom';
 
 const AdminLayout: React.FC = () => {
+  const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleDrawerToggle = () => {
-    setSidebarOpen(!sidebarOpen);
+    setMobileOpen(!mobileOpen);
   };
 
   // Mock data - replace with actual data from your backend
@@ -54,13 +55,15 @@ const AdminLayout: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <AppBar
         position="fixed"
         sx={{
-          width: '100%',
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          ml: { md: `${drawerWidth}px` },
           bgcolor: '#115E59',
-          zIndex: (theme) => theme.zIndex.drawer + 1,
+          boxShadow: 'none',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
         }}
       >
         <Toolbar>
@@ -69,32 +72,42 @@ const AdminLayout: React.FC = () => {
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2 }}
+            sx={{ mr: 2, display: { md: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            HIV Healthcare - Admin Panel
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+            HIV Healthcare
           </Typography>
+          <IconButton color="inherit">
+            <NotificationsIcon />
+          </IconButton>
+          <IconButton color="inherit">
+            <AccountCircleIcon />
+          </IconButton>
         </Toolbar>
       </AppBar>
+
       <Sidebar
-        open={sidebarOpen}
+        open={mobileOpen}
         onClose={handleDrawerToggle}
-        variant="permanent"
+        variant={isMobile ? 'temporary' : 'permanent'}
       />
+
       <Box
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
-          width: '100%',
-          minHeight: '100vh',
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          ml: { md: `${drawerWidth}px` },
+          mt: '64px',
+          minHeight: 'calc(100vh - 64px)',
           bgcolor: '#f5f5f5',
-          marginTop: '64px', // Height of AppBar
         }}
       >
-        <Outlet />
+        <Box sx={{ p: 3 }}>
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );

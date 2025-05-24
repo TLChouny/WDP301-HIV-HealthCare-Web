@@ -44,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, variant }) => {
     { text: 'Quản lý bác sĩ', icon: <HospitalIcon />, path: '/admin/doctors' },
     { text: 'Lịch hẹn', icon: <CalendarIcon />, path: '/admin/appointments' },
     { text: 'Thuốc & Vật tư', icon: <MedicationIcon />, path: '/admin/medications' },
-    { text: 'Báo cáo & Thống kê', icon: <AssessmentIcon />, path: '/admin/reports' },
+    { text: 'Báo cáo & Thống kê', icon: <AssessmentIcon />, path: '/admin/statistics' },
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/admin/settings' },
   ];
 
