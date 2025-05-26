@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Phone, Mail, MapPin, Calendar, Search } from 'lucide-react';
+import { User, Phone, Mail, MapPin, Calendar, Search, FileText } from 'lucide-react';
 
 interface Doctor {
   id: string;
   name: string;
   specialty: string;
   degree: string;
+  license: string;
   schedule: string;
   phone?: string;
   email?: string;
@@ -22,6 +23,7 @@ const Nutritionists: React.FC = () => {
       name: 'BS. Trần Văn G',
       specialty: 'Dinh dưỡng',
       degree: 'Thạc sĩ Dinh dưỡng',
+      license: 'Số: 78901/HN-CC',
       schedule: 'Thứ 2 - Thứ 6: 8:00 - 17:00',
       phone: '0123 456 789',
       email: 'dr.tranvang@example.com',
@@ -32,6 +34,7 @@ const Nutritionists: React.FC = () => {
       name: 'BS. Nguyễn Thị H',
       specialty: 'Dinh dưỡng',
       degree: 'Tiến sĩ Dinh dưỡng',
+      license: 'Số: 89012/HCM-CC',
       schedule: 'Thứ 3 - Thứ 7: 9:00 - 18:00',
       phone: '0987 654 321',
       email: 'dr.nguyenthi@example.com',
@@ -42,6 +45,7 @@ const Nutritionists: React.FC = () => {
       name: 'BS. Lê Văn I',
       specialty: 'Dinh dưỡng',
       degree: 'Thạc sĩ Dinh dưỡng',
+      license: 'Số: 90123/HUE-CC',
       schedule: 'Thứ 2 - Thứ 7: 8:00 - 16:00',
       phone: '0988 777 666',
       email: 'dr.levani@example.com',
@@ -114,6 +118,16 @@ const Nutritionists: React.FC = () => {
                     <div className="ml-3">
                       <p className="font-medium text-gray-800">Bằng cấp</p>
                       <p>{doctor.degree}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-6 h-6 text-green-600">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="font-medium text-gray-800">Chứng chỉ hành nghề</p>
+                      <p>{doctor.license}</p>
                     </div>
                   </div>
 

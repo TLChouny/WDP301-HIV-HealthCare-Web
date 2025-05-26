@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Phone, Mail, MapPin, Calendar, Search } from 'lucide-react';
+import { User, Phone, Mail, MapPin, Calendar, Search, FileText } from 'lucide-react';
 
 interface Doctor {
   id: string;
   name: string;
   specialty: string;
   degree: string;
+  license: string;
   schedule: string;
   phone?: string;
   email?: string;
@@ -22,6 +23,7 @@ const Counselors: React.FC = () => {
       name: 'BS. Phạm Thị D',
       specialty: 'Tư vấn tâm lý',
       degree: 'Thạc sĩ Tâm lý học',
+      license: 'Số: 45678/HN-CC',
       schedule: 'Thứ 2 - Thứ 6: 8:00 - 17:00',
       phone: '0123 456 789',
       email: 'dr.phamthid@example.com',
@@ -32,6 +34,7 @@ const Counselors: React.FC = () => {
       name: 'BS. Hoàng Văn E',
       specialty: 'Tư vấn tâm lý',
       degree: 'Tiến sĩ Tâm lý học',
+      license: 'Số: 56789/HCM-CC',
       schedule: 'Thứ 3 - Thứ 7: 9:00 - 18:00',
       phone: '0987 654 321',
       email: 'dr.hoangvane@example.com',
@@ -42,6 +45,7 @@ const Counselors: React.FC = () => {
       name: 'BS. Lê Thị F',
       specialty: 'Tư vấn tâm lý',
       degree: 'Thạc sĩ Tâm lý học',
+      license: 'Số: 67890/HUE-CC',
       schedule: 'Thứ 2 - Thứ 7: 8:00 - 16:00',
       phone: '0988 777 666',
       email: 'dr.lethif@example.com',
@@ -115,6 +119,16 @@ const Counselors: React.FC = () => {
                     <div className="ml-3">
                       <p className="font-medium text-gray-800">Bằng cấp</p>
                       <p>{doctor.degree}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-6 h-6 text-blue-600">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="font-medium text-gray-800">Chứng chỉ hành nghề</p>
+                      <p>{doctor.license}</p>
                     </div>
                   </div>
 

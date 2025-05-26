@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Phone, Mail, MapPin, Calendar, Search } from 'lucide-react';
+import { User, Phone, Mail, MapPin, Calendar, Search, FileText } from 'lucide-react';
 
 interface Doctor {
   id: string;
   name: string;
   specialty: string;
   degree: string;
+  license: string;
   schedule: string;
   phone?: string;
   email?: string;
@@ -20,8 +21,9 @@ const HIVSpecialist: React.FC = () => {
     {
       id: '1',
       name: 'BS. Nguyễn Văn A',
-      specialty: 'HIV/AIDS',
-      degree: 'Thạc sĩ Y khoa',
+      specialty: 'Chuyên gia HIV',
+      degree: 'Tiến sĩ Y khoa',
+      license: 'Số: 12345/HN-CC',
       schedule: 'Thứ 2 - Thứ 6: 8:00 - 17:00',
       phone: '0123 456 789',
       email: 'dr.nguyenvana@example.com',
@@ -30,8 +32,9 @@ const HIVSpecialist: React.FC = () => {
     {
       id: '2',
       name: 'BS. Trần Thị B',
-      specialty: 'HIV/AIDS',
-      degree: 'Tiến sĩ Y khoa',
+      specialty: 'Chuyên gia HIV',
+      degree: 'Thạc sĩ Y khoa',
+      license: 'Số: 23456/HCM-CC',
       schedule: 'Thứ 3 - Thứ 7: 9:00 - 18:00',
       phone: '0987 654 321',
       email: 'dr.tranthib@example.com',
@@ -40,8 +43,9 @@ const HIVSpecialist: React.FC = () => {
     {
       id: '3',
       name: 'BS. Lê Văn C',
-      specialty: 'HIV/AIDS',
+      specialty: 'Chuyên gia HIV',
       degree: 'Tiến sĩ Y khoa',
+      license: 'Số: 34567/HUE-CC',
       schedule: 'Thứ 2 - Thứ 7: 8:00 - 16:00',
       phone: '0988 777 666',
       email: 'dr.levanc@example.com',
@@ -108,12 +112,22 @@ const HIVSpecialist: React.FC = () => {
 
                 <div className="space-y-4 text-gray-600">
                   <div className="flex items-start">
-                    <div className="flex-shrink-0 w-6 h-6 text-teal-600">
+                    <div className="flex-shrink-0 w-6 h-6 text-red-600">
                       <User className="w-6 h-6" />
                     </div>
                     <div className="ml-3">
                       <p className="font-medium text-gray-800">Bằng cấp</p>
                       <p>{doctor.degree}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0 w-6 h-6 text-red-600">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                    <div className="ml-3">
+                      <p className="font-medium text-gray-800">Chứng chỉ hành nghề</p>
+                      <p>{doctor.license}</p>
                     </div>
                   </div>
 
