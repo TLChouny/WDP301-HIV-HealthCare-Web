@@ -3,7 +3,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './layouts/Layout';
 import AdminLayout from './layouts/AdminLayout';
-import UserLayout from './layouts/UserLayout/index';
+import UserLayout from './layouts/UserLayout';
 
 // Public Pages
 import Home from './pages/Home';
@@ -25,11 +25,13 @@ import AppointmentManagement from './pages/Admin/AppointmentManagement';
 import Statistics from './pages/Admin/Statistics';
 
 // User Pages
-import UserDashboard from './pages/User/Dashboard';
-import UserProfile from './pages/User/Profile';
-import UserAppointments from './pages/User/Appointments';
-import UserMedicalRecords from './pages/User/MedicalRecords';
-import UserNotifications from './pages/User/Notifications';
+import {
+  UserDashboard,
+  UserProfile,
+  UserAppointments,
+  UserMedicalRecords,
+  UserNotifications,
+} from './pages/User';
 
 // Fallback component
 const FallbackComponent: React.FC = () => (
