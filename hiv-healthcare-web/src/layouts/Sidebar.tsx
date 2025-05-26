@@ -39,7 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose, variant }) => {
   const location = useLocation();
 
   const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/admin' },
+    { text: 'Tổng quan', icon: <DashboardIcon />, path: '/admin' },
     { text: 'Quản lý bệnh nhân', icon: <PeopleIcon />, path: '/admin/patients' },
     { text: 'Quản lý bác sĩ', icon: <HospitalIcon />, path: '/admin/doctors' },
     { text: 'Lịch hẹn', icon: <CalendarIcon />, path: '/admin/appointments' },
