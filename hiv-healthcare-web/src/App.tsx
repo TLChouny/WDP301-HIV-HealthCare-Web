@@ -3,6 +3,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './layouts/Layout';
 import AdminLayout from './layouts/AdminLayout';
+import UserLayout from './layouts/UserLayout/index';
 
 // Public Pages
 import Home from './pages/Home';
@@ -22,6 +23,13 @@ import DoctorManagement from './pages/Admin/DoctorManagement';
 import MedicationManagement from './pages/Admin/MedicationManagement';
 import AppointmentManagement from './pages/Admin/AppointmentManagement';
 import Statistics from './pages/Admin/Statistics';
+
+// User Pages
+import UserDashboard from './pages/User/Dashboard';
+import UserProfile from './pages/User/Profile';
+import UserAppointments from './pages/User/Appointments';
+import UserMedicalRecords from './pages/User/MedicalRecords';
+import UserNotifications from './pages/User/Notifications';
 
 // Fallback component
 const FallbackComponent: React.FC = () => (
@@ -55,7 +63,15 @@ const App: React.FC = () => {
         <Route path="medications" element={<MedicationManagement />} />
         <Route path="appointments" element={<AppointmentManagement />} />
         <Route path="statistics" element={<Statistics />} />
-        {/* Add more admin routes here */}
+      </Route>
+
+      {/* User routes */}
+      <Route path="/user" element={<UserLayout />}>
+        <Route index element={<UserDashboard />} />
+        <Route path="profile" element={<UserProfile />} />
+        <Route path="appointments" element={<UserAppointments />} />
+        <Route path="medical-records" element={<UserMedicalRecords />} />
+        <Route path="notifications" element={<UserNotifications />} />
       </Route>
 
       {/* Redirects */}

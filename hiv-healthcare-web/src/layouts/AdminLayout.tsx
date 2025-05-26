@@ -16,6 +16,9 @@ import {
   ListItemButton,
   useTheme,
   useMediaQuery,
+  Menu,
+  MenuItem,
+  Badge,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -27,6 +30,8 @@ import {
   Person as PersonIcon,
   Assignment as AssignmentIcon,
   AccountCircle as AccountCircleIcon,
+  Settings as SettingsIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
 import Sidebar, { drawerWidth, collapsedDrawerWidth } from './Sidebar';
 import { Outlet } from 'react-router-dom';
@@ -35,6 +40,10 @@ const AdminLayout: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  // Menu states
+  const [notificationAnchor, setNotificationAnchor] = useState<null | HTMLElement>(null);
+  const [profileAnchor, setProfileAnchor] = useState<null | HTMLElement>(null);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -54,6 +63,13 @@ const AdminLayout: React.FC = () => {
     { id: 3, title: 'Medical record updated', time: '1 hour ago' },
   ];
 
+  // Mock notifications data
+  const notifications = [
+    { id: 1, message: 'Bệnh nhân mới đăng ký khám', time: '5 phút trước' },
+    { id: 2, message: 'Có lịch hẹn mới', time: '10 phút trước' },
+    { id: 3, message: 'Cập nhật hồ sơ bệnh nhân', time: '30 phút trước' },
+  ];
+
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <AppBar
@@ -64,6 +80,7 @@ const AdminLayout: React.FC = () => {
           bgcolor: '#115E59',
           boxShadow: 'none',
           borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
+          zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
         <Toolbar>
@@ -79,12 +96,71 @@ const AdminLayout: React.FC = () => {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             HIV Healthcare
           </Typography>
-          <IconButton color="inherit">
-            <NotificationsIcon />
+
+          {/* Notification Menu */}
+          <IconButton 
+            color="inherit"
+            onClick={(e) => setNotificationAnchor(e.currentTarget)}
+          >
+            <Badge badgeContent={notifications.length} color="error">
+              <NotificationsIcon />
+            </Badge>
           </IconButton>
-          <IconButton color="inherit">
+          <Menu
+            anchorEl={notificationAnchor}
+            open={Boolean(notificationAnchor)}
+            onClose={() => setNotificationAnchor(null)}
+            PaperProps={{
+              sx: { width: 320, maxHeight: 400 }
+            }}
+          >
+            {notifications.map((notification) => (
+              <MenuItem key={notification.id} onClick={() => setNotificationAnchor(null)}>
+                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                  <Typography variant="body2">{notification.message}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {notification.time}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            ))}
+          </Menu>
+
+          {/* Profile Menu */}
+          <IconButton
+            color="inherit"
+            onClick={(e) => setProfileAnchor(e.currentTarget)}
+          >
             <AccountCircleIcon />
           </IconButton>
+          <Menu
+            anchorEl={profileAnchor}
+            open={Boolean(profileAnchor)}
+            onClose={() => setProfileAnchor(null)}
+            PaperProps={{
+              sx: { width: 200 }
+            }}
+          >
+            <MenuItem onClick={() => setProfileAnchor(null)}>
+              <ListItemIcon>
+                <PersonIcon fontSize="small" />
+              </ListItemIcon>
+              Thông tin cá nhân
+            </MenuItem>
+            <MenuItem onClick={() => setProfileAnchor(null)}>
+              <ListItemIcon>
+                <SettingsIcon fontSize="small" />
+              </ListItemIcon>
+              Cài đặt
+            </MenuItem>
+            <Divider />
+            <MenuItem onClick={() => setProfileAnchor(null)}>
+              <ListItemIcon>
+                <LogoutIcon fontSize="small" />
+              </ListItemIcon>
+              Đăng xuất
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 
@@ -105,9 +181,7 @@ const AdminLayout: React.FC = () => {
           bgcolor: '#f5f5f5',
         }}
       >
-        <Box sx={{ p: 3 }}>
-          <Outlet />
-        </Box>
+        <Outlet />
       </Box>
     </Box>
   );
