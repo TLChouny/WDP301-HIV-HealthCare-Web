@@ -11,6 +11,12 @@ import Appointment from './pages/Appointment';
 import TestResults from './pages/TestResults';
 import ARVTreatment from './pages/ARVTreatment';
 
+// Doctor Pages
+import Doctors from './pages/Doctor/Doctors';
+import HIVSpecialist from './pages/Doctor/HIVSpecialist';
+import Nutritionists from './pages/Doctor/Nutritionists';
+import Counselors from './pages/Doctor/Counselors';
+
 // Auth Pages
 import Register from './components/Home/Register';
 import Login from './components/Home/Login';
@@ -47,6 +53,12 @@ const App: React.FC = () => {
         <Route path="appointment" element={<Appointment />} />
         <Route path="test-results" element={<TestResults />} />
         <Route path="arv-treatment" element={<ARVTreatment />} />
+        
+        {/* Doctor routes */}
+        <Route path="doctors" element={<Doctors />} />
+        <Route path="doctors/hiv-specialist" element={<HIVSpecialist />} />
+        <Route path="doctors/nutritionists" element={<Nutritionists />} />
+        <Route path="doctors/counselors" element={<Counselors />} />
       </Route>
 
       {/* Auth routes */}
