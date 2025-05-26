@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './layouts/Layout';
 import AdminLayout from './layouts/AdminLayout';
 import UserLayout from './layouts/UserLayout';
+import ManagerLayout from './layouts/ManagerLayout';
 
 // Public Pages
 import Home from './pages/Home';
@@ -25,10 +26,17 @@ import ForgotPassword from './components/Home/ForgotPassword';
 // Admin Pages
 import AdminDashboard from './pages/Admin/AdminDashboard';
 import PatientManagement from './pages/Admin/PatientManagement';
-import DoctorManagement from './pages/Admin/DoctorManagement';
+import AdminDoctorManagement from './pages/Admin/DoctorManagement';
 import MedicationManagement from './pages/Admin/MedicationManagement';
 import AppointmentManagement from './pages/Admin/AppointmentManagement';
 import Statistics from './pages/Admin/Statistics';
+
+// Manager Pages
+import ManagerDashboard from './pages/Manager/ManagerDashboard';
+import ManagerDoctorManagement from './pages/Manager/DoctorManagement';
+import ManagerAppointmentManagement from './pages/Manager/AppointmentManagement';
+import ManagerPatientManagement from './pages/Manager/PatientManagement';
+import ManagerClinicManagement from './pages/Manager/ClinicManagement';
 
 // User Pages
 import {
@@ -73,10 +81,20 @@ const App: React.FC = () => {
         <Route index element={<AdminDashboard />} />
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="patients" element={<PatientManagement />} />
-        <Route path="doctors" element={<DoctorManagement />} />
+        <Route path="doctors" element={<AdminDoctorManagement />} />
         <Route path="medications" element={<MedicationManagement />} />
         <Route path="appointments" element={<AppointmentManagement />} />
         <Route path="statistics" element={<Statistics />} />
+      </Route>
+
+      {/* Manager routes */}
+      <Route path="/manager" element={<ManagerLayout />}>
+        <Route index element={<ManagerDashboard />} />
+        <Route path="dashboard" element={<ManagerDashboard />} />
+        <Route path="doctors" element={<ManagerDoctorManagement />} />
+        <Route path="appointments" element={<ManagerAppointmentManagement />} />
+        <Route path="patients" element={<ManagerPatientManagement />} />
+        <Route path="clinics" element={<ManagerClinicManagement />} />
       </Route>
 
       {/* User routes */}
