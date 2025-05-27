@@ -12,7 +12,7 @@ import Home from './pages/Home';
 import Appointment from './pages/Appointment';
 import TestResults from './pages/TestResults';
 import ARVTreatment from './pages/ARVTreatment';
-import Support from './pages/Services/Support';
+import Support from './pages/ServicesHome/Support';
 
 // Doctor Pages
 import Doctors from './pages/Doctor/Doctors';
