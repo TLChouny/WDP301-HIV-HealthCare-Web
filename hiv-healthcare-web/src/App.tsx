@@ -46,6 +46,7 @@ import StaffPatientManagement from './pages/Staff/PatientManagement';
 import StaffAppointmentManagement from './pages/Staff/AppointmentManagement';
 import StaffMedicalRecordManagement from './pages/Staff/MedicalRecordManagement';
 import StaffMedicationManagement from './pages/Staff/MedicationManagement';
+import StaffCounseling from './pages/Staff/Counseling';
 
 // User Pages
 import {
@@ -115,7 +116,7 @@ const App: React.FC = () => {
         <Route path="appointments" element={<StaffAppointmentManagement />} />
         <Route path="medical-records" element={<StaffMedicalRecordManagement />} />
         <Route path="medications" element={<StaffMedicationManagement />} />
-        <Route path="counseling" element={<StaffDashboard />} />
+        <Route path="counseling" element={<StaffCounseling />} />
       </Route>
 
       {/* User routes */}
