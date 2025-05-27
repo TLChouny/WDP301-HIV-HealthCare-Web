@@ -51,11 +51,12 @@ import StaffCounseling from './pages/Staff/Counseling';
 
 // User Pages
 import {
-  UserDashboard,
-  UserProfile,
-  UserAppointments,
-  UserMedicalRecords,
-  UserNotifications,
+  Dashboard,
+  Profile,
+  AppointmentsUser,
+  MedicalRecords,
+  Notifications,
+  HIVHistory,
 } from './pages/User';
 
 // Fallback component
@@ -123,11 +124,13 @@ const App: React.FC = () => {
 
       {/* User routes */}
       <Route path="/user" element={<UserLayout />}>
-        <Route index element={<UserDashboard />} />
-        <Route path="profile" element={<UserProfile />} />
-        <Route path="appointments" element={<UserAppointments />} />
-        <Route path="medical-records" element={<UserMedicalRecords />} />
-        <Route path="notifications" element={<UserNotifications />} />
+        <Route index element={<Dashboard />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="profile" element={<Profile />} />
+        <Route path="appointments" element={<AppointmentsUser />} />
+        <Route path="medical-records" element={<MedicalRecords />} />
+        <Route path="notifications" element={<Notifications />} />
+        <Route path="history" element={<HIVHistory />} />
       </Route>
 
       {/* Redirects */}
