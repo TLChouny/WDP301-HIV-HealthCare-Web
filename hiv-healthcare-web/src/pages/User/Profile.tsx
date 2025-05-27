@@ -3,7 +3,6 @@ import {
   Box,
   Paper,
   Typography,
-  Grid,
   TextField,
   Button,
   Divider,
@@ -45,92 +44,92 @@ const UserProfile: React.FC = () => {
         Thông tin cá nhân
       </Typography>
 
-      <Grid container spacing={3}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' }, gap: 3 }}>
         {/* Personal Information */}
-        <Grid item xs={12} md={8}>
+        <Box>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
               Thông tin cơ bản
             </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+              <Box>
                 <TextField
                   fullWidth
                   label="Họ và tên"
                   value={userData.fullName}
                   InputProps={{ readOnly: true }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Box>
+              <Box>
                 <TextField
                   fullWidth
                   label="Ngày sinh"
                   value={userData.dateOfBirth}
                   InputProps={{ readOnly: true }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Box>
+              <Box>
                 <TextField
                   fullWidth
                   label="Giới tính"
                   value={userData.gender}
                   InputProps={{ readOnly: true }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Box>
+              <Box>
                 <TextField
                   fullWidth
                   label="Số điện thoại"
                   value={userData.phone}
                   InputProps={{ readOnly: true }}
                 />
-              </Grid>
-              <Grid item xs={12}>
+              </Box>
+              <Box sx={{ gridColumn: { xs: '1', sm: '1 / span 2' } }}>
                 <TextField
                   fullWidth
                   label="Email"
                   value={userData.email}
                   InputProps={{ readOnly: true }}
                 />
-              </Grid>
-              <Grid item xs={12}>
+              </Box>
+              <Box sx={{ gridColumn: { xs: '1', sm: '1 / span 2' } }}>
                 <TextField
                   fullWidth
                   label="Địa chỉ"
                   value={userData.address}
                   InputProps={{ readOnly: true }}
                 />
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </Paper>
 
           <Paper sx={{ p: 3, mt: 3 }}>
             <Typography variant="h6" gutterBottom>
               Thông tin bảo hiểm
             </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+              <Box>
                 <TextField
                   fullWidth
                   label="Số CMND/CCCD"
                   value={userData.idNumber}
                   InputProps={{ readOnly: true }}
                 />
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </Box>
+              <Box>
                 <TextField
                   fullWidth
                   label="Số thẻ BHYT"
                   value={userData.insuranceNumber}
                   InputProps={{ readOnly: true }}
                 />
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </Paper>
-        </Grid>
+        </Box>
 
         {/* Emergency Contacts */}
-        <Grid item xs={12} md={4}>
+        <Box>
           <Card>
             <CardHeader
               title="Liên hệ khẩn cấp"
@@ -151,8 +150,8 @@ const UserProfile: React.FC = () => {
               ))}
             </CardContent>
           </Card>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end' }}>
         <Button variant="contained" color="primary">

@@ -17,7 +17,6 @@ import {
   DialogActions,
   TextField,
   MenuItem,
-  Grid,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -146,24 +145,24 @@ const UserAppointments: React.FC = () => {
       >
         <DialogTitle>Đặt lịch mới</DialogTitle>
         <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2, mt: 1 }}>
+            <Box>
               <TextField
                 fullWidth
                 type="date"
                 label="Ngày"
                 InputLabelProps={{ shrink: true }}
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </Box>
+            <Box>
               <TextField
                 fullWidth
                 type="time"
                 label="Giờ"
                 InputLabelProps={{ shrink: true }}
               />
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </Box>
+            <Box>
               <TextField
                 fullWidth
                 select
@@ -176,8 +175,8 @@ const UserAppointments: React.FC = () => {
                   </MenuItem>
                 ))}
               </TextField>
-            </Grid>
-            <Grid item xs={12} sm={6}>
+            </Box>
+            <Box>
               <TextField
                 fullWidth
                 select
@@ -190,16 +189,16 @@ const UserAppointments: React.FC = () => {
                   </MenuItem>
                 ))}
               </TextField>
-            </Grid>
-            <Grid item xs={12}>
+            </Box>
+            <Box sx={{ gridColumn: { xs: '1', sm: '1 / span 2' } }}>
               <TextField
                 fullWidth
                 multiline
                 rows={4}
                 label="Ghi chú"
               />
-            </Grid>
-          </Grid>
+            </Box>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenNewDialog(false)}>Hủy</Button>
