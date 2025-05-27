@@ -5,6 +5,7 @@ import Layout from './layouts/Layout';
 import AdminLayout from './layouts/AdminLayout';
 import UserLayout from './layouts/UserLayout';
 import ManagerLayout from './layouts/ManagerLayout';
+import StaffLayout from './layouts/StaffLayout';
 
 // Public Pages
 import Home from './pages/Home';
@@ -37,6 +38,14 @@ import ManagerDoctorManagement from './pages/Manager/DoctorManagement';
 import ManagerAppointmentManagement from './pages/Manager/AppointmentManagement';
 import ManagerPatientManagement from './pages/Manager/PatientManagement';
 import ManagerClinicManagement from './pages/Manager/ClinicManagement';
+import StaffManagement from './pages/Manager/StaffManagement';
+
+// Staff Pages
+import StaffDashboard from './pages/Staff/StaffDashboard';
+import StaffPatientManagement from './pages/Staff/PatientManagement';
+import StaffAppointmentManagement from './pages/Staff/AppointmentManagement';
+import StaffMedicalRecordManagement from './pages/Staff/MedicalRecordManagement';
+import StaffMedicationManagement from './pages/Staff/MedicationManagement';
 
 // User Pages
 import {
@@ -95,6 +104,18 @@ const App: React.FC = () => {
         <Route path="appointments" element={<ManagerAppointmentManagement />} />
         <Route path="patients" element={<ManagerPatientManagement />} />
         <Route path="clinics" element={<ManagerClinicManagement />} />
+        <Route path="staff" element={<StaffManagement />} />
+      </Route>
+
+      {/* Staff routes */}
+      <Route path="/staff" element={<StaffLayout />}>
+        <Route index element={<StaffDashboard />} />
+        <Route path="dashboard" element={<StaffDashboard />} />
+        <Route path="patients" element={<StaffPatientManagement />} />
+        <Route path="appointments" element={<StaffAppointmentManagement />} />
+        <Route path="medical-records" element={<StaffMedicalRecordManagement />} />
+        <Route path="medications" element={<StaffMedicationManagement />} />
+        <Route path="counseling" element={<StaffDashboard />} />
       </Route>
 
       {/* User routes */}

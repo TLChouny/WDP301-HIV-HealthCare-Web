@@ -4,22 +4,23 @@ import {
   User, 
   Calendar, 
   Users, 
-  Building2,
+  FileText,
   LogOut,
   Settings,
-  UserCog
+  ClipboardList,
+  MessageSquare
 } from 'lucide-react';
 
-const ManagerLayout: React.FC = () => {
+const StaffLayout: React.FC = () => {
   const location = useLocation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/manager/dashboard', icon: <User className="w-5 h-5" /> },
-    { name: 'Quản lý Bác sĩ', href: '/manager/doctors', icon: <User className="w-5 h-5" /> },
-    { name: 'Quản lý Lịch hẹn', href: '/manager/appointments', icon: <Calendar className="w-5 h-5" /> },
-    { name: 'Quản lý Bệnh nhân', href: '/manager/patients', icon: <Users className="w-5 h-5" /> },
-    { name: 'Quản lý Phòng khám', href: '/manager/clinics', icon: <Building2 className="w-5 h-5" /> },
-    { name: 'Quản lý Nhân viên', href: '/manager/staff', icon: <UserCog className="w-5 h-5" /> },
+    { name: 'Dashboard', href: '/staff/dashboard', icon: <User className="w-5 h-5" /> },
+    { name: 'Quản lý Bệnh nhân', href: '/staff/patients', icon: <Users className="w-5 h-5" /> },
+    { name: 'Lịch hẹn', href: '/staff/appointments', icon: <Calendar className="w-5 h-5" /> },
+    { name: 'Hồ sơ bệnh án', href: '/staff/medical-records', icon: <FileText className="w-5 h-5" /> },
+    { name: 'Danh sách thuốc', href: '/staff/medications', icon: <ClipboardList className="w-5 h-5" /> },
+    { name: 'Tư vấn', href: '/staff/counseling', icon: <MessageSquare className="w-5 h-5" /> },
   ];
 
   return (
@@ -29,7 +30,7 @@ const ManagerLayout: React.FC = () => {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-center h-16 border-b">
-            <h1 className="text-xl font-bold text-gray-800">Manager Panel</h1>
+            <h1 className="text-xl font-bold text-gray-800">Staff Panel</h1>
           </div>
 
           {/* Navigation */}
@@ -53,7 +54,7 @@ const ManagerLayout: React.FC = () => {
           {/* Bottom Navigation */}
           <div className="p-4 border-t">
             <Link
-              to="/manager/settings"
+              to="/staff/settings"
               className="flex items-center px-4 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-50"
             >
               <Settings className="w-5 h-5" />
@@ -80,4 +81,4 @@ const ManagerLayout: React.FC = () => {
   );
 };
 
-export default ManagerLayout; 
+export default StaffLayout; 
