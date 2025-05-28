@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './layouts/Layout';
 import AdminLayout from './layouts/AdminLayout';
 import UserLayout from './layouts/UserLayout';
-import ManagerLayout from './layouts/ManagerLayout';
+import DoctorLayout from './layouts/DoctorLayout';
 import StaffLayout from './layouts/StaffLayout';
 
 // Public Pages
@@ -34,13 +34,12 @@ import MedicationManagement from './pages/Admin/MedicationManagement';
 import AppointmentManagement from './pages/Admin/AppointmentManagement';
 import Statistics from './pages/Admin/Statistics';
 
-// Manager Pages
-import ManagerDashboard from './pages/Manager/ManagerDashboard';
-import ManagerDoctorManagement from './pages/Manager/DoctorManagement';
-import ManagerAppointmentManagement from './pages/Manager/AppointmentManagement';
-import ManagerPatientManagement from './pages/Manager/PatientManagement';
-import ManagerClinicManagement from './pages/Manager/ClinicManagement';
-import StaffManagement from './pages/Manager/StaffManagement';
+// Doctor Pages
+import DoctorDashboard from './pages/Doctor/DoctorDashboard';
+import DoctorPatientManagement from './pages/Doctor/PatientManagement';
+import DoctorAppointmentManagement from './pages/Doctor/AppointmentManagement';
+import ARVProtocolManagement from './pages/Doctor/ARVProtocolManagement';
+import MedicalRecordManagement from './pages/Doctor/MedicalRecordManagement';
 
 // Staff Pages
 import StaffDashboard from './pages/Staff/StaffDashboard';
@@ -102,15 +101,14 @@ const App: React.FC = () => {
         <Route path="statistics" element={<Statistics />} />
       </Route>
 
-      {/* Manager routes */}
-      <Route path="/manager" element={<ManagerLayout />}>
-        <Route index element={<ManagerDashboard />} />
-        <Route path="dashboard" element={<ManagerDashboard />} />
-        <Route path="doctors" element={<ManagerDoctorManagement />} />
-        <Route path="appointments" element={<ManagerAppointmentManagement />} />
-        <Route path="patients" element={<ManagerPatientManagement />} />
-        <Route path="clinics" element={<ManagerClinicManagement />} />
-        <Route path="staff" element={<StaffManagement />} />
+      {/* Doctor routes */}
+      <Route path="/doctor" element={<DoctorLayout />}>
+        <Route index element={<DoctorDashboard />} />
+        <Route path="dashboard" element={<DoctorDashboard />} />
+        <Route path="patients" element={<DoctorPatientManagement />} />
+        <Route path="appointments" element={<DoctorAppointmentManagement />} />
+        <Route path="arv-protocols" element={<ARVProtocolManagement />} />
+        <Route path="medical-records" element={<MedicalRecordManagement />} />
       </Route>
 
       {/* Staff routes */}

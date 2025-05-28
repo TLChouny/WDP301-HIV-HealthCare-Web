@@ -11,7 +11,8 @@ import {
   Calendar,
   Activity,
   Heart,
-  AlertCircle
+  AlertCircle,
+  Pill
 } from 'lucide-react';
 
 interface Patient {
@@ -27,6 +28,12 @@ interface Patient {
   nextAppointment?: string;
   status: 'active' | 'inactive' | 'critical';
   treatmentStage: string;
+  arvProtocol?: {
+    name: string;
+    medications: string[];
+    startDate: string;
+    notes?: string;
+  };
   notes?: string;
 }
 
@@ -49,6 +56,12 @@ const PatientManagement: React.FC = () => {
       nextAppointment: '2024-04-15',
       status: 'active',
       treatmentStage: 'Đang điều trị ARV',
+      arvProtocol: {
+        name: 'TDF + 3TC + DTG',
+        medications: ['Tenofovir (TDF)', 'Lamivudine (3TC)', 'Dolutegravir (DTG)'],
+        startDate: '2023-02-01',
+        notes: 'Bệnh nhân đáp ứng tốt với phác đồ điều trị'
+      },
       notes: 'Bệnh nhân đáp ứng tốt với phác đồ điều trị'
     },
     {
@@ -63,6 +76,12 @@ const PatientManagement: React.FC = () => {
       lastVisit: '2024-03-01',
       status: 'critical',
       treatmentStage: 'Cần theo dõi đặc biệt',
+      arvProtocol: {
+        name: 'TDF + 3TC + EFV',
+        medications: ['Tenofovir (TDF)', 'Lamivudine (3TC)', 'Efavirenz (EFV)'],
+        startDate: '2023-07-01',
+        notes: 'Cần tăng cường tư vấn dinh dưỡng'
+      },
       notes: 'Cần tăng cường tư vấn dinh dưỡng'
     },
     {
@@ -209,7 +228,7 @@ const PatientManagement: React.FC = () => {
                     Liên hệ
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Lịch sử
+                    Phác đồ ARV
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Trạng thái
@@ -251,37 +270,43 @@ const PatientManagement: React.FC = () => {
                         {patient.address}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500 flex items-center space-x-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>Chẩn đoán: {patient.diagnosisDate}</span>
-                      </div>
-                      <div className="text-sm text-gray-500 flex items-center space-x-2">
-                        <FileText className="w-4 h-4" />
-                        <span>Khám gần nhất: {patient.lastVisit}</span>
-                      </div>
-                      {patient.nextAppointment && (
-                        <div className="text-sm text-gray-500 flex items-center space-x-2">
-                          <Calendar className="w-4 h-4" />
-                          <span>Hẹn tái khám: {patient.nextAppointment}</span>
+                    <td className="px-6 py-4">
+                      {patient.arvProtocol ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Pill className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-medium text-gray-900">
+                              {patient.arvProtocol.name}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            Bắt đầu: {patient.arvProtocol.startDate}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {patient.arvProtocol.notes}
+                          </div>
                         </div>
+                      ) : (
+                        <span className="text-sm text-gray-500">Chưa có phác đồ</span>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-2">
                         {getStatusIcon(patient.status)}
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(patient.status)}`}>
+                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(patient.status)}`}>
                           {getStatusText(patient.status)}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button className="text-blue-600 hover:text-blue-900 mr-4">
-                        <Edit className="w-5 h-5" />
-                      </button>
-                      <button className="text-red-600 hover:text-red-900">
-                        <Trash2 className="w-5 h-5" />
-                      </button>
+                      <div className="flex justify-end space-x-2">
+                        <button className="text-blue-600 hover:text-blue-900">
+                          <Edit className="w-5 h-5" />
+                        </button>
+                        <button className="text-red-600 hover:text-red-900">
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
