@@ -15,6 +15,7 @@ import ARVTreatment from './pages/ARVTreatment';
 import Support from './pages/ServicesHome/Support';
 import Consultation from './pages/ServicesHome/Consultation';
 import Treatment from './pages/ServicesHome/Treatment';
+import ARVTherapy from './pages/ServicesHome/ARVTherapy';
 
 // Doctor Pages
 import Doctors from './pages/Doctor/Doctors';
@@ -77,6 +78,7 @@ const App: React.FC = () => {
         <Route path="services/support" element={<Support />} />
         <Route path="services/testing" element={<Consultation />} />
         <Route path="services/treatment" element={<Treatment />} />
+        <Route path="services/arv-therapy" element={<ARVTherapy />} />
         
         {/* Doctor routes */}
         <Route path="doctors" element={<Doctors />} />
