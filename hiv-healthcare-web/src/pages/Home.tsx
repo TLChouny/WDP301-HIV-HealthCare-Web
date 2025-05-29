@@ -568,33 +568,6 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-12 bg-gradient-to-r from-teal-600 to-teal-700 text-white relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <AnimatedElement animationType="fade-right" duration={800} className="mb-6 md:mb-0">
-              <h2 className="text-2xl font-bold mb-2">Nhận thông tin mới nhất về HIV/AIDS</h2>
-              <p className="text-teal-100">Đăng ký nhận bản tin của chúng tôi ngay hôm nay</p>
-            </AnimatedElement>
-
-            <AnimatedElement animationType="fade-left" delay={300} duration={800}>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative group">
-                  <input
-                    type="email"
-                    placeholder="Nhập email của bạn"
-                    className="px-4 py-3 rounded-lg focus:outline-none text-gray-800 min-w-[250px] transition-all duration-300 focus:ring-2 focus:ring-teal-400 group-hover:shadow-lg"
-                  />
-                </div>
-                <button className="bg-teal-800 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 hover:bg-teal-900 hover:shadow-lg active:scale-95 active:bg-teal-950 relative overflow-hidden group">
-                  <span className="relative z-10">Đăng Ký</span>
-                </button>
-              </div>
-            </AnimatedElement>
-          </div>
-        </div>
-      </section>
-
       {/* Specialists Section */}
       <section className="py-16 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4">
