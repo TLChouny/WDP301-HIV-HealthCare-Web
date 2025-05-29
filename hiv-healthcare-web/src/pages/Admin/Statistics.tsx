@@ -1,17 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Box,
-  Paper,
-  Typography,
-  Card,
-  CardContent,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from '@mui/material';
-import type { SelectChangeEvent } from '@mui/material';
-import {
   BarChart,
   Bar,
   XAxis,
@@ -57,164 +45,118 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 const Statistics: React.FC = () => {
   const [timeRange, setTimeRange] = useState('month');
 
-  const handleTimeRangeChange = (event: SelectChangeEvent) => {
-    setTimeRange(event.target.value);
-  };
-
   return (
-    <Box sx={{ p: 3, minHeight: '100vh', bgcolor: '#f5f5f5' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h5" component="h1" sx={{ color: '#115E59', fontWeight: 'bold' }}>
-          Báo cáo & Thống kê
-        </Typography>
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>Thời gian</InputLabel>
-          <Select
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Báo cáo & Thống kê</h1>
+          <select
             value={timeRange}
-            label="Thời gian"
-            onChange={handleTimeRangeChange}
+            onChange={(e) => setTimeRange(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <MenuItem value="week">Tuần này</MenuItem>
-            <MenuItem value="month">Tháng này</MenuItem>
-            <MenuItem value="quarter">Quý này</MenuItem>
-            <MenuItem value="year">Năm nay</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
+            <option value="week">Tuần này</option>
+            <option value="month">Tháng này</option>
+            <option value="quarter">Quý này</option>
+            <option value="year">Năm nay</option>
+          </select>
+        </div>
 
-      {/* Thống kê tổng quan */}
-      <Box
-        display="grid"
-        gridTemplateColumns={{ xs: '1fr', md: 'repeat(4, 1fr)' }}
-        gap={3}
-        mb={3}
-      >
-        <Box>
-          <Card sx={{ height: '100%', boxShadow: 2 }}>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Tổng số bệnh nhân
-              </Typography>
-              <Typography variant="h4" sx={{ color: '#115E59', fontWeight: 'bold' }}>1,234</Typography>
-            </CardContent>
-          </Card>
-        </Box>
-        <Box>
-          <Card sx={{ height: '100%', boxShadow: 2 }}>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Lịch hẹn hôm nay
-              </Typography>
-              <Typography variant="h4" sx={{ color: '#115E59', fontWeight: 'bold' }}>45</Typography>
-            </CardContent>
-          </Card>
-        </Box>
-        <Box>
-          <Card sx={{ height: '100%', boxShadow: 2 }}>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Bệnh nhân mới
-              </Typography>
-              <Typography variant="h4" sx={{ color: '#115E59', fontWeight: 'bold' }}>28</Typography>
-            </CardContent>
-          </Card>
-        </Box>
-        <Box>
-          <Card sx={{ height: '100%', boxShadow: 2 }}>
-            <CardContent>
-              <Typography color="textSecondary" gutterBottom>
-                Đang điều trị ARV
-              </Typography>
-              <Typography variant="h4" sx={{ color: '#115E59', fontWeight: 'bold' }}>856</Typography>
-            </CardContent>
-          </Card>
-        </Box>
-      </Box>
+        {/* Thống kê tổng quan */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <p className="text-sm text-gray-500 mb-2">Tổng số bệnh nhân</p>
+            <p className="text-3xl font-bold text-blue-600">1,234</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <p className="text-sm text-gray-500 mb-2">Lịch hẹn hôm nay</p>
+            <p className="text-3xl font-bold text-blue-600">45</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <p className="text-sm text-gray-500 mb-2">Bệnh nhân mới</p>
+            <p className="text-3xl font-bold text-blue-600">28</p>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <p className="text-sm text-gray-500 mb-2">Đang điều trị ARV</p>
+            <p className="text-3xl font-bold text-blue-600">856</p>
+          </div>
+        </div>
 
-      {/* Biểu đồ lịch hẹn theo thời gian và phân loại bệnh nhân */}
-      <Box
-        display="grid"
-        gridTemplateColumns={{ xs: '1fr', md: '2fr 1fr' }}
-        gap={3}
-        mb={3}
-      >
-        <Box>
-          <Paper sx={{ p: 2, boxShadow: 2 }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#115E59', fontWeight: 'bold' }}>
-              Lịch hẹn theo thời gian
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={appointmentData}>
+        {/* Biểu đồ lịch hẹn và phân loại bệnh nhân */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="md:col-span-2 bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Lịch hẹn theo thời gian</h2>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={appointmentData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="value" fill="#115E59" name="Số lượng lịch hẹn" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">Phân loại bệnh nhân</h2>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={patientTypeData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {patientTypeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* Biểu đồ điều trị ARV và xét nghiệm */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Thống kê điều trị ARV và xét nghiệm</h2>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={treatmentData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="value" fill="#115E59" name="Số lượng lịch hẹn" />
-              </BarChart>
+                <Line
+                  type="monotone"
+                  dataKey="arv"
+                  stroke="#115E59"
+                  name="Điều trị ARV"
+                  strokeWidth={2}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="test"
+                  stroke="#8884d8"
+                  name="Xét nghiệm"
+                  strokeWidth={2}
+                />
+              </LineChart>
             </ResponsiveContainer>
-          </Paper>
-        </Box>
-        <Box>
-          <Paper sx={{ p: 2, boxShadow: 2 }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#115E59', fontWeight: 'bold' }}>
-              Phân loại bệnh nhân
-            </Typography>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={patientTypeData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                >
-                  {patientTypeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </Paper>
-        </Box>
-      </Box>
-
-      {/* Biểu đồ điều trị ARV và xét nghiệm */}
-      <Box>
-        <Paper sx={{ p: 2, boxShadow: 2 }}>
-          <Typography variant="h6" gutterBottom sx={{ color: '#115E59', fontWeight: 'bold' }}>
-            Thống kê điều trị ARV và xét nghiệm
-          </Typography>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={treatmentData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="arv"
-                stroke="#115E59"
-                name="Điều trị ARV"
-                strokeWidth={2}
-              />
-              <Line
-                type="monotone"
-                dataKey="test"
-                stroke="#8884d8"
-                name="Xét nghiệm"
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </Paper>
-      </Box>
-    </Box>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
