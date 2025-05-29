@@ -477,11 +477,11 @@ const Home: React.FC = () => {
                 ))}
               </div>
 
-              <AnimatedElement animationType="fade-up" delay={800} duration={800}>
+              {/* <AnimatedElement animationType="fade-up" delay={800} duration={800}>
                 <button className="bg-teal-600 text-white py-3 px-6 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 relative overflow-hidden group">
                   <span className="relative z-10">Tìm Hiểu Thêm</span>
                 </button>
-              </AnimatedElement>
+              </AnimatedElement> */}
             </div>
 
             <AnimatedElement animationType="fade-left" delay={300} duration={1000} className="lg:w-1/2">
@@ -689,7 +689,7 @@ const Home: React.FC = () => {
       </ParallaxSection>
 
       {/* Contact Section */}
-      <section className="py-16 bg-gradient-to-br from-teal-700 to-teal-800 text-white relative overflow-hidden">
+      {/* <section className="py-16 bg-gradient-to-br from-teal-700 to-teal-800 text-white relative overflow-hidden">
         <div className="container mx-auto px-4 relative z-10">
           <div className="flex flex-col lg:flex-row">
             <AnimatedElement animationType="fade-right" duration={800} className="lg:w-1/2 mb-10 lg:mb-0 lg:pr-10">
@@ -777,7 +777,7 @@ const Home: React.FC = () => {
             </AnimatedElement>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Blog Section */}
       <section className="py-16 bg-white relative overflow-hidden">
