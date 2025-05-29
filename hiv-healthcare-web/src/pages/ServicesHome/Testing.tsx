@@ -21,6 +21,14 @@ import {
   Container,
   useTheme,
   alpha,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  FormControlLabel,
+  Checkbox,
+  Radio,
+  RadioGroup,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import {
@@ -58,6 +66,20 @@ const Testing: React.FC = () => {
     type: 'all',
     price: 'all',
     duration: 'all',
+  });
+
+  const [openBookingDialog, setOpenBookingDialog] = useState(false);
+  const [bookingForm, setBookingForm] = useState({
+    fullName: '',
+    phone: '',
+    email: '',
+    dateOfBirth: '',
+    gender: '',
+    testType: '',
+    preferredDate: '',
+    preferredTime: '',
+    isAnonymous: false,
+    notes: '',
   });
 
   const [statsRef, statsInView] = useInView({
@@ -146,6 +168,32 @@ const Testing: React.FC = () => {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleBookingFormChange = (field: string, value: string | boolean) => {
+    setBookingForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleBookingSubmit = () => {
+    // TODO: Implement booking submission logic
+    console.log('Booking form submitted:', bookingForm);
+    setOpenBookingDialog(false);
+    // Reset form
+    setBookingForm({
+      fullName: '',
+      phone: '',
+      email: '',
+      dateOfBirth: '',
+      gender: '',
+      testType: '',
+      preferredDate: '',
+      preferredTime: '',
+      isAnonymous: false,
+      notes: '',
+    });
   };
 
   const filteredTests = [...individualTests, ...testPackages].filter(test => {
@@ -263,6 +311,7 @@ const Testing: React.FC = () => {
                 transition: 'all 0.3s ease',
               }}
               startIcon={<CalendarIcon />}
+              onClick={() => setOpenBookingDialog(true)}
             >
               Đặt lịch xét nghiệm
             </Button>
@@ -686,6 +735,149 @@ const Testing: React.FC = () => {
           </Box>
         </Paper>
       </Container>
+
+      {/* Booking Dialog */}
+      <Dialog 
+        open={openBookingDialog} 
+        onClose={() => setOpenBookingDialog(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
+            Đặt lịch xét nghiệm HIV
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={bookingForm.isAnonymous}
+                  onChange={(e) => handleBookingFormChange('isAnonymous', e.target.checked)}
+                />
+              }
+              label="Đăng ký ẩn danh"
+            />
+            
+            {!bookingForm.isAnonymous && (
+              <>
+                <TextField
+                  fullWidth
+                  label="Họ và tên"
+                  value={bookingForm.fullName}
+                  onChange={(e) => handleBookingFormChange('fullName', e.target.value)}
+                  margin="normal"
+                  required
+                />
+                <TextField
+                  fullWidth
+                  label="Số điện thoại"
+                  value={bookingForm.phone}
+                  onChange={(e) => handleBookingFormChange('phone', e.target.value)}
+                  margin="normal"
+                  required
+                />
+                <TextField
+                  fullWidth
+                  label="Email"
+                  type="email"
+                  value={bookingForm.email}
+                  onChange={(e) => handleBookingFormChange('email', e.target.value)}
+                  margin="normal"
+                />
+                <TextField
+                  fullWidth
+                  label="Ngày sinh"
+                  type="date"
+                  value={bookingForm.dateOfBirth}
+                  onChange={(e) => handleBookingFormChange('dateOfBirth', e.target.value)}
+                  margin="normal"
+                  InputLabelProps={{ shrink: true }}
+                />
+                <FormControl component="fieldset" margin="normal">
+                  <Typography variant="subtitle1" gutterBottom>Giới tính</Typography>
+                  <RadioGroup
+                    value={bookingForm.gender}
+                    onChange={(e) => handleBookingFormChange('gender', e.target.value)}
+                  >
+                    <FormControlLabel value="male" control={<Radio />} label="Nam" />
+                    <FormControlLabel value="female" control={<Radio />} label="Nữ" />
+                    <FormControlLabel value="other" control={<Radio />} label="Khác" />
+                  </RadioGroup>
+                </FormControl>
+              </>
+            )}
+
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Loại xét nghiệm</InputLabel>
+              <Select
+                value={bookingForm.testType}
+                label="Loại xét nghiệm"
+                onChange={(e) => handleBookingFormChange('testType', e.target.value)}
+                required
+              >
+                <MenuItem value="quick">Xét nghiệm HIV nhanh</MenuItem>
+                <MenuItem value="elisa">Xét nghiệm HIV Elisa</MenuItem>
+                <MenuItem value="western">Xét nghiệm HIV Western Blot</MenuItem>
+                <MenuItem value="basic">Gói xét nghiệm cơ bản</MenuItem>
+                <MenuItem value="comprehensive">Gói xét nghiệm toàn diện</MenuItem>
+                <MenuItem value="monitoring">Gói xét nghiệm định kỳ</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              label="Ngày hẹn"
+              type="date"
+              value={bookingForm.preferredDate}
+              onChange={(e) => handleBookingFormChange('preferredDate', e.target.value)}
+              margin="normal"
+              InputLabelProps={{ shrink: true }}
+              required
+            />
+
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Giờ hẹn</InputLabel>
+              <Select
+                value={bookingForm.preferredTime}
+                label="Giờ hẹn"
+                onChange={(e) => handleBookingFormChange('preferredTime', e.target.value)}
+                required
+              >
+                <MenuItem value="08:00">08:00</MenuItem>
+                <MenuItem value="09:00">09:00</MenuItem>
+                <MenuItem value="10:00">10:00</MenuItem>
+                <MenuItem value="14:00">14:00</MenuItem>
+                <MenuItem value="15:00">15:00</MenuItem>
+                <MenuItem value="16:00">16:00</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              label="Ghi chú"
+              multiline
+              rows={4}
+              value={bookingForm.notes}
+              onChange={(e) => handleBookingFormChange('notes', e.target.value)}
+              margin="normal"
+              placeholder="Nhập thông tin bổ sung nếu cần"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenBookingDialog(false)}>Hủy</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleBookingSubmit}
+            disabled={!bookingForm.testType || !bookingForm.preferredDate || !bookingForm.preferredTime || 
+                     (!bookingForm.isAnonymous && (!bookingForm.fullName || !bookingForm.phone))}
+          >
+            Xác nhận đặt lịch
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
