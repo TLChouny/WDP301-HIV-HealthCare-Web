@@ -882,7 +882,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Partners Section */}
-      <section className="py-12 bg-gray-50 relative overflow-hidden">
+      {/* <section className="py-12 bg-gray-50 relative overflow-hidden">
         <div className="container mx-auto px-4">
           <AnimatedElement animationType="fade-up" duration={800} className="mb-8">
             <h2 className="text-xl font-semibold text-center text-gray-600 relative inline-block mx-auto">
@@ -910,7 +910,7 @@ const Home: React.FC = () => {
             ))}
           </StaggerContainer>
         </div>
-      </section>
+      </section> */}
 
       {/* Floating Action Button */}
       <button
