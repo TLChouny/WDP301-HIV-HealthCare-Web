@@ -1,189 +1,145 @@
 import React, { useState } from 'react';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import {
-  Box,
-  AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
-  Paper,
-  Card,
-  CardContent,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
-  ListItemButton,
-  useTheme,
-  useMediaQuery,
+  Users,
+  Calendar,
+  Pill,
+  FileText,
+  LogOut,
   Menu,
-  MenuItem,
-  Badge,
-} from '@mui/material';
-import {
-  Menu as MenuIcon,
-  People as PeopleIcon,
-  LocalHospital as HospitalIcon,
-  EventNote as EventIcon,
-  Notifications as NotificationsIcon,
-  MoreVert as MoreVertIcon,
-  Person as PersonIcon,
-  Assignment as AssignmentIcon,
-  AccountCircle as AccountCircleIcon,
-  Settings as SettingsIcon,
-  Logout as LogoutIcon,
-} from '@mui/icons-material';
-import Sidebar, { drawerWidth, collapsedDrawerWidth } from './Sidebar';
-import { Outlet } from 'react-router-dom';
+  X,
+  User,
+  Bell,
+  Shield
+} from 'lucide-react';
 
 const AdminLayout: React.FC = () => {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const location = useLocation();
 
-  // Menu states
-  const [notificationAnchor, setNotificationAnchor] = useState<null | HTMLElement>(null);
-  const [profileAnchor, setProfileAnchor] = useState<null | HTMLElement>(null);
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
-
-  // Mock data - replace with actual data from your backend
-  const stats = {
-    totalPatients: 150,
-    totalDoctors: 25,
-    appointmentsToday: 45,
-    pendingTasks: 12,
-  };
-
-  const recentActivities = [
-    { id: 1, title: 'New patient registration', time: '10 minutes ago' },
-    { id: 2, title: 'Appointment scheduled', time: '30 minutes ago' },
-    { id: 3, title: 'Medical record updated', time: '1 hour ago' },
-  ];
-
-  // Mock notifications data
-  const notifications = [
-    { id: 1, message: 'Bệnh nhân mới đăng ký khám', time: '5 phút trước' },
-    { id: 2, message: 'Có lịch hẹn mới', time: '10 phút trước' },
-    { id: 3, message: 'Cập nhật hồ sơ bệnh nhân', time: '30 phút trước' },
+  const navigation = [
+    {
+      name: 'Tổng quan',
+      path: '/admin/dashboard',
+      icon: <User className="w-5 h-5" />
+    },
+    {
+      name: 'Quản lý Bệnh nhân',
+      path: '/admin/patients',
+      icon: <Users className="w-5 h-5" />
+    },
+    {
+      name: 'Quản lý Bác sĩ',
+      path: '/admin/doctors',
+      icon: <Users className="w-5 h-5" />
+    },
+    {
+      name: 'Quản lý Lịch hẹn',
+      path: '/admin/appointments',
+      icon: <Calendar className="w-5 h-5" />
+    },
+    {
+      name: 'Quản lý Thuốc',
+      path: '/admin/medications',
+      icon: <Pill className="w-5 h-5" />
+    },
+    {
+      name: 'Phân quyền',
+      path: '/admin/roles',
+      icon: <Shield className="w-5 h-5" />
+    }
   ];
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-      <AppBar
-        position="fixed"
-        sx={{
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          ml: { md: `${drawerWidth}px` },
-          bgcolor: '#115E59',
-          boxShadow: 'none',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-        }}
+    <div className="min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } transition-transform duration-300 ease-in-out lg:translate-x-0`}
       >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            HIV Healthcare
-          </Typography>
+        <div className="flex flex-col h-full">
+          {/* Logo and Toggle */}
+          <div className="flex items-center justify-between h-16 px-4 border-b">
+            <Link to="/admin/dashboard" className="flex items-center space-x-2">
+              <Pill className="w-8 h-8 text-blue-600" />
+              <span className="text-xl font-bold text-gray-800">HIV Care</span>
+            </Link>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden text-gray-500 hover:text-gray-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
 
-          {/* Notification Menu */}
-          <IconButton 
-            color="inherit"
-            onClick={(e) => setNotificationAnchor(e.currentTarget)}
-          >
-            <Badge badgeContent={notifications.length} color="error">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-          <Menu
-            anchorEl={notificationAnchor}
-            open={Boolean(notificationAnchor)}
-            onClose={() => setNotificationAnchor(null)}
-            PaperProps={{
-              sx: { width: 320, maxHeight: 400 }
-            }}
-          >
-            {notifications.map((notification) => (
-              <MenuItem key={notification.id} onClick={() => setNotificationAnchor(null)}>
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <Typography variant="body2">{notification.message}</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {notification.time}
-                  </Typography>
-                </Box>
-              </MenuItem>
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
+            {navigation.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                  location.pathname === item.path
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {item.icon}
+                <span>{item.name}</span>
+              </Link>
             ))}
-          </Menu>
+          </nav>
 
-          {/* Profile Menu */}
-          <IconButton
-            color="inherit"
-            onClick={(e) => setProfileAnchor(e.currentTarget)}
-          >
-            <AccountCircleIcon />
-          </IconButton>
-          <Menu
-            anchorEl={profileAnchor}
-            open={Boolean(profileAnchor)}
-            onClose={() => setProfileAnchor(null)}
-            PaperProps={{
-              sx: { width: 200 }
-            }}
-          >
-            <MenuItem onClick={() => setProfileAnchor(null)}>
-              <ListItemIcon>
-                <PersonIcon fontSize="small" />
-              </ListItemIcon>
-              Thông tin cá nhân
-            </MenuItem>
-            <MenuItem onClick={() => setProfileAnchor(null)}>
-              <ListItemIcon>
-                <SettingsIcon fontSize="small" />
-              </ListItemIcon>
-              Cài đặt
-            </MenuItem>
-            <Divider />
-            <MenuItem onClick={() => setProfileAnchor(null)}>
-              <ListItemIcon>
-                <LogoutIcon fontSize="small" />
-              </ListItemIcon>
-              Đăng xuất
-            </MenuItem>
-          </Menu>
-        </Toolbar>
-      </AppBar>
+          {/* User Section */}
+          <div className="p-4 border-t">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <User className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  Admin
+                </p>
+                <p className="text-sm text-gray-500 truncate">
+                  Quản trị viên
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <Sidebar
-        open={mobileOpen}
-        onClose={handleDrawerToggle}
-        variant={isMobile ? 'temporary' : 'permanent'}
-      />
+      {/* Main Content */}
+      <div className={`lg:pl-64 flex flex-col min-h-screen`}>
+        {/* Top Navigation */}
+        <header className="bg-white shadow-sm">
+          <div className="flex items-center justify-between h-16 px-4">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden text-gray-500 hover:text-gray-600"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
 
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          ml: { md: `${drawerWidth}px` },
-          mt: '64px',
-          minHeight: 'calc(100vh - 64px)',
-          bgcolor: '#f5f5f5',
-        }}
-      >
-        <Outlet />
-      </Box>
-    </Box>
+            <div className="flex items-center space-x-4">
+              <button className="p-2 text-gray-500 hover:text-gray-600">
+                <Bell className="w-6 h-6" />
+              </button>
+              <button className="flex items-center space-x-2 text-gray-500 hover:text-gray-600">
+                <LogOut className="w-6 h-6" />
+                <span className="hidden md:inline">Đăng xuất</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1">
+          <Outlet />
+        </main>
+      </div>
+    </div>
   );
 };
 
