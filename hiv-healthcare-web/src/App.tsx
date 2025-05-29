@@ -13,7 +13,7 @@ import Appointment from './pages/Appointment';
 import TestResults from './pages/TestResults';
 import ARVTreatment from './pages/ARVTreatment';
 import Support from './pages/ServicesHome/Support';
-import Consultation from './pages/ServicesHome/Consultation';
+import Testing from './pages/ServicesHome/Testing';
 import Treatment from './pages/ServicesHome/Treatment';
 import ARVTherapy from './pages/ServicesHome/ARVTherapy';
 
@@ -78,7 +78,7 @@ const App: React.FC = () => {
         <Route path="test-results" element={<TestResults />} />
         <Route path="arv-treatment" element={<ARVTreatment />} />
         <Route path="services/support" element={<Support />} />
-        <Route path="services/testing" element={<Consultation />} />
+        <Route path="services/testing" element={<Testing />} />
         <Route path="services/treatment" element={<Treatment />} />
         <Route path="services/arv-therapy" element={<ARVTherapy />} />
         

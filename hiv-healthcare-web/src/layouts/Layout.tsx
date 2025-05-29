@@ -91,7 +91,7 @@ const Layout: React.FC = () => {
                     to="/services/testing"
                     className="block px-4 py-2.5 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200 border-l-2 border-transparent hover:border-teal-500"
                   >
-                    Tư vấn & Xét nghiệm
+                    Xét nghiệm HIV
                   </Link>
                   <Link
                     to="/services/treatment"
@@ -218,7 +218,7 @@ const Layout: React.FC = () => {
                     className="block py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Tư vấn & Xét nghiệm
+                    Xét nghiệm HIV
                   </Link>
                   <Link
                     to="/services/treatment"
@@ -366,7 +366,7 @@ const Layout: React.FC = () => {
               </h3>
               <ul className="space-y-3">
                 {[
-                  { name: "Tư vấn & Xét nghiệm", path: "/services/testing" },
+                  { name: "Xét nghiệm HIV", path: "/services/testing" },
                   { name: "Điều trị ARV", path: "/services/treatment" },
                   { name: "Hỗ trợ tâm lý", path: "/services/support" },
                   { name: "Tư vấn dinh dưỡng", path: "/services/nutrition" },
