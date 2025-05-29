@@ -29,6 +29,8 @@ import {
   Checkbox,
   Radio,
   RadioGroup,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import {
@@ -69,6 +71,7 @@ const Testing: React.FC = () => {
   });
 
   const [openBookingDialog, setOpenBookingDialog] = useState(false);
+  const [openSuccessSnackbar, setOpenSuccessSnackbar] = useState(false);
   const [bookingForm, setBookingForm] = useState({
     fullName: '',
     phone: '',
@@ -181,6 +184,8 @@ const Testing: React.FC = () => {
     // TODO: Implement booking submission logic
     console.log('Booking form submitted:', bookingForm);
     setOpenBookingDialog(false);
+    setOpenSuccessSnackbar(true);
+    
     // Reset form
     setBookingForm({
       fullName: '',
@@ -194,6 +199,10 @@ const Testing: React.FC = () => {
       isAnonymous: false,
       notes: '',
     });
+  };
+
+  const handleCloseSnackbar = () => {
+    setOpenSuccessSnackbar(false);
   };
 
   const filteredTests = [...individualTests, ...testPackages].filter(test => {
@@ -878,6 +887,28 @@ const Testing: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Success Notification */}
+      <Snackbar
+        open={openSuccessSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity="success"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            Đặt lịch xét nghiệm thành công!
+          </Typography>
+          <Typography variant="body2">
+            Chúng tôi sẽ liên hệ với bạn trong thời gian sớm nhất để xác nhận lịch hẹn.
+          </Typography>
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
