@@ -10,7 +10,8 @@ import {
   X,
   User,
   Bell,
-  Shield
+  Shield,
+  BarChart
 } from 'lucide-react';
 
 const AdminLayout: React.FC = () => {
@@ -42,6 +43,11 @@ const AdminLayout: React.FC = () => {
       name: 'Quản lý Thuốc',
       path: '/admin/medications',
       icon: <Pill className="w-5 h-5" />
+    },
+    {
+      name: 'Thống kê',
+      path: '/admin/statistics',
+      icon: <BarChart className="w-5 h-5" />
     },
     {
       name: 'Phân quyền',
