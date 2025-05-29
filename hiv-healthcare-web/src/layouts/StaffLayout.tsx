@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   User, 
   Calendar, 
@@ -15,6 +15,12 @@ import {
 const StaffLayout: React.FC = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // TODO: Add logout logic here (clear tokens, etc.)
+    navigate('/auth/login');
+  };
 
   const navigation = [
     {
@@ -92,7 +98,7 @@ const StaffLayout: React.FC = () => {
 
           {/* User Section */}
           <div className="p-4 border-t">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                 <User className="w-6 h-6 text-blue-600" />
               </div>
@@ -105,6 +111,13 @@ const StaffLayout: React.FC = () => {
                 </p>
               </div>
             </div>
+            <button 
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-2 px-4 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50"
+            >
+              <LogOut className="w-5 h-5" />
+              <span>Đăng xuất</span>
+            </button>
           </div>
         </div>
       </div>
@@ -122,7 +135,10 @@ const StaffLayout: React.FC = () => {
             </button>
 
             <div className="flex items-center space-x-4">
-              <button className="flex items-center space-x-2 text-gray-500 hover:text-gray-600">
+              <button 
+                onClick={handleLogout}
+                className="flex items-center space-x-2 text-gray-500 hover:text-gray-600"
+              >
                 <LogOut className="w-6 h-6" />
                 <span className="hidden md:inline">Đăng xuất</span>
               </button>
