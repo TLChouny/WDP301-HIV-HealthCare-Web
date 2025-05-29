@@ -911,24 +911,6 @@ const Home: React.FC = () => {
           </StaggerContainer>
         </div>
       </section> */}
-
-      {/* Floating Action Button */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        // className="fixed bottom-8 right-8 w-12 h-12 bg-teal-600 text-white rounded-full flex items-center justify-center transition-all duration-300 hover:bg-teal-700 hover:scale-110 z-50 group"
-        aria-label="Lên đầu trang"
-      >
-
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6 transition-transform duration-300 group-hover:-translate-y-1"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-        </svg>
-      </button>
     </div>
   )
 }
