@@ -42,6 +42,7 @@ import DoctorPatientManagement from './pages/Doctor/PatientManagement';
 import DoctorAppointmentManagement from './pages/Doctor/AppointmentManagement';
 import ARVProtocolManagement from './pages/Doctor/ARVProtocolManagement';
 import MedicalRecordManagement from './pages/Doctor/MedicalRecordManagement';
+import LabTestManagement from './pages/Doctor/LabTestManagement';
 
 // Staff Pages
 import StaffDashboard from './pages/Staff/StaffDashboard';
@@ -113,6 +114,7 @@ const App: React.FC = () => {
         <Route path="appointments" element={<DoctorAppointmentManagement />} />
         <Route path="arv-protocols" element={<ARVProtocolManagement />} />
         <Route path="medical-records" element={<MedicalRecordManagement />} />
+        <Route path="lab-tests" element={<LabTestManagement />} />
       </Route>
 
       {/* Staff routes */}
