@@ -444,7 +444,7 @@ const Layout: React.FC = () => {
           </div>
 
           {/* Newsletter */}
-          <div className="mt-12 pt-8 border-t border-teal-700/50">
+          {/* <div className="mt-12 pt-8 border-t border-teal-700/50">
             <div className="max-w-xl mx-auto text-center">
               <h3 className="text-xl font-semibold mb-4">Đăng ký nhận tin</h3>
               <p className="text-teal-100 mb-6">
@@ -464,7 +464,7 @@ const Layout: React.FC = () => {
                 </button>
               </form>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Copyright */}
