@@ -254,25 +254,14 @@ const Home: React.FC = () => {
             </AnimatedElement>
 
             <AnimatedElement animationType="zoom-in" delay={600} duration={800}>
-              <div className="bg-white p-6 rounded-lg shadow-xl max-w-md transform transition-all duration-500 hover:shadow-2xl">
-                <div className="mb-4">
-                  <label htmlFor="location" className="block text-gray-700 text-sm font-medium mb-1">
-                    Nhập địa chỉ, tỉnh/thành phố
-                  </label>
-                  <div className="relative group">
-                    <input
-                      type="text"
-                      id="location"
-                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
-                      placeholder="Nhập địa chỉ của bạn..."
-                    />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                      <Search className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" />
-                    </div>
-                  </div>
-                </div>
-                <button className="w-full bg-teal-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800">
-                  Tìm Kiếm
+              <div className="bg-white p-6 rounded-lg shadow-xl max-w-md flex flex-col items-center justify-center transform transition-all duration-500 hover:shadow-2xl">
+                <button
+                  className="w-full bg-teal-600 text-white py-3 px-6 rounded-lg font-medium text-lg transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 flex items-center justify-center gap-2"
+                  // Thay đổi đường dẫn đặt lịch tại đây nếu cần
+                  onClick={() => window.location.href = "/booking"}
+                >
+                  <Calendar className="h-5 w-5 mr-2" />
+                  Đặt lịch tư vấn trực tuyến
                 </button>
               </div>
             </AnimatedElement>
@@ -376,6 +365,7 @@ const Home: React.FC = () => {
                     src={doingubacsi2 || "/placeholder.svg"}
                     alt="Chăm sóc tại nhà"
                     className="rounded-lg shadow-xl transition-all duration-800 group-hover:shadow-2xl relative z-10"
+
                   />
 
                   {/* Decorative elements */}
