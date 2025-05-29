@@ -10,7 +10,8 @@ import {
   X,
   User,
   Bell,
-  Settings
+  Settings,
+  Microscope
 } from 'lucide-react';
 
 const DoctorLayout: React.FC = () => {
@@ -42,6 +43,11 @@ const DoctorLayout: React.FC = () => {
       name: 'Hồ sơ bệnh án',
       path: '/doctor/medical-records',
       icon: <FileText className="w-5 h-5" />
+    },
+    {
+      name: 'Quản lý Xét nghiệm',
+      path: '/doctor/lab-tests',
+      icon: <Microscope className="w-5 h-5" />
     }
   ];
 
