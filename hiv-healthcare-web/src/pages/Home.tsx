@@ -354,7 +354,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Home Care Section */}
-      <ParallaxSection speed={0.15} className="py-16 bg-gray-50">
+      {/* <ParallaxSection speed={0.15} className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-center">
             <AnimatedElement animationType="fade-right" duration={1000} className="lg:w-1/2 mb-10 lg:mb-0">
@@ -367,8 +367,6 @@ const Home: React.FC = () => {
                     className="rounded-lg shadow-xl transition-all duration-800 group-hover:shadow-2xl relative z-10"
 
                   />
-
-                  {/* Decorative elements */}
                   <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-teal-100 rounded-full opacity-70 z-0 transition-transform duration-500 group-hover:scale-125"></div>
                 </div>
               </div>
@@ -403,7 +401,7 @@ const Home: React.FC = () => {
             </div>
           </div>
         </div>
-      </ParallaxSection>
+      </ParallaxSection> */}
 
       {/* Experienced Staff Section */}
       <section className="py-16 bg-white relative overflow-hidden">
