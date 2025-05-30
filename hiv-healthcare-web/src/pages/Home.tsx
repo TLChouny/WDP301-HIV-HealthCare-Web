@@ -1,50 +1,69 @@
-"use client"
+"use client";
 
-import React, { useEffect, useRef, useState } from "react"
-import { Link } from "react-router-dom"
-import { Search, ArrowRight, Phone, Calendar, FileText, Shield, Users, Heart, Info, MapPin } from "lucide-react"
-import doingubacsi from "../assets/doingubacsi.png"
-import doingubacsi2 from "../assets/doingubacsi2.png"
-import doingubacsi3 from "../assets/doingubacsi3.png"
+import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  Search,
+  ArrowRight,
+  Phone,
+  Calendar,
+  FileText,
+  Shield,
+  Users,
+  Heart,
+  Info,
+  MapPin,
+} from "lucide-react";
+import doingubacsi from "../assets/doingubacsi.png";
+import doingubacsi2 from "../assets/doingubacsi2.png";
+import doingubacsi3 from "../assets/doingubacsi3.png";
 
 // Hàm tiện ích để kiểm tra nếu element trong viewport
 const useInView = (ref: React.RefObject<HTMLElement>, threshold = 0.1) => {
-  const [isVisible, setIsVisible] = useState(false)
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsVisible(true)
+          setIsVisible(true);
           // Ngừng theo dõi sau khi hiển thị để tối ưu hiệu suất
-          observer.unobserve(entry.target)
+          observer.unobserve(entry.target);
         }
       },
-      { threshold },
-    )
+      { threshold }
+    );
 
-    const currentRef = ref.current
+    const currentRef = ref.current;
     if (currentRef) {
-      observer.observe(currentRef)
+      observer.observe(currentRef);
     }
 
     return () => {
       if (currentRef) {
-        observer.unobserve(currentRef)
+        observer.unobserve(currentRef);
       }
-    }
-  }, [ref, threshold])
+    };
+  }, [ref, threshold]);
 
-  return isVisible
-}
+  return isVisible;
+};
 
 // Component Animation để bọc các phần tử cần animation
 interface AnimatedElementProps {
-  children: React.ReactNode
-  className?: string
-  delay?: number
-  duration?: number
-  animationType?: "fade-up" | "fade-down" | "fade-left" | "fade-right" | "zoom-in" | "zoom-out" | "flip" | "bounce"
+  children: React.ReactNode;
+  className?: string;
+  delay?: number;
+  duration?: number;
+  animationType?:
+    | "fade-up"
+    | "fade-down"
+    | "fade-left"
+    | "fade-right"
+    | "zoom-in"
+    | "zoom-out"
+    | "flip"
+    | "bounce";
 }
 
 const AnimatedElement: React.FC<AnimatedElementProps> = ({
@@ -54,8 +73,8 @@ const AnimatedElement: React.FC<AnimatedElementProps> = ({
   duration = 800,
   animationType = "fade-up",
 }) => {
-  const ref = useRef<HTMLDivElement>(null)
-  const isVisible = useInView(ref)
+  const ref = useRef<HTMLDivElement>(null);
+  const isVisible = useInView(ref);
 
   // Xác định các style animation dựa trên type
   const getAnimationStyles = () => {
@@ -63,7 +82,7 @@ const AnimatedElement: React.FC<AnimatedElementProps> = ({
       opacity: isVisible ? 1 : 0,
       transition: `opacity ${duration}ms, transform ${duration}ms`,
       transitionDelay: `${delay}ms`,
-    }
+    };
 
     // Thêm transform dựa trên loại animation
     switch (animationType) {
@@ -71,65 +90,65 @@ const AnimatedElement: React.FC<AnimatedElementProps> = ({
         return {
           ...baseStyles,
           transform: isVisible ? "translateY(0)" : "translateY(40px)",
-        }
+        };
       case "fade-down":
         return {
           ...baseStyles,
           transform: isVisible ? "translateY(0)" : "translateY(-40px)",
-        }
+        };
       case "fade-left":
         return {
           ...baseStyles,
           transform: isVisible ? "translateX(0)" : "translateX(-40px)",
-        }
+        };
       case "fade-right":
         return {
           ...baseStyles,
           transform: isVisible ? "translateX(0)" : "translateX(40px)",
-        }
+        };
       case "zoom-in":
         return {
           ...baseStyles,
           transform: isVisible ? "scale(1)" : "scale(0.9)",
-        }
+        };
       case "zoom-out":
         return {
           ...baseStyles,
           transform: isVisible ? "scale(1)" : "scale(1.1)",
-        }
+        };
       case "flip":
         return {
           ...baseStyles,
           transform: isVisible ? "rotateY(0)" : "rotateY(90deg)",
-        }
+        };
       case "bounce":
         if (isVisible) {
           return {
             opacity: 1,
             animation: `bounce ${duration}ms ${delay}ms`,
-          }
+          };
         }
         return {
           opacity: 0,
-        }
+        };
       default:
-        return baseStyles
+        return baseStyles;
     }
-  }
+  };
 
   return (
     <div ref={ref} className={className} style={getAnimationStyles()}>
       {children}
     </div>
-  )
-}
+  );
+};
 
 // Component để tạo hiệu ứng stagger cho các phần tử con
 interface StaggerContainerProps {
-  children: React.ReactNode
-  className?: string
-  staggerDelay?: number
-  initialDelay?: number
+  children: React.ReactNode;
+  className?: string;
+  staggerDelay?: number;
+  initialDelay?: number;
 }
 
 const StaggerContainer: React.FC<StaggerContainerProps> = ({
@@ -138,8 +157,8 @@ const StaggerContainer: React.FC<StaggerContainerProps> = ({
   staggerDelay = 100,
   initialDelay = 0,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const isVisible = useInView(containerRef)
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isVisible = useInView(containerRef);
 
   // Clone các phần tử con và thêm delay tăng dần
   const staggeredChildren = React.Children.map(children, (child, index) => {
@@ -153,42 +172,46 @@ const StaggerContainer: React.FC<StaggerContainerProps> = ({
           transition: "opacity 500ms, transform 500ms",
           transitionDelay: `${initialDelay + index * staggerDelay}ms`,
         },
-      })
+      });
     }
-    return child
-  })
+    return child;
+  });
 
   return (
     <div ref={containerRef} className={className}>
       {staggeredChildren}
     </div>
-  )
-}
+  );
+};
 
 // Component tạo hiệu ứng parallax khi cuộn
 interface ParallaxSectionProps {
-  children: React.ReactNode
-  speed?: number
-  className?: string
+  children: React.ReactNode;
+  speed?: number;
+  className?: string;
 }
 
-const ParallaxSection: React.FC<ParallaxSectionProps> = ({ children, speed = 0.2, className = "" }) => {
-  const sectionRef = useRef<HTMLDivElement>(null)
-  const [offset, setOffset] = useState(0)
+const ParallaxSection: React.FC<ParallaxSectionProps> = ({
+  children,
+  speed = 0.2,
+  className = "",
+}) => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [offset, setOffset] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (!sectionRef.current) return
-      const { top } = sectionRef.current.getBoundingClientRect()
-      const newOffset = top * speed
-      setOffset(newOffset)
-    }
+      if (!sectionRef.current) return;
+      const { top } = sectionRef.current.getBoundingClientRect();
+      const newOffset = top * speed;
+      setOffset(newOffset);
+    };
 
-    window.addEventListener("scroll", handleScroll)
-    handleScroll() // Gọi ngay lập tức để thiết lập giá trị ban đầu
+    window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Gọi ngay lập tức để thiết lập giá trị ban đầu
 
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [speed])
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [speed]);
 
   return (
     <div ref={sectionRef} className={`relative overflow-hidden ${className}`}>
@@ -201,23 +224,23 @@ const ParallaxSection: React.FC<ParallaxSectionProps> = ({ children, speed = 0.2
         {children}
       </div>
     </div>
-  )
-}
+  );
+};
 
 const Home: React.FC = () => {
   // Scroll progress indicator
-  const [scrollProgress, setScrollProgress] = useState(0)
+  const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      const totalHeight = document.body.scrollHeight - window.innerHeight
-      const progress = (window.scrollY / totalHeight) * 100
-      setScrollProgress(progress)
-    }
+      const totalHeight = document.body.scrollHeight - window.innerHeight;
+      const progress = (window.scrollY / totalHeight) * 100;
+      setScrollProgress(progress);
+    };
 
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="min-h-screen relative">
@@ -241,7 +264,11 @@ const Home: React.FC = () => {
         </div>
 
         <div className="container mx-auto px-4 flex flex-col lg:flex-row items-center relative z-10">
-          <AnimatedElement animationType="fade-right" duration={1000} className="lg:w-1/2 mb-10 lg:mb-0">
+          <AnimatedElement
+            animationType="fade-right"
+            duration={1000}
+            className="lg:w-1/2 mb-10 lg:mb-0"
+          >
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Tìm Bác Sĩ <br />
               Chuyên Khoa HIV.
@@ -249,7 +276,8 @@ const Home: React.FC = () => {
 
             <AnimatedElement animationType="fade-up" delay={300} duration={800}>
               <p className="text-teal-100 mb-8 text-lg">
-                Đội ngũ y bác sĩ chuyên khoa giàu kinh nghiệm, tận tâm và không kỳ thị
+                Đội ngũ y bác sĩ chuyên khoa giàu kinh nghiệm, tận tâm và không
+                kỳ thị
               </p>
             </AnimatedElement>
 
@@ -258,7 +286,7 @@ const Home: React.FC = () => {
                 <button
                   className="w-full bg-teal-600 text-white py-3 px-6 rounded-lg font-medium text-lg transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 flex items-center justify-center gap-2"
                   // Thay đổi đường dẫn đặt lịch tại đây nếu cần
-                  onClick={() => window.location.href = "/booking"}
+                  onClick={() => (window.location.href = "/booking")}
                 >
                   <Calendar className="h-5 w-5 mr-2" />
                   Đặt lịch tư vấn trực tuyến
@@ -267,7 +295,12 @@ const Home: React.FC = () => {
             </AnimatedElement>
           </AnimatedElement>
 
-          <AnimatedElement animationType="fade-left" delay={300} duration={1000} className="lg:w-1/2 lg:pl-10">
+          <AnimatedElement
+            animationType="fade-left"
+            delay={300}
+            duration={1000}
+            className="lg:w-1/2 lg:pl-10"
+          >
             <div className="relative group">
               {/* Lớp nền thứ nhất (khung cyan giống ảnh) */}
               <div className="absolute inset-0 z-0">
@@ -292,7 +325,11 @@ const Home: React.FC = () => {
       {/* Services Icons Section */}
       <section className="py-16 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4">
-          <AnimatedElement animationType="fade-up" duration={800} className="mb-12">
+          <AnimatedElement
+            animationType="fade-up"
+            duration={800}
+            className="mb-12"
+          >
             <h2 className="text-3xl font-bold text-center text-gray-800 relative inline-block mx-auto">
               <span className="relative z-10">Dịch Vụ Nổi Bật</span>
               <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
@@ -306,31 +343,40 @@ const Home: React.FC = () => {
                   <FileText className="h-10 w-10 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
                 ),
                 title: "Tư Vấn Xét Nghiệm",
-                description: "Tư vấn trước và sau xét nghiệm HIV miễn phí, bảo mật và không kỳ thị",
+                description:
+                  "Tư vấn trước và sau xét nghiệm HIV miễn phí, bảo mật và không kỳ thị",
               },
               {
                 icon: (
                   <Shield className="h-10 w-10 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
                 ),
                 title: "Điều Trị ARV",
-                description: "Điều trị ARV hiện đại, theo dõi sát sao và hỗ trợ tuân thủ điều trị",
+                description:
+                  "Điều trị ARV hiện đại, theo dõi sát sao và hỗ trợ tuân thủ điều trị",
               },
               {
                 icon: (
                   <Heart className="h-10 w-10 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
                 ),
                 title: "Chăm Sóc Toàn Diện",
-                description: "Chăm sóc sức khỏe toàn diện cho người sống chung với HIV",
+                description:
+                  "Chăm sóc sức khỏe toàn diện cho người sống chung với HIV",
               },
               {
                 icon: (
                   <Users className="h-10 w-10 text-teal-600 transition-transform duration-300 group-hover:scale-110" />
                 ),
                 title: "Hỗ Trợ Tâm Lý",
-                description: "Tư vấn tâm lý và hỗ trợ xã hội cho người nhiễm và gia đình",
+                description:
+                  "Tư vấn tâm lý và hỗ trợ xã hội cho người nhiễm và gia đình",
               },
             ].map((service, index) => (
-              <AnimatedElement key={index} animationType="zoom-in" delay={300 + index * 150} duration={800}>
+              <AnimatedElement
+                key={index}
+                animationType="zoom-in"
+                delay={300 + index * 150}
+                duration={800}
+              >
                 <div className="group text-center p-6 border border-gray-100 rounded-lg transition-all duration-500 hover:shadow-xl hover:border-teal-100 hover:-translate-y-2 bg-white relative overflow-hidden">
                   {/* Background hover effect */}
                   <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -354,10 +400,14 @@ const Home: React.FC = () => {
       </section>
 
       {/* Home Care Section */}
-      {/* <ParallaxSection speed={0.15} className="py-16 bg-gray-50">
+      <ParallaxSection speed={0.15} className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-center">
-            <AnimatedElement animationType="fade-right" duration={1000} className="lg:w-1/2 mb-10 lg:mb-0">
+            <AnimatedElement
+              animationType="fade-right"
+              duration={1000}
+              className="lg:w-1/2 mb-10 lg:mb-0"
+            >
               <div className="group">
                 <div className="relative">
                   <div className="absolute top-4 left-4 w-full h-full bg-teal-500/20 rounded-lg -z-10"></div>
@@ -365,7 +415,6 @@ const Home: React.FC = () => {
                     src={doingubacsi2 || "/placeholder.svg"}
                     alt="Chăm sóc tại nhà"
                     className="rounded-lg shadow-xl transition-all duration-800 group-hover:shadow-2xl relative z-10"
-
                   />
                   <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-teal-100 rounded-full opacity-70 z-0 transition-transform duration-500 group-hover:scale-125"></div>
                 </div>
@@ -375,18 +424,32 @@ const Home: React.FC = () => {
             <div className="lg:w-1/2 lg:pl-16">
               <AnimatedElement animationType="fade-left" duration={800}>
                 <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6">
-                  Mang Dịch Vụ Chăm Sóc Đến Tận Nhà Chỉ Với Một Cú Nhấp Chuột
+                  Bạn Đang Gặp Vấn Đề Nào?{" "}
                 </h2>
               </AnimatedElement>
 
-              <AnimatedElement animationType="fade-up" delay={300} duration={800}>
+              <AnimatedElement
+                animationType="fade-up"
+                delay={300}
+                duration={800}
+              >
                 <p className="text-gray-600 mb-8 text-lg">
-                  Chúng tôi hiểu rằng việc di chuyển có thể khó khăn đối với một số bệnh nhân. Vì vậy, chúng tôi cung
-                  cấp dịch vụ chăm sóc tại nhà, tư vấn trực tuyến và giao thuốc tận nơi.
+                  Đừng để những lo lắng về HIV ảnh hưởng đến sức khỏe và chất
+                  lượng cuộc sống của bạn. Việc phát hiện và điều trị sớm là yếu
+                  tố quan trọng giúp kiểm soát bệnh hiệu quả, bảo vệ chính bạn
+                  và những người xung quanh. Tại HIV Care, đội ngũ bác sĩ chuyên
+                  khoa với nhiều năm kinh nghiệm sẽ hỗ trợ bạn từ tư vấn, xét
+                  nghiệm đến điều trị theo phác đồ chuẩn. Tất cả đều được thực
+                  hiện trong môi trường an toàn, bảo mật tuyệt đối và không kỳ
+                  thị.
                 </p>
               </AnimatedElement>
 
-              <AnimatedElement animationType="fade-up" delay={500} duration={800}>
+              <AnimatedElement
+                animationType="fade-up"
+                delay={500}
+                duration={800}
+              >
                 <div className="flex flex-wrap items-center gap-4">
                   <button className="bg-teal-600 text-white py-3 px-6 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 flex items-center group">
                     <Phone className="h-5 w-5 mr-2 transition-transform duration-300 group-hover:rotate-12" />
@@ -401,7 +464,7 @@ const Home: React.FC = () => {
             </div>
           </div>
         </div>
-      </ParallaxSection> */}
+      </ParallaxSection>
 
       {/* Experienced Staff Section */}
       <section className="py-16 bg-white relative overflow-hidden">
@@ -414,15 +477,23 @@ const Home: React.FC = () => {
             <div className="lg:w-1/2 lg:pr-16 mb-10 lg:mb-0">
               <AnimatedElement animationType="fade-right" duration={800}>
                 <h2 className="text-3xl font-bold text-teal-700 mb-6 relative">
-                  <span className="relative z-10">Đội Ngũ Y Bác Sĩ Giàu Kinh Nghiệm</span>
+                  <span className="relative z-10">
+                    Đội Ngũ Y Bác Sĩ Giàu Kinh Nghiệm
+                  </span>
                   <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
                 </h2>
               </AnimatedElement>
 
-              <AnimatedElement animationType="fade-up" delay={200} duration={800}>
+              <AnimatedElement
+                animationType="fade-up"
+                delay={200}
+                duration={800}
+              >
                 <p className="text-gray-600 mb-8">
-                  Đội ngũ y bác sĩ của chúng tôi có nhiều năm kinh nghiệm trong lĩnh vực điều trị và chăm sóc HIV/AIDS.
-                  Họ không chỉ giỏi chuyên môn mà còn tận tâm, nhiệt tình và luôn đặt bệnh nhân lên hàng đầu.
+                  Đội ngũ y bác sĩ của chúng tôi có nhiều năm kinh nghiệm trong
+                  lĩnh vực điều trị và chăm sóc HIV/AIDS. Họ không chỉ giỏi
+                  chuyên môn mà còn tận tâm, nhiệt tình và luôn đặt bệnh nhân
+                  lên hàng đầu.
                 </p>
               </AnimatedElement>
 
@@ -457,7 +528,12 @@ const Home: React.FC = () => {
                     description: "Phương pháp điều trị mới nhất",
                   },
                 ].map((feature, index) => (
-                  <AnimatedElement key={index} animationType="fade-up" delay={400 + index * 150} duration={800}>
+                  <AnimatedElement
+                    key={index}
+                    animationType="fade-up"
+                    delay={400 + index * 150}
+                    duration={800}
+                  >
                     <div className="group flex items-center transition-all duration-500 hover:bg-teal-50 p-3 rounded-lg hover:shadow-md">
                       <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center mr-4 transition-all duration-300 group-hover:bg-teal-200 group-hover:scale-110">
                         {feature.icon}
@@ -482,7 +558,12 @@ const Home: React.FC = () => {
               </AnimatedElement> */}
             </div>
 
-            <AnimatedElement animationType="fade-left" delay={300} duration={1000} className="lg:w-1/2">
+            <AnimatedElement
+              animationType="fade-left"
+              delay={300}
+              duration={1000}
+              className="lg:w-1/2"
+            >
               <div className="relative group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-teal-200 rounded-full opacity-50 -z-10 transform translate-x-10 -translate-y-10 transition-all duration-500 group-hover:scale-110"></div>
                 <div className="relative z-10 transition-transform duration-700 group-hover:scale-105">
@@ -507,7 +588,11 @@ const Home: React.FC = () => {
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <AnimatedElement animationType="fade-up" duration={800} className="mb-12">
+          <AnimatedElement
+            animationType="fade-up"
+            duration={800}
+            className="mb-12"
+          >
             <h2 className="text-3xl font-bold text-center relative inline-block mx-auto">
               <span className="relative z-10">Dịch Vụ Dành Cho Bạn</span>
               <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-600/50 -z-10 transform -rotate-1"></span>
@@ -521,7 +606,8 @@ const Home: React.FC = () => {
                   <FileText className="h-10 w-10 text-teal-200 transition-transform duration-300 group-hover:scale-110" />
                 ),
                 title: "Tư Vấn & Xét Nghiệm",
-                description: "Tư vấn trước và sau xét nghiệm HIV, xét nghiệm nhanh và bảo mật kết quả.",
+                description:
+                  "Tư vấn trước và sau xét nghiệm HIV, xét nghiệm nhanh và bảo mật kết quả.",
                 link: "/services/testing",
               },
               {
@@ -529,7 +615,8 @@ const Home: React.FC = () => {
                   <Shield className="h-10 w-10 text-teal-200 transition-transform duration-300 group-hover:scale-110" />
                 ),
                 title: "Điều Trị ARV",
-                description: "Điều trị ARV hiện đại, theo dõi tải lượng virus và tư vấn tuân thủ điều trị.",
+                description:
+                  "Điều trị ARV hiện đại, theo dõi tải lượng virus và tư vấn tuân thủ điều trị.",
                 link: "/services/treatment",
               },
               {
@@ -537,14 +624,22 @@ const Home: React.FC = () => {
                   <Users className="h-10 w-10 text-teal-200 transition-transform duration-300 group-hover:scale-110" />
                 ),
                 title: "Hỗ Trợ Tâm Lý",
-                description: "Tư vấn tâm lý cá nhân và nhóm, hỗ trợ vượt qua khó khăn và kỳ thị.",
+                description:
+                  "Tư vấn tâm lý cá nhân và nhóm, hỗ trợ vượt qua khó khăn và kỳ thị.",
                 link: "/services/support",
               },
             ].map((service, index) => (
-              <AnimatedElement key={index} animationType="zoom-in" delay={300 + index * 150} duration={800}>
+              <AnimatedElement
+                key={index}
+                animationType="zoom-in"
+                delay={300 + index * 150}
+                duration={800}
+              >
                 <div className="group bg-teal-700/80 backdrop-blur-sm rounded-lg p-6 transition-all duration-500 hover:bg-teal-600 hover:-translate-y-2 hover:shadow-lg relative overflow-hidden">
                   <div className="relative z-10">
-                    <div className="mb-4 transition-transform duration-500 group-hover:scale-110">{service.icon}</div>
+                    <div className="mb-4 transition-transform duration-500 group-hover:scale-110">
+                      {service.icon}
+                    </div>
                     <h3 className="text-xl font-semibold mb-3 transition-transform duration-300 group-hover:translate-y-[-2px]">
                       {service.title}
                     </h3>
@@ -569,7 +664,11 @@ const Home: React.FC = () => {
       {/* Specialists Section */}
       <section className="py-16 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4">
-          <AnimatedElement animationType="fade-up" duration={800} className="mb-12">
+          <AnimatedElement
+            animationType="fade-up"
+            duration={800}
+            className="mb-12"
+          >
             <h2 className="text-3xl font-bold text-center text-gray-800 relative inline-block mx-auto">
               <span className="relative z-10">Tìm Kiếm Theo Chuyên Khoa</span>
               <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
@@ -637,16 +736,25 @@ const Home: React.FC = () => {
       {/* Doctors Section */}
       <ParallaxSection speed={0.1} className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <AnimatedElement animationType="fade-up" duration={800} className="mb-4">
+          <AnimatedElement
+            animationType="fade-up"
+            duration={800}
+            className="mb-4"
+          >
             <h2 className="text-3xl font-bold text-center text-gray-800 relative inline-block mx-auto">
               <span className="relative z-10">Đội Ngũ Chuyên Gia</span>
               <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
             </h2>
           </AnimatedElement>
 
-          <AnimatedElement animationType="fade-up" delay={200} duration={800} className="mb-12">
+          <AnimatedElement
+            animationType="fade-up"
+            delay={200}
+            duration={800}
+            className="mb-12"
+          >
             <p className="text-gray-600 text-center max-w-3xl mx-auto">
-              Đội ngũ y bác sĩ giàu kinh nghiệm, tận tâm và được đào tạo chuyên sâu về HIV/AIDS
+              {/* Đội ngũ y bác sĩ giàu kinh nghiệm, tận tâm và được đào tạo chuyên sâu về HIV/AIDS */}
             </p>
           </AnimatedElement>
 
@@ -657,7 +765,12 @@ const Home: React.FC = () => {
               { name: "ThS. Lê Văn C", role: "Chuyên Viên Tâm Lý" },
               { name: "BS. Phạm Thị D", role: "Chuyên Gia Dinh Dưỡng" },
             ].map((doctor, index) => (
-              <AnimatedElement key={index} animationType="fade-up" delay={300 + index * 150} duration={800}>
+              <AnimatedElement
+                key={index}
+                animationType="fade-up"
+                delay={300 + index * 150}
+                duration={800}
+              >
                 <div className="group bg-white rounded-lg overflow-hidden shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-2 relative">
                   <div className="overflow-hidden">
                     <img
@@ -780,7 +893,11 @@ const Home: React.FC = () => {
       {/* Blog Section */}
       <section className="py-16 bg-white relative overflow-hidden">
         <div className="container mx-auto px-4">
-          <AnimatedElement animationType="fade-up" duration={800} className="mb-12">
+          <AnimatedElement
+            animationType="fade-up"
+            duration={800}
+            className="mb-12"
+          >
             <h2 className="text-3xl font-bold text-center text-gray-800 relative inline-block mx-auto">
               <span className="relative z-10">Bài Viết Mới Nhất</span>
               <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
@@ -814,7 +931,12 @@ const Home: React.FC = () => {
                 author: "BS. Trần Thị B",
               },
             ].map((article, index) => (
-              <AnimatedElement key={index} animationType="fade-up" delay={300 + index * 150} duration={800}>
+              <AnimatedElement
+                key={index}
+                animationType="fade-up"
+                delay={300 + index * 150}
+                duration={800}
+              >
                 <div className="group border border-gray-200 rounded-lg overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-2 bg-white relative">
                   <div className="overflow-hidden">
                     <img
@@ -835,7 +957,9 @@ const Home: React.FC = () => {
                     </h3>
                     <p className="text-gray-600 mb-4">{article.excerpt}</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">{article.author}</span>
+                      <span className="text-sm text-gray-500">
+                        {article.author}
+                      </span>
                       <Link
                         to="/blog"
                         className="text-teal-600 font-medium flex items-center transition-all duration-300 group-hover:text-teal-700 relative"
@@ -883,7 +1007,7 @@ const Home: React.FC = () => {
         </div>
       </section> */}
     </div>
-  )
-}
+  );
+};
 
-export default Home
+export default Home;
