@@ -61,6 +61,7 @@ import {
   HIVHistory,
 } from './pages/User';
 import About from './pages/Home/About';
+import Blog from './pages/Home/Blog';
 
 // Fallback component
 const FallbackComponent: React.FC = () => (
@@ -74,6 +75,7 @@ const App: React.FC = () => {
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
+        <Route path="Blog" element={<Blog />} />
         <Route path="appointment" element={<Appointment />} />
         <Route path="test-results" element={<TestResults />} />
         <Route path="arv-treatment" element={<ARVTreatment />} />
