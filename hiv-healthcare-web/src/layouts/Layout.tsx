@@ -1,18 +1,17 @@
-"use client"
-
 import { ChevronDown, Clock, Facebook, Instagram, Mail, MapPin, Menu, Phone, Twitter, X, Youtube } from "lucide-react"
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Link, useLocation, Outlet } from "react-router-dom"
 import { ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
+import { useAuth } from "../context/AuthContext"
 
 const Layout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
   const location = useLocation()
-  const userRole = "Customer" // TODO: replace with real auth context
+  const { user, logout } = useAuth()
 
   // Close mobile menu when route changes
   useEffect(() => {
@@ -141,7 +140,7 @@ const Layout: React.FC = () => {
               </Link>
             </nav>
 
-            {/* Buttons (Book Appointment, Login, Register) */}
+            {/* Desktop Buttons */}
             <div className="hidden md:flex items-center space-x-4">
               <Link
                 to="/appointment"
@@ -150,20 +149,52 @@ const Layout: React.FC = () => {
                 Đặt lịch khám
               </Link>
               <div className="h-6 w-px bg-teal-600"></div>
-              <div className="flex items-center space-x-3">
-                <Link
-                  to="/login"
-                  className="text-white hover:text-teal-100 font-medium transition-colors duration-300 flex items-center"
-                >
-                  Đăng nhập
-                </Link>
-                <Link
-                  to="/register"
-                  className="bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow transform hover:-translate-y-0.5"
-                >
-                  Đăng ký
-                </Link>
-              </div>
+              {user ? (
+                <div className="relative group">
+                  <div
+                    className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium text-lg uppercase cursor-pointer"
+                    onClick={() => toggleDropdown("user")}
+                  >
+                    {user.email.charAt(0)}
+                  </div>
+                  <div
+                    className={`absolute right-0 mt-2 w Ascending w-48 bg-white rounded-lg shadow-xl py-2 z-10 transition-all duration-300 ${
+                      activeDropdown === "user" ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2"
+                    }`}
+                  >
+                    <Link
+                      to="/profile"
+                      className="block px-4 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-700"
+                    >
+                      Hồ sơ
+                    </Link>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsMenuOpen(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-700"
+                    >
+                      Đăng xuất
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-3">
+                  <Link
+                    to="/login"
+                    className="text-white hover:text-teal-100 font-medium transition-colors duration-300 flex items-center"
+                  >
+                    Đăng nhập
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow transform hover:-translate-y-0.5"
+                  >
+                    Đăng ký
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -280,22 +311,64 @@ const Layout: React.FC = () => {
                 >
                   Đặt lịch khám
                 </Link>
-                <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
-                  <Link
-                    to="/login"
-                    className="text-white hover:text-teal-100 font-medium transition-colors duration-200 bg-teal-700/50 hover:bg-teal-700 py-2.5 px-4 rounded-lg text-center"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Đăng nhập
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="bg-teal-600 hover:bg-teal-500 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow text-center"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Đăng ký
-                  </Link>
-                </div>
+                {user ? (
+                  <div className="py-2">
+                    <button
+                      className={`text-white font-medium flex items-center justify-between w-full rounded-md px-3 py-2 ${
+                        activeDropdown === "user" ? "bg-teal-700" : "hover:bg-teal-700/50"
+                      }`}
+                      onClick={() => toggleDropdown("user")}
+                    >
+                      <span className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium text-lg uppercase">
+                        {user.email.charAt(0)}
+                      </span>
+                      <ChevronDown
+                        className={`h-4 w-4 ml-1 transition-transform duration-300 ${
+                          activeDropdown === "user" ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
+                    <div
+                      className={`mt-2 space-y-1 pl-4 overflow-hidden transition-all duration-300 ${
+                        activeDropdown === "user" ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                      }`}
+                    >
+                      <Link
+                        to="/profile"
+                        className="block py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Hồ sơ
+                      </Link>
+                      <button
+                        onClick={() => {
+                          logout();
+                          setIsMenuOpen(false);
+                        }}
+                        className="block w-full text-left py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
+                      >
+                        Đăng xuất
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                    <Link
+                      to="/login"
+                      className="text-white hover:text-teal-100 font-medium transition-colors duration-200 bg-teal-700/50 hover:bg-teal-700 py-2.5 px-4 rounded-lg text-center"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Đăng nhập
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="bg-teal-600 hover:bg-teal-500 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow text-center"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Đăng ký
+                    </Link>
+                  </div>
+                )}
               </div>
             </nav>
           </div>
@@ -442,29 +515,6 @@ const Layout: React.FC = () => {
               </ul>
             </div>
           </div>
-
-          {/* Newsletter */}
-          {/* <div className="mt-12 pt-8 border-t border-teal-700/50">
-            <div className="max-w-xl mx-auto text-center">
-              <h3 className="text-xl font-semibold mb-4">Đăng ký nhận tin</h3>
-              <p className="text-teal-100 mb-6">
-                Nhận thông tin mới nhất về HIV/AIDS, các dịch vụ và sự kiện của chúng tôi.
-              </p>
-              <form className="flex flex-col sm:flex-row gap-3">
-                <input
-                  type="email"
-                  placeholder="Nhập email của bạn"
-                  className="flex-grow px-4 py-3 rounded-lg focus:outline-none text-gray-800 shadow-sm focus:ring-2 focus:ring-teal-500 transition-shadow duration-300"
-                />
-                <button
-                  type="submit"
-                  className="bg-teal-600 hover:bg-teal-500 text-white px-6 py-3 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow transform hover:-translate-y-0.5"
-                >
-                  Đăng Ký
-                </button>
-              </form>
-            </div>
-          </div> */}
         </div>
 
         {/* Copyright */}

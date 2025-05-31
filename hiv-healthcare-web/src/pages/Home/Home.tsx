@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -14,9 +12,9 @@ import {
   Info,
   MapPin,
 } from "lucide-react";
-import doingubacsi from "../assets/doingubacsi.png";
-import doingubacsi2 from "../assets/doingubacsi2.png";
-import doingubacsi3 from "../assets/doingubacsi3.png";
+import doingubacsi from "../../assets/doingubacsi.png";
+import doingubacsi2 from "../../assets/doingubacsi2.png";
+import doingubacsi3 from "../../assets/doingubacsi3.png";
 
 // Hàm tiện ích để kiểm tra nếu element trong viewport
 const useInView = (ref: React.RefObject<HTMLElement>, threshold = 0.1) => {
