@@ -13,7 +13,13 @@ import {
   XCircle,
   AlertCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileText,
+  Shield,
+  CreditCard,
+  MessageSquare,
+  Edit,
+  Trash2
 } from 'lucide-react';
 
 interface Appointment {
@@ -24,10 +30,26 @@ interface Appointment {
   patientAddress: string;
   date: string;
   time: string;
-  type: string;
+  type: 'first-test' | 'pre-test-counseling' | 'post-test-counseling' | 'regular-checkup' | 'arv-consultation';
   doctor: string;
   status: 'confirmed' | 'pending' | 'cancelled';
+  insurance: {
+    hasInsurance: boolean;
+    insuranceNumber?: string;
+    insuranceType?: string;
+  };
+  counseling: {
+    preTestDone: boolean;
+    postTestDone: boolean;
+    counselor?: string;
+  };
+  testType?: {
+    rapid: boolean;
+    elisa: boolean;
+    pcr: boolean;
+  };
   notes?: string;
+  specialRequirements?: string;
 }
 
 const StaffAppointmentManagement: React.FC = () => {
@@ -45,10 +67,26 @@ const StaffAppointmentManagement: React.FC = () => {
       patientAddress: '123 Đường ABC, Quận 1, TP.HCM',
       date: '2024-03-20',
       time: '09:00',
-      type: 'Khám định kỳ',
+      type: 'first-test',
       doctor: 'BS. Trần Thị B',
       status: 'confirmed',
-      notes: 'Bệnh nhân cần xét nghiệm máu trước khi khám'
+      insurance: {
+        hasInsurance: true,
+        insuranceNumber: 'BH123456',
+        insuranceType: 'Bảo hiểm y tế'
+      },
+      counseling: {
+        preTestDone: true,
+        postTestDone: false,
+        counselor: 'TV. Lê Văn C'
+      },
+      testType: {
+        rapid: true,
+        elisa: false,
+        pcr: false
+      },
+      notes: 'Bệnh nhân đến xét nghiệm lần đầu',
+      specialRequirements: 'Cần phiên dịch tiếng Anh'
     },
     {
       id: '2',
@@ -58,10 +96,20 @@ const StaffAppointmentManagement: React.FC = () => {
       patientAddress: '456 Đường XYZ, Quận 2, TP.HCM',
       date: '2024-03-20',
       time: '10:30',
-      type: 'Tư vấn',
+      type: 'arv-consultation',
       doctor: 'BS. Lê Văn D',
       status: 'pending',
-      notes: 'Bệnh nhân yêu cầu tư vấn về chế độ dinh dưỡng'
+      insurance: {
+        hasInsurance: true,
+        insuranceNumber: 'BH789012',
+        insuranceType: 'Bảo hiểm y tế'
+      },
+      counseling: {
+        preTestDone: true,
+        postTestDone: true,
+        counselor: 'TV. Nguyễn Thị E'
+      },
+      notes: 'Tư vấn về phác đồ điều trị ARV mới'
     },
     {
       id: '3',
@@ -71,19 +119,156 @@ const StaffAppointmentManagement: React.FC = () => {
       patientAddress: '789 Đường DEF, Quận 3, TP.HCM',
       date: '2024-03-20',
       time: '14:00',
-      type: 'Khám mới',
+      type: 'regular-checkup',
       doctor: 'BS. Phạm Thị F',
+      status: 'confirmed',
+      insurance: {
+        hasInsurance: false
+      },
+      counseling: {
+        preTestDone: false,
+        postTestDone: false
+      },
+      testType: {
+        rapid: false,
+        elisa: true,
+        pcr: false
+      },
+      notes: 'Khám định kỳ 3 tháng'
+    },
+    {
+      id: '4',
+      patientName: 'Phạm Thị G',
+      patientPhone: '0934 567 890',
+      patientEmail: 'phamthig@example.com',
+      patientAddress: '321 Đường GHI, Quận 4, TP.HCM',
+      date: '2024-03-20',
+      time: '15:30',
+      type: 'pre-test-counseling',
+      doctor: 'BS. Nguyễn Văn H',
+      status: 'pending',
+      insurance: {
+        hasInsurance: true,
+        insuranceNumber: 'BH345678',
+        insuranceType: 'Bảo hiểm y tế'
+      },
+      counseling: {
+        preTestDone: false,
+        postTestDone: false,
+        counselor: 'TV. Trần Văn I'
+      },
+      notes: 'Tư vấn trước khi xét nghiệm',
+      specialRequirements: 'Cần tư vấn riêng'
+    },
+    {
+      id: '5',
+      patientName: 'Hoàng Văn K',
+      patientPhone: '0945 678 901',
+      patientEmail: 'hoangvank@example.com',
+      patientAddress: '654 Đường JKL, Quận 5, TP.HCM',
+      date: '2024-03-20',
+      time: '16:00',
+      type: 'post-test-counseling',
+      doctor: 'BS. Lê Thị L',
+      status: 'confirmed',
+      insurance: {
+        hasInsurance: true,
+        insuranceNumber: 'BH901234',
+        insuranceType: 'Bảo hiểm y tế'
+      },
+      counseling: {
+        preTestDone: true,
+        postTestDone: false,
+        counselor: 'TV. Phạm Văn M'
+      },
+      testType: {
+        rapid: true,
+        elisa: true,
+        pcr: false
+      },
+      notes: 'Tư vấn sau khi có kết quả xét nghiệm',
+      specialRequirements: 'Cần hỗ trợ tâm lý'
+    },
+    {
+      id: '6',
+      patientName: 'Vũ Thị N',
+      patientPhone: '0956 789 012',
+      patientEmail: 'vuthin@example.com',
+      patientAddress: '987 Đường MNO, Quận 6, TP.HCM',
+      date: '2024-03-21',
+      time: '09:00',
+      type: 'first-test',
+      doctor: 'BS. Trần Văn O',
       status: 'cancelled',
+      insurance: {
+        hasInsurance: false
+      },
+      counseling: {
+        preTestDone: false,
+        postTestDone: false
+      },
       notes: 'Bệnh nhân hủy lịch do bận việc đột xuất'
+    },
+    {
+      id: '7',
+      patientName: 'Đỗ Văn P',
+      patientPhone: '0967 890 123',
+      patientEmail: 'dovanp@example.com',
+      patientAddress: '147 Đường PQR, Quận 7, TP.HCM',
+      date: '2024-03-21',
+      time: '10:30',
+      type: 'arv-consultation',
+      doctor: 'BS. Nguyễn Thị Q',
+      status: 'confirmed',
+      insurance: {
+        hasInsurance: true,
+        insuranceNumber: 'BH567890',
+        insuranceType: 'Bảo hiểm y tế'
+      },
+      counseling: {
+        preTestDone: true,
+        postTestDone: true,
+        counselor: 'TV. Lê Văn R'
+      },
+      notes: 'Tư vấn về tác dụng phụ của thuốc ARV'
+    },
+    {
+      id: '8',
+      patientName: 'Bùi Thị S',
+      patientPhone: '0978 901 234',
+      patientEmail: 'buithis@example.com',
+      patientAddress: '258 Đường STU, Quận 8, TP.HCM',
+      date: '2024-03-21',
+      time: '14:00',
+      type: 'regular-checkup',
+      doctor: 'BS. Phạm Văn T',
+      status: 'pending',
+      insurance: {
+        hasInsurance: true,
+        insuranceNumber: 'BH234567',
+        insuranceType: 'Bảo hiểm y tế'
+      },
+      counseling: {
+        preTestDone: true,
+        postTestDone: false,
+        counselor: 'TV. Trần Thị U'
+      },
+      testType: {
+        rapid: false,
+        elisa: true,
+        pcr: true
+      },
+      notes: 'Khám định kỳ và xét nghiệm tải lượng virus'
     }
   ];
 
   const appointmentTypes = [
     { value: 'all', label: 'Tất cả loại khám' },
-    { value: 'Khám định kỳ', label: 'Khám định kỳ' },
-    { value: 'Khám mới', label: 'Khám mới' },
-    { value: 'Tư vấn', label: 'Tư vấn' },
-    { value: 'Xét nghiệm', label: 'Xét nghiệm' }
+    { value: 'first-test', label: 'Xét nghiệm lần đầu' },
+    { value: 'pre-test-counseling', label: 'Tư vấn trước xét nghiệm' },
+    { value: 'post-test-counseling', label: 'Tư vấn sau xét nghiệm' },
+    { value: 'regular-checkup', label: 'Khám định kỳ' },
+    { value: 'arv-consultation', label: 'Tư vấn điều trị ARV' }
   ];
 
   const statuses = [
@@ -92,6 +277,40 @@ const StaffAppointmentManagement: React.FC = () => {
     { value: 'pending', label: 'Chờ xác nhận' },
     { value: 'cancelled', label: 'Đã hủy' }
   ];
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'first-test':
+        return 'bg-purple-100 text-purple-800';
+      case 'pre-test-counseling':
+        return 'bg-blue-100 text-blue-800';
+      case 'post-test-counseling':
+        return 'bg-green-100 text-green-800';
+      case 'regular-checkup':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'arv-consultation':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getTypeText = (type: string) => {
+    switch (type) {
+      case 'first-test':
+        return 'Xét nghiệm lần đầu';
+      case 'pre-test-counseling':
+        return 'Tư vấn trước xét nghiệm';
+      case 'post-test-counseling':
+        return 'Tư vấn sau xét nghiệm';
+      case 'regular-checkup':
+        return 'Khám định kỳ';
+      case 'arv-consultation':
+        return 'Tư vấn điều trị ARV';
+      default:
+        return type;
+    }
+  };
 
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -140,7 +359,7 @@ const StaffAppointmentManagement: React.FC = () => {
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Quản lý Lịch hẹn</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Quản lý và theo dõi lịch hẹn của bệnh nhân
+            Quản lý và theo dõi lịch hẹn khám HIV
           </p>
         </div>
 
@@ -212,75 +431,109 @@ const StaffAppointmentManagement: React.FC = () => {
                     Loại khám
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Bác sĩ
+                    Bảo hiểm & Tư vấn
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Xét nghiệm
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Trạng thái
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Thao tác
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredAppointments.map((appointment) => {
-                  const status = getStatusInfo(appointment.status);
-                  return (
-                    <tr key={appointment.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <User className="w-5 h-5 text-blue-600" />
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">
-                              {appointment.patientName}
-                            </div>
-                            <div className="text-sm text-gray-500 flex items-center space-x-2">
-                              <Phone className="w-4 h-4" />
-                              <span>{appointment.patientPhone}</span>
-                            </div>
-                            <div className="text-sm text-gray-500 flex items-center space-x-2">
-                              <Mail className="w-4 h-4" />
-                              <span>{appointment.patientEmail}</span>
-                            </div>
-                            <div className="text-sm text-gray-500 flex items-center space-x-2">
-                              <MapPin className="w-4 h-4" />
-                              <span>{appointment.patientAddress}</span>
-                            </div>
+                {filteredAppointments.map((appointment) => (
+                  <tr key={appointment.id}>
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-medium text-gray-900">
+                        {appointment.patientName}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        <Phone className="inline w-4 h-4 mr-1" />
+                        {appointment.patientPhone}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        <Mail className="inline w-4 h-4 mr-1" />
+                        {appointment.patientEmail}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        <MapPin className="inline w-4 h-4 mr-1" />
+                        {appointment.patientAddress}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {new Date(appointment.date).toLocaleDateString('vi-VN')}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {appointment.time}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTypeColor(appointment.type)}`}>
+                        {getTypeText(appointment.type)}
+                      </span>
+                      <div className="text-sm text-gray-500 mt-1">
+                        BS: {appointment.doctor}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-900">
+                        <div className="flex items-center">
+                          <CreditCard className="w-4 h-4 mr-1" />
+                          {appointment.insurance.hasInsurance ? (
+                            <>
+                              {appointment.insurance.insuranceType}
+                              <span className="text-xs text-gray-500 ml-1">
+                                ({appointment.insurance.insuranceNumber})
+                              </span>
+                            </>
+                          ) : (
+                            'Không có bảo hiểm'
+                          )}
+                        </div>
+                        <div className="flex items-center mt-1">
+                          <MessageSquare className="w-4 h-4 mr-1" />
+                          Tư vấn: {appointment.counseling.preTestDone ? '✓' : '✗'} Trước / {appointment.counseling.postTestDone ? '✓' : '✗'} Sau
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {appointment.testType && (
+                        <div className="text-sm text-gray-900">
+                          <div className="flex items-center">
+                            <FileText className="w-4 h-4 mr-1" />
+                            {appointment.testType.rapid && 'Rapid Test'}
+                          </div>
+                          <div className="flex items-center mt-1">
+                            <FileText className="w-4 h-4 mr-1" />
+                            {appointment.testType.elisa && 'ELISA'}
+                          </div>
+                          <div className="flex items-center mt-1">
+                            <FileText className="w-4 h-4 mr-1" />
+                            {appointment.testType.pcr && 'PCR'}
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{appointment.date}</div>
-                        <div className="text-sm text-gray-500 flex items-center space-x-2">
-                          <Clock className="w-4 h-4" />
-                          <span>{appointment.time}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{appointment.type}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{appointment.doctor}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${status.color}`}>
-                          <div className="flex items-center space-x-1">
-                            {status.icon}
-                            <span>{status.text}</span>
-                          </div>
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-blue-600 hover:text-blue-900 mr-4">
-                          Xác nhận
-                        </button>
-                        <button className="text-red-600 hover:text-red-900">
-                          Hủy
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusInfo(appointment.status).color}`}>
+                        {getStatusInfo(appointment.status).text}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button className="text-blue-600 hover:text-blue-900 mr-3">
+                        <Edit className="w-5 h-5" />
+                      </button>
+                      <button className="text-red-600 hover:text-red-900">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
