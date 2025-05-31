@@ -15,6 +15,9 @@ import ARVTreatment from './pages/ARVTreatment';
 import Support from './pages/ServicesHome/Support';
 import Testing from './pages/ServicesHome/Testing';
 import Treatment from './pages/ServicesHome/Treatment';
+import About from './pages/Home/About';
+import Blog from './pages/Home/Blog';
+import Contact from './pages/Home/Contact';
 
 // Doctor Pages
 import Doctors from './pages/Doctor/Doctors';
@@ -60,8 +63,6 @@ import {
   Notifications,
   HIVHistory,
 } from './pages/User';
-import About from './pages/Home/About';
-import Blog from './pages/Home/Blog';
 
 // Fallback component
 const FallbackComponent: React.FC = () => (
@@ -75,7 +76,8 @@ const App: React.FC = () => {
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
-        <Route path="Blog" element={<Blog />} />
+        <Route path="blog" element={<Blog />} />
+        <Route path="contact" element={<Contact />} />
         <Route path="appointment" element={<Appointment />} />
         <Route path="test-results" element={<TestResults />} />
         <Route path="arv-treatment" element={<ARVTreatment />} />
