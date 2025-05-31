@@ -18,14 +18,6 @@ const doctorCategories = [
     icon: <User className="w-8 h-8" />,
     path: "/doctors/counselors",
     color: "from-blue-600 to-blue-700"
-  },
-  {
-    id: 3,
-    title: "Bác sĩ Dinh dưỡng",
-    description: "Chuyên gia dinh dưỡng tư vấn chế độ ăn uống phù hợp cho người nhiễm HIV",
-    icon: <User className="w-8 h-8" />,
-    path: "/doctors/nutritionists",
-    color: "from-green-600 to-green-700"
   }
 ];
 

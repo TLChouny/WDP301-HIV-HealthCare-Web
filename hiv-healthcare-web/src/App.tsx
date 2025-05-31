@@ -15,12 +15,10 @@ import ARVTreatment from './pages/ARVTreatment';
 import Support from './pages/ServicesHome/Support';
 import Testing from './pages/ServicesHome/Testing';
 import Treatment from './pages/ServicesHome/Treatment';
-import ARVTherapy from './pages/ServicesHome/ARVTherapy';
 
 // Doctor Pages
 import Doctors from './pages/Doctor/Doctors';
 import HIVSpecialist from './pages/Doctor/HIVSpecialist';
-import Nutritionists from './pages/Doctor/Nutritionists';
 import Counselors from './pages/Doctor/Counselors';
 
 // Auth Pages
@@ -80,12 +78,10 @@ const App: React.FC = () => {
         <Route path="services/support" element={<Support />} />
         <Route path="services/testing" element={<Testing />} />
         <Route path="services/treatment" element={<Treatment />} />
-        <Route path="services/arv-therapy" element={<ARVTherapy />} />
         
         {/* Doctor routes */}
         <Route path="doctors" element={<Doctors />} />
         <Route path="doctors/hiv-specialist" element={<HIVSpecialist />} />
-        <Route path="doctors/nutritionists" element={<Nutritionists />} />
         <Route path="doctors/counselors" element={<Counselors />} />
       </Route>
 
