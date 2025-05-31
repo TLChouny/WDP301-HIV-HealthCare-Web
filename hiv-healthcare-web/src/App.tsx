@@ -60,6 +60,7 @@ import {
   Notifications,
   HIVHistory,
 } from './pages/User';
+import About from './pages/Home/About';
 
 // Fallback component
 const FallbackComponent: React.FC = () => (
@@ -72,6 +73,7 @@ const App: React.FC = () => {
       {/* Public routes */}
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
+        <Route path="about" element={<About />} />
         <Route path="appointment" element={<Appointment />} />
         <Route path="test-results" element={<TestResults />} />
         <Route path="arv-treatment" element={<ARVTreatment />} />
