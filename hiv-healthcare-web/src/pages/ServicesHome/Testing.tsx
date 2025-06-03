@@ -586,6 +586,13 @@ const Testing: React.FC = () => {
                         textTransform: "none",
                         fontSize: "1rem",
                       }}
+                      onClick={() => {
+                        setBookingForm((prev) => ({
+                          ...prev,
+                          testType: test.type, // Gán loại xét nghiệm tương ứng
+                        }));
+                        setOpenBookingDialog(true);
+                      }}
                     >
                       Đặt lịch
                     </Button>
@@ -692,6 +699,13 @@ const Testing: React.FC = () => {
                       textTransform: "none",
                       fontSize: "1rem",
                       mt: "auto",
+                    }}
+                    onClick={() => {
+                      setBookingForm((prev) => ({
+                        ...prev,
+                        testType: pkg.type, // Gán loại gói xét nghiệm tương ứng
+                      }));
+                      setOpenBookingDialog(true);
                     }}
                   >
                     Đặt lịch
