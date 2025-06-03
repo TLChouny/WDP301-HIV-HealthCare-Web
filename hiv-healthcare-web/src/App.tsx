@@ -16,6 +16,7 @@ import Treatment from './pages/ServicesHome/Treatment';
 import About from './pages/Home/About';
 import Blog from './pages/Home/Blog';
 import Contact from './pages/Home/Contact';
+import Appointment from './pages/Appointment/Appointment';
 
 // Doctor Pages
 import Doctors from './pages/Doctor/Doctors';
@@ -108,6 +109,7 @@ const App: React.FC = () => {
           <Route path="services/support" element={<Support />} />
           <Route path="services/testing" element={<Testing />} />
           <Route path="services/treatment" element={<Treatment />} />
+          <Route path="appointment" element={<Appointment />} />
           
           {/* Doctor routes */}
           <Route path="doctors" element={<Doctors />} />
