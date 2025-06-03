@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, User, Phone, MessageSquare, AlertCircle, FileText, Heart, Shield } from 'lucide-react';
+import { Calendar, Clock, User, Phone, MessageSquare, AlertCircle, FileText, Heart, Shield, EyeOff } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from 'react-toastify';
@@ -11,6 +11,7 @@ const Appointment: React.FC = () => {
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [selectedDoctor, setSelectedDoctor] = useState<string>('');
   const [selectedService, setSelectedService] = useState<string>('');
+  const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -60,8 +61,14 @@ const Appointment: React.FC = () => {
     
     // Kiểm tra các trường bắt buộc
     if (!selectedDate || !selectedTime || !selectedDoctor || !selectedService || 
-        !formData.fullName || !formData.phone || !formData.hivStatus) {
+        !formData.hivStatus) {
       toast.error('Vui lòng điền đầy đủ thông tin bắt buộc!');
+      return;
+    }
+
+    // Kiểm tra thông tin liên hệ nếu không phải đặt lịch ẩn danh
+    if (!isAnonymous && (!formData.fullName || !formData.phone)) {
+      toast.error('Vui lòng điền đầy đủ thông tin liên hệ!');
       return;
     }
 
@@ -71,6 +78,7 @@ const Appointment: React.FC = () => {
       time: selectedTime,
       doctor: selectedDoctor,
       service: selectedService,
+      isAnonymous,
       ...formData
     });
 
@@ -99,11 +107,36 @@ const Appointment: React.FC = () => {
           {/* Form */}
           <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Tùy chọn đặt lịch ẩn danh */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <EyeOff className="h-5 w-5 text-gray-500 mr-2" />
+                    <span className="text-gray-700 font-medium">Đặt lịch ẩn danh</span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isAnonymous}
+                      onChange={(e) => setIsAnonymous(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                  </label>
+                </div>
+                {isAnonymous && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Khi chọn đặt lịch ẩn danh, bạn chỉ cần cung cấp số điện thoại để chúng tôi liên hệ xác nhận lịch hẹn.
+                    Mọi thông tin cá nhân khác sẽ được giữ bí mật.
+                  </p>
+                )}
+              </div>
+
               {/* Thông tin cá nhân */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Họ và tên <span className="text-red-500">*</span>
+                    Họ và tên {!isAnonymous && <span className="text-red-500">*</span>}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -116,7 +149,8 @@ const Appointment: React.FC = () => {
                       onChange={handleInputChange}
                       className="pl-10 w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                       placeholder="Nhập họ và tên"
-                      required
+                      required={!isAnonymous}
+                      disabled={isAnonymous}
                     />
                   </div>
                 </div>
@@ -152,6 +186,7 @@ const Appointment: React.FC = () => {
                     onChange={handleInputChange}
                     className="w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="Nhập email"
+                    disabled={isAnonymous}
                   />
                 </div>
 
@@ -166,6 +201,7 @@ const Appointment: React.FC = () => {
                     onChange={handleInputChange}
                     className="w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="Nhập tuổi"
+                    disabled={isAnonymous}
                   />
                 </div>
 
@@ -178,6 +214,7 @@ const Appointment: React.FC = () => {
                     value={formData.gender}
                     onChange={handleInputChange}
                     className="w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    disabled={isAnonymous}
                   >
                     <option value="">Chọn giới tính</option>
                     <option value="male">Nam</option>
@@ -215,6 +252,7 @@ const Appointment: React.FC = () => {
                     onChange={handleInputChange}
                     className="w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     placeholder="Nhập tên thuốc (nếu có)"
+                    disabled={isAnonymous}
                   />
                 </div>
 
@@ -228,6 +266,7 @@ const Appointment: React.FC = () => {
                     className="w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                     dateFormat="dd/MM/yyyy"
                     placeholderText="Chọn ngày"
+                    disabled={isAnonymous}
                   />
                 </div>
               </div>
@@ -372,6 +411,7 @@ const Appointment: React.FC = () => {
                   <Shield className="h-5 w-5 text-blue-500 mr-2" />
                   <p className="text-sm text-blue-600">
                     Mọi thông tin của bạn sẽ được bảo mật tuyệt đối. Chúng tôi cam kết không tiết lộ thông tin cá nhân của bạn cho bất kỳ ai.
+                    {isAnonymous && " Khi đặt lịch ẩn danh, chúng tôi chỉ sử dụng số điện thoại để liên hệ xác nhận lịch hẹn."}
                   </p>
                 </div>
               </div>
