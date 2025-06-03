@@ -163,7 +163,7 @@ const Layout: React.FC = () => {
                     }`}
                   >
                     <Link
-                      to="/profile"
+                      to="/user/profile"
                       className="block px-4 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-700"
                     >
                       Hồ sơ
