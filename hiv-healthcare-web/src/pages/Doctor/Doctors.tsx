@@ -39,24 +39,23 @@ const Doctors: React.FC = () => {
 
       {/* Categories Grid */}
       <div className="container mx-auto px-4 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {doctorCategories.map((category) => (
             <Link
               key={category.id}
               to={category.path}
               className="group"
             >
-              <div className="bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl h-full">
-                <div className={`bg-gradient-to-r ${category.color} p-6 text-white`}>
-                  <div className="flex items-center justify-between">
+              <div className="bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:-translate-y-1 hover:shadow-xl h-full flex flex-col items-center">
+                <div className={`bg-gradient-to-r ${category.color} p-6 text-white w-full`}>
+                  <div className="flex items-center justify-center">
                     <div className="bg-white/20 p-3 rounded-lg">
                       {category.icon}
                     </div>
-                    <ArrowRight className="w-6 h-6 transform group-hover:translate-x-2 transition-transform duration-300" />
                   </div>
                 </div>
                 
-                <div className="p-6">
+                <div className="p-6 text-center w-full">
                   <h3 className="text-2xl font-bold text-gray-800 mb-3">
                     {category.title}
                   </h3>
