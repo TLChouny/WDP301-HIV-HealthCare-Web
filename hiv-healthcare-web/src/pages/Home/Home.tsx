@@ -1,7 +1,5 @@
-"use client";
-
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
   ArrowRight,
@@ -14,9 +12,9 @@ import {
   Info,
   MapPin,
 } from "lucide-react";
-import doingubacsi from "../assets/doingubacsi.png";
-import doingubacsi2 from "../assets/doingubacsi2.png";
-import doingubacsi3 from "../assets/doingubacsi3.png";
+import doingubacsi from "../../assets/doingubacsi.png";
+import doingubacsi2 from "../../assets/doingubacsi2.png";
+import doingubacsi3 from "../../assets/doingubacsi3.png";
 
 // Hàm tiện ích để kiểm tra nếu element trong viewport
 const useInView = (ref: React.RefObject<HTMLElement>, threshold = 0.1) => {
@@ -228,6 +226,7 @@ const ParallaxSection: React.FC<ParallaxSectionProps> = ({
 };
 
 const Home: React.FC = () => {
+  const navigate = useNavigate();
   // Scroll progress indicator
   const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -285,8 +284,7 @@ const Home: React.FC = () => {
               <div className="bg-white p-6 rounded-lg shadow-xl max-w-md flex flex-col items-center justify-center transform transition-all duration-500 hover:shadow-2xl">
                 <button
                   className="w-full bg-teal-600 text-white py-3 px-6 rounded-lg font-medium text-lg transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 flex items-center justify-center gap-2"
-                  // Thay đổi đường dẫn đặt lịch tại đây nếu cần
-                  onClick={() => (window.location.href = "/booking")}
+                  onClick={() => navigate('/appointment')}
                 >
                   <Calendar className="h-5 w-5 mr-2" />
                   Đặt lịch tư vấn trực tuyến

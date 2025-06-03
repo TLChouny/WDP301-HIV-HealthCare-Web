@@ -143,55 +143,6 @@ const Support: React.FC = () => {
           ))}
         </div>
       </div>
-
-      {/* Testimonials Section */}
-      <div className="bg-gray-100">
-        <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12">Chia sẻ từ người dùng</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {testimonials.map((testimonial) => (
-              <div key={testimonial.id} className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center space-x-4 mb-4">
-                  <div className="w-12 h-12 bg-teal-100 rounded-full flex items-center justify-center">
-                    <span className="text-teal-700 font-bold">{testimonial.name[0]}</span>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-gray-900">{testimonial.name}</h4>
-                    <p className="text-sm text-gray-500">{testimonial.date}</p>
-                  </div>
-                </div>
-                <p className="text-gray-600 italic">"{testimonial.content}"</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* CTA Section */}
-      <div className="bg-teal-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Bạn không đơn độc</h2>
-          <p className="text-xl mb-8">
-            Hãy để chúng tôi đồng hành cùng bạn trong hành trình vượt qua khó khăn
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Link
-              to="/appointment"
-              className="bg-white text-teal-700 hover:bg-teal-50 px-8 py-3 rounded-lg font-medium text-lg inline-flex items-center justify-center space-x-2"
-            >
-              <span>Đặt lịch tư vấn</span>
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <a
-              href="tel:19001234"
-              className="bg-teal-600 hover:bg-teal-500 px-8 py-3 rounded-lg font-medium text-lg inline-flex items-center justify-center space-x-2"
-            >
-              <Phone className="w-5 h-5" />
-              <span>Gọi ngay: 1900 1234</span>
-            </a>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

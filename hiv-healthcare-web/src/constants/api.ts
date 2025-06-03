@@ -4,4 +4,5 @@ export const API_ENDPOINTS = {
   SERVICES: "/services",
   SIGNUP: "/users",
   LOGIN: "/users/login",
+  VERIFYOTP: "/users/verify-otp"
 };
