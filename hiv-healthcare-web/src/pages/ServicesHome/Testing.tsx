@@ -614,6 +614,7 @@ const Testing: React.FC = () => {
               display: "grid",
               gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
               gap: 4,
+              alignItems: "stretch", // Đảm bảo các cột đều cao
             }}
           >
             {testPackages.map((pkg, index) => (
@@ -624,6 +625,8 @@ const Testing: React.FC = () => {
                 transition={{ duration: 0.5, delay: index * 0.1 }}
                 sx={{
                   height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
                   position: "relative",
                   borderRadius: 2,
                   overflow: "hidden",
@@ -634,7 +637,7 @@ const Testing: React.FC = () => {
                   transition: "all 0.3s ease",
                 }}
               >
-                <CardContent>
+                <CardContent sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
                   <Typography
                     variant="h5"
                     gutterBottom
@@ -677,6 +680,7 @@ const Testing: React.FC = () => {
                       sx={{ fontWeight: 500 }}
                     />
                   </Stack>
+                  <Box sx={{ flexGrow: 1 }} /> {/* Đẩy nút xuống dưới */}
                   <Button
                     variant="contained"
                     color="primary"
@@ -687,6 +691,7 @@ const Testing: React.FC = () => {
                       borderRadius: 2,
                       textTransform: "none",
                       fontSize: "1rem",
+                      mt: "auto",
                     }}
                   >
                     Đặt lịch
