@@ -1,42 +1,69 @@
-import { ChevronDown, Clock, Facebook, Instagram, Mail, MapPin, Menu, Phone, Twitter, X, Youtube } from "lucide-react"
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Link, useLocation, Outlet } from "react-router-dom"
-import { ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
-import { useAuth } from "../context/AuthContext"
+// src/components/Layout.tsx
+
+import React from "react";
+import {
+  ChevronDown,
+  Clock,
+  Facebook,
+  Instagram,
+  Mail,
+  MapPin,
+  Menu,
+  Phone,
+  Twitter,
+  X,
+  Youtube,
+} from "react-feather";
+import { useState, useEffect } from "react";
+import { Link, useLocation, Outlet } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useAuth } from "../context/AuthContext";
+
+// Import hook lấy danh sách category từ Context
+import { useCategoryContext } from "../context/CategoryContext";
 
 const Layout: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null)
-  const location = useLocation()
-  const { user, logout } = useAuth()
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const location = useLocation();
+  const { user, logout } = useAuth();
 
-  // Close mobile menu when route changes
+  // Lấy categories trực tiếp từ Context; không cần state/ fetch nữa
+  const { categories } = useCategoryContext();
+
+  // Kiểm tra xem có đang ở trang auth hay không
+  const isAuthPage =
+    location.pathname.startsWith("/auth") ||
+    location.pathname === "/login" ||
+    location.pathname === "/register" ||
+    location.pathname === "/forgot-password";
+
+  // Đóng mobile menu khi route thay đổi
   useEffect(() => {
-    setIsMenuOpen(false)
-  }, [location.pathname])
+    setIsMenuOpen(false);
+  }, [location.pathname]);
 
-  // Handle scroll effect for header
+  // Handle hiệu ứng scroll cho header
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {
-        setIsScrolled(true)
+        setIsScrolled(true);
       } else {
-        setIsScrolled(false)
+        setIsScrolled(false);
       }
-    }
+    };
 
-    window.addEventListener("scroll", handleScroll)
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener("scroll", handleScroll)
-    }
-  }, [])
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
 
   const toggleDropdown = (name: string) => {
-    setActiveDropdown(activeDropdown === name ? null : name)
-  }
+    setActiveDropdown(activeDropdown === name ? null : name);
+  };
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-gray-50">
@@ -69,11 +96,15 @@ const Layout: React.FC = () => {
               <Link
                 to="/"
                 className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
-                  location.pathname === "/" ? "text-teal-100 after:w-full" : "text-white hover:text-teal-100"
+                  location.pathname === "/"
+                    ? "text-teal-100 after:w-full"
+                    : "text-white hover:text-teal-100"
                 }`}
               >
                 Trang chủ
               </Link>
+
+              {/* Dropdown "Dịch vụ" sử dụng categories từ Context */}
               <div className="relative group">
                 <button
                   className={`py-2 font-medium flex items-center relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
@@ -81,35 +112,46 @@ const Layout: React.FC = () => {
                       ? "text-teal-100 after:w-full"
                       : "text-white hover:text-teal-100"
                   }`}
+                  onClick={() => toggleDropdown("servicesDesktop")}
+                  type="button"
                 >
                   Dịch vụ{" "}
-                  <ChevronDown className="h-4 w-4 ml-1 transition-transform duration-300 group-hover:rotate-180" />
+                  <ChevronDown
+                    className={`h-4 w-4 ml-1 transition-transform duration-300 ${
+                      activeDropdown === "servicesDesktop" ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
-                <div className="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 z-10 invisible opacity-0 translate-y-2 group-hover:visible group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 origin-top-left">
-                  <Link
-                    to="/services/testing"
-                    className="block px-4 py-2.5 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200 border-l-2 border-transparent hover:border-teal-500"
-                  >
-                    Xét nghiệm HIV
-                  </Link>
-                  <Link
-                    to="/services/treatment"
-                    className="block px-4 py-2.5 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200 border-l-2 border-transparent hover:border-teal-500"
-                  >
-                    Điều trị ARV
-                  </Link>
-                  <Link
-                    to="/services/support"
-                    className="block px-4 py-2.5 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200 border-l-2 border-transparent hover:border-teal-500"
-                  >
-                    Hỗ trợ tâm lý
-                  </Link>
+                <div
+                  className={`absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 z-10 transition-all duration-300 origin-top-left ${
+                    activeDropdown === "servicesDesktop"
+                      ? "visible opacity-100 translate-y-0"
+                      : "invisible opacity-0 -translate-y-2"
+                  }`}
+                >
+                  {categories.length === 0 ? (
+                    <p className="px-4 py-2 text-gray-500">Đang tải...</p>
+                  ) : (
+                    categories.map((cat) => (
+                      <Link
+                        key={cat._id}
+                        to={`/services/category/${cat._id}`}
+                        className="block px-4 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200"
+                        onClick={() => setActiveDropdown(null)}
+                      >
+                        {cat.categoryName}
+                      </Link>
+                    ))
+                  )}
                 </div>
               </div>
+
               <Link
                 to="/doctors"
                 className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
-                  location.pathname === "/doctors" ? "text-teal-100 after:w-full" : "text-white hover:text-teal-100"
+                  location.pathname === "/doctors"
+                    ? "text-teal-100 after:w-full"
+                    : "text-white hover:text-teal-100"
                 }`}
               >
                 Bác sĩ
@@ -117,7 +159,9 @@ const Layout: React.FC = () => {
               <Link
                 to="/blog"
                 className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
-                  location.pathname === "/blog" ? "text-teal-100 after:w-full" : "text-white hover:text-teal-100"
+                  location.pathname === "/blog"
+                    ? "text-teal-100 after:w-full"
+                    : "text-white hover:text-teal-100"
                 }`}
               >
                 Blog
@@ -125,7 +169,9 @@ const Layout: React.FC = () => {
               <Link
                 to="/about"
                 className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
-                  location.pathname === "/about" ? "text-teal-100 after:w-full" : "text-white hover:text-teal-100"
+                  location.pathname === "/about"
+                    ? "text-teal-100 after:w-full"
+                    : "text-white hover:text-teal-100"
                 }`}
               >
                 Giới thiệu
@@ -133,7 +179,9 @@ const Layout: React.FC = () => {
               <Link
                 to="/contact"
                 className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
-                  location.pathname === "/contact" ? "text-teal-100 after:w-full" : "text-white hover:text-teal-100"
+                  location.pathname === "/contact"
+                    ? "text-teal-100 after:w-full"
+                    : "text-white hover:text-teal-100"
                 }`}
               >
                 Liên hệ
@@ -149,17 +197,19 @@ const Layout: React.FC = () => {
                 Đặt lịch khám
               </Link>
               <div className="h-6 w-px bg-teal-600"></div>
-              {user ? (
+              {!isAuthPage && user ? (
                 <div className="relative group">
                   <div
                     className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium text-lg uppercase cursor-pointer"
-                    onClick={() => toggleDropdown("user")}
+                    onClick={() => toggleDropdown("userDesktop")}
                   >
-                    {user.email.charAt(0)}
+                    {user.email.charAt(6)}
                   </div>
                   <div
-                    className={`absolute right-0 mt-2 w Ascending w-48 bg-white rounded-lg shadow-xl py-2 z-10 transition-all duration-300 ${
-                      activeDropdown === "user" ? "opacity-100 visible translate-y-0" : "opacity-0 invisible translate-y-2"
+                    className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-10 transition-all duration-300 ${
+                      activeDropdown === "userDesktop"
+                        ? "opacity-100 visible translate-y-0"
+                        : "opacity-0 invisible translate-y-2"
                     }`}
                   >
                     <Link
@@ -180,20 +230,22 @@ const Layout: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center space-x-3">
-                  <Link
-                    to="/login"
-                    className="text-white hover:text-teal-100 font-medium transition-colors duration-300 flex items-center"
-                  >
-                    Đăng nhập
-                  </Link>
-                  <Link
-                    to="/register"
-                    className="bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow transform hover:-translate-y-0.5"
-                  >
-                    Đăng ký
-                  </Link>
-                </div>
+                !isAuthPage && (
+                  <div className="flex items-center space-x-3">
+                    <Link
+                      to="/login"
+                      className="text-white hover:text-teal-100 font-medium transition-colors duration-300 flex items-center"
+                    >
+                      Đăng nhập
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow transform hover:-translate-y-0.5"
+                    >
+                      Đăng ký
+                    </Link>
+                  </div>
+                )
               )}
             </div>
 
@@ -219,58 +271,58 @@ const Layout: React.FC = () => {
               <Link
                 to="/"
                 className={`py-2.5 font-medium transition-colors duration-200 rounded-md px-3 ${
-                  location.pathname === "/" ? "bg-teal-700 text-white" : "text-white hover:bg-teal-700/50"
+                  location.pathname === "/"
+                    ? "bg-teal-700 text-white"
+                    : "text-white hover:bg-teal-700/50"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Trang chủ
               </Link>
+
+              {/* Dropdown Mobile dùng categories từ Context */}
               <div className="py-2">
                 <button
                   className={`text-white font-medium flex items-center justify-between w-full rounded-md px-3 py-2 ${
-                    activeDropdown === "services" ? "bg-teal-700" : "hover:bg-teal-700/50"
+                    activeDropdown === "servicesMobile" ? "bg-teal-700" : "hover:bg-teal-700/50"
                   }`}
-                  onClick={() => toggleDropdown("services")}
+                  onClick={() => toggleDropdown("servicesMobile")}
                 >
                   <span>Dịch vụ</span>
                   <ChevronDown
                     className={`h-4 w-4 ml-1 transition-transform duration-300 ${
-                      activeDropdown === "services" ? "rotate-180" : ""
+                      activeDropdown === "servicesMobile" ? "rotate-180" : ""
                     }`}
                   />
                 </button>
                 <div
                   className={`mt-2 space-y-1 pl-4 overflow-hidden transition-all duration-300 ${
-                    activeDropdown === "services" ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                    activeDropdown === "servicesMobile" ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
                   }`}
                 >
-                  <Link
-                    to="/services/testing"
-                    className="block py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Xét nghiệm HIV
-                  </Link>
-                  <Link
-                    to="/services/treatment"
-                    className="block py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Điều trị ARV
-                  </Link>
-                  <Link
-                    to="/services/support"
-                    className="block py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Hỗ trợ tâm lý
-                  </Link>
+                  {categories.length === 0 ? (
+                    <p className="px-3 py-2 text-teal-200">Đang tải...</p>
+                  ) : (
+                    categories.map((cat) => (
+                      <Link
+                        key={cat._id}
+                        to={`/services/${cat._id}`}
+                        className="block py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        {cat.categoryName}
+                      </Link>
+                    ))
+                  )}
                 </div>
               </div>
+
               <Link
                 to="/doctors"
                 className={`py-2.5 font-medium transition-colors duration-200 rounded-md px-3 ${
-                  location.pathname === "/doctors" ? "bg-teal-700 text-white" : "text-white hover:bg-teal-700/50"
+                  location.pathname === "/doctors"
+                    ? "bg-teal-700 text-white"
+                    : "text-white hover:bg-teal-700/50"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -279,7 +331,9 @@ const Layout: React.FC = () => {
               <Link
                 to="/blog"
                 className={`py-2.5 font-medium transition-colors duration-200 rounded-md px-3 ${
-                  location.pathname === "/blog" ? "bg-teal-700 text-white" : "text-white hover:bg-teal-700/50"
+                  location.pathname === "/blog"
+                    ? "bg-teal-700 text-white"
+                    : "text-white hover:bg-teal-700/50"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -288,7 +342,9 @@ const Layout: React.FC = () => {
               <Link
                 to="/about"
                 className={`py-2.5 font-medium transition-colors duration-200 rounded-md px-3 ${
-                  location.pathname === "/about" ? "bg-teal-700 text-white" : "text-white hover:bg-teal-700/50"
+                  location.pathname === "/about"
+                    ? "bg-teal-700 text-white"
+                    : "text-white hover:bg-teal-700/50"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -297,7 +353,9 @@ const Layout: React.FC = () => {
               <Link
                 to="/contact"
                 className={`py-2.5 font-medium transition-colors duration-200 rounded-md px-3 ${
-                  location.pathname === "/contact" ? "bg-teal-700 text-white" : "text-white hover:bg-teal-700/50"
+                  location.pathname === "/contact"
+                    ? "bg-teal-700 text-white"
+                    : "text-white hover:bg-teal-700/50"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -311,30 +369,30 @@ const Layout: React.FC = () => {
                 >
                   Đặt lịch khám
                 </Link>
-                {user ? (
+                {!isAuthPage && user ? (
                   <div className="py-2">
                     <button
                       className={`text-white font-medium flex items-center justify-between w-full rounded-md px-3 py-2 ${
-                        activeDropdown === "user" ? "bg-teal-700" : "hover:bg-teal-700/50"
+                        activeDropdown === "userMobile" ? "bg-teal-700" : "hover:bg-teal-700/50"
                       }`}
-                      onClick={() => toggleDropdown("user")}
+                      onClick={() => toggleDropdown("userMobile")}
                     >
                       <span className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium text-lg uppercase">
                         {user.email.charAt(0)}
                       </span>
                       <ChevronDown
                         className={`h-4 w-4 ml-1 transition-transform duration-300 ${
-                          activeDropdown === "user" ? "rotate-180" : ""
+                          activeDropdown === "userMobile" ? "rotate-180" : ""
                         }`}
                       />
                     </button>
                     <div
                       className={`mt-2 space-y-1 pl-4 overflow-hidden transition-all duration-300 ${
-                        activeDropdown === "user" ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+                        activeDropdown === "userMobile" ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
                       }`}
                     >
                       <Link
-                        to="/profile"
+                        to="/user/profile"
                         className="block py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
                         onClick={() => setIsMenuOpen(false)}
                       >
@@ -352,22 +410,24 @@ const Layout: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
-                    <Link
-                      to="/login"
-                      className="text-white hover:text-teal-100 font-medium transition-colors duration-200 bg-teal-700/50 hover:bg-teal-700 py-2.5 px-4 rounded-lg text-center"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Đăng nhập
-                    </Link>
-                    <Link
-                      to="/register"
-                      className="bg-teal-600 hover:bg-teal-500 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow text-center"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Đăng ký
-                    </Link>
-                  </div>
+                  !isAuthPage && (
+                    <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                      <Link
+                        to="/login"
+                        className="text-white hover:text-teal-100 font-medium transition-colors duration-200 bg-teal-700/50 hover:bg-teal-700 py-2.5 px-4 rounded-lg text-center"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Đăng nhập
+                      </Link>
+                      <Link
+                        to="/register"
+                        className="bg-teal-600 hover:bg-teal-500 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow text-center"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Đăng ký
+                      </Link>
+                    </div>
+                  )
                 )}
               </div>
             </nav>
@@ -380,7 +440,7 @@ const Layout: React.FC = () => {
         <Outlet />
       </main>
 
-      {/* Footer */}
+          {/* Footer */}
       <footer className="bg-gradient-to-r from-teal-800 to-teal-900 text-white shadow-inner relative">
         {/* Wave Separator */}
         <div className="absolute top-0 left-0 w-full overflow-hidden leading-none h-12">
@@ -580,7 +640,7 @@ const Layout: React.FC = () => {
         toastClassName="bg-white text-gray-800 rounded-lg shadow-lg border-l-4 border-teal-500 transform transition-all duration-300"
       />
     </div>
-  )
-}
+  );
+};
 
-export default Layout
+export default Layout;

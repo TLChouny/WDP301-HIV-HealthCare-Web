@@ -10,6 +10,7 @@ import StaffLayout from './layouts/StaffLayout';
 
 // Public Pages
 import Home from './pages/Home/Home';
+import ServiceByCategoryId from './pages/ServicesHome/ServiceByCategoryId';
 import Support from './pages/ServicesHome/Support';
 import Testing from './pages/ServicesHome/Testing';
 import Treatment from './pages/ServicesHome/Treatment';
@@ -17,11 +18,6 @@ import About from './pages/Home/About';
 import Blog from './pages/Home/Blog';
 import Contact from './pages/Home/Contact';
 import Appointment from './pages/Appointment/Appointment';
-
-// Doctor Pages
-import Doctors from './pages/Doctor/Doctors';
-import HIVSpecialist from './pages/Doctor/HIVSpecialist';
-import Counselors from './pages/Doctor/Counselors';
 
 // Auth Pages
 import Register from './components/Home/Register';
@@ -44,6 +40,9 @@ import DoctorAppointmentManagement from './pages/Doctor/AppointmentManagement';
 import ARVProtocolManagement from './pages/Doctor/ARVProtocolManagement';
 import MedicalRecordManagement from './pages/Doctor/MedicalRecordManagement';
 import LabTestManagement from './pages/Doctor/LabTestManagement';
+import Doctors from './pages/Doctor/Doctors';
+import HIVSpecialist from './pages/Doctor/HIVSpecialist';
+import Counselors from './pages/Doctor/Counselors';
 
 // Staff Pages
 import StaffDashboard from './pages/Staff/StaffDashboard';
@@ -64,6 +63,9 @@ import {
 } from './pages/User';
 
 import { AuthProvider } from "../src/context/AuthContext";
+import { jwtDecode } from 'jwt-decode';
+import { CategoryProvider } from './context/CategoryContext';
+import { ServiceProvider } from './context/ServiceContext';
 
 // Fallback component
 const FallbackComponent: React.FC = () => (
@@ -71,8 +73,8 @@ const FallbackComponent: React.FC = () => (
 );
 
 // Protected Route Component
-const ProtectedRoute: React.FC<{ allowedRole: 'user' | 'admin' | 'doctor' | 'staff' }> = ({ allowedRole }) => {
-  const { isAuthenticated, user } = useAuth();
+const ProtectedRoute: React.FC<{ allowedRole: 'user' | 'admin' | 'doctor' | 'staff' | 'manager' }> = ({ allowedRole }) => {
+  const { isAuthenticated, user, logout } = useAuth();
   const toastConfig = {
     position: "top-right" as const,
     autoClose: 3000,
@@ -83,14 +85,39 @@ const ProtectedRoute: React.FC<{ allowedRole: 'user' | 'admin' | 'doctor' | 'sta
     progress: undefined,
   };
 
-  if (!isAuthenticated) {
-    toast.error("Vui lòng đăng nhập để tiếp tục!", toastConfig);
+  // Kiểm tra token hết hạn
+  const token = localStorage.getItem("token");
+  let isTokenExpired = false;
+  if (token) {
+    try {
+      const decoded: any = jwtDecode(token);
+      const currentTime = Date.now() / 1000;
+      if (decoded.exp && decoded.exp < currentTime) {
+        isTokenExpired = true;
+      }
+    } catch (error) {
+      isTokenExpired = true; // Nếu token không hợp lệ, coi như đã hết hạn
+    }
+  }
+
+  if (!isAuthenticated || isTokenExpired) {
+    if (isTokenExpired) {
+      logout(); // Gọi logout để xóa token và cập nhật trạng thái
+      toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!", toastConfig);
+    } else {
+      toast.error("Vui lòng đăng nhập để tiếp tục!", toastConfig);
+    }
     return <Navigate to="/auth/login" replace />;
   }
 
   if (user?.role !== allowedRole) {
     toast.error(`Bạn không có quyền truy cập trang này!`, toastConfig);
-    return <Navigate to={user?.role === 'admin' ? '/admin/dashboard' : '/user/dashboard'} replace />;
+    const redirectPath = user?.role === 'admin' ? '/admin/dashboard' :
+      user?.role === 'doctor' ? '/doctor/dashboard' :
+        user?.role === 'staff' ? '/staff/dashboard' :
+          user?.role === 'manager' ? '/manager/dashboard' :
+            '/user/dashboard';
+    return <Navigate to={redirectPath} replace />;
   }
 
   return <Outlet />;
@@ -99,94 +126,99 @@ const ProtectedRoute: React.FC<{ allowedRole: 'user' | 'admin' | 'doctor' | 'sta
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
-          <Route path="about" element={<About />} />
-          <Route path="blog" element={<Blog />} />
-          <Route path="contact" element={<Contact />}/>
-          <Route path="services/support" element={<Support />} />
-          <Route path="services/testing" element={<Testing />} />
-          <Route path="services/treatment" element={<Treatment />} />
-          <Route path="appointment" element={<Appointment />} />
-          
+      <CategoryProvider>
+        <ServiceProvider>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Home />} />
+            <Route path="about" element={<About />} />
+            <Route path="blog" element={<Blog />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="services/category/:id" element={<ServiceByCategoryId />} />
+            <Route path="services/support" element={<Support />} />
+            <Route path="services/testing" element={<Testing />} />
+            <Route path="services/treatment" element={<Treatment />} />
+            <Route path="appointment" element={<Appointment />} />
+
+            {/* Doctor routes */}
+            <Route path="doctors" element={<Doctors />} />
+            <Route path="doctors/hiv-specialist" element={<HIVSpecialist />} />
+            <Route path="doctors/counselors" element={<Counselors />} />
+          </Route>
+
+          {/* Auth routes */}
+          <Route path="/auth" element={<Layout />}>
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
+          </Route>
+
+          {/* Admin routes */}
+          <Route path="/admin" element={<ProtectedRoute allowedRole="admin" />}>
+            <Route element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="dashboard" element={<AdminDashboard />} />
+              <Route path="patients" element={<PatientManagement />} />
+              <Route path="doctors" element={<AdminDoctorManagement />} />
+              <Route path="medications" element={<MedicationManagement />} />
+              <Route path="appointments" element={<AppointmentManagement />} />
+              <Route path="statistics" element={<Statistics />} />
+              <Route path="roles" element={<RoleManagement />} />
+            </Route>
+          </Route>
+
           {/* Doctor routes */}
-          <Route path="doctors" element={<Doctors />} />
-          <Route path="doctors/hiv-specialist" element={<HIVSpecialist />} />
-          <Route path="doctors/counselors" element={<Counselors />} />
-        </Route>
-
-        {/* Auth routes */}
-        <Route path="/auth" element={<Layout />}>
-          <Route path="login" element={<Login />} />
-          <Route path="register" element={<Register />} />
-          <Route path="forgot-password" element={<ForgotPassword />} />
-        </Route>
-
-        {/* Admin routes */}
-        <Route path="/admin" element={<ProtectedRoute allowedRole="admin" />}>
-          <Route element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="patients" element={<PatientManagement />} />
-            <Route path="doctors" element={<AdminDoctorManagement />} />
-            <Route path="medications" element={<MedicationManagement />} />
-            <Route path="appointments" element={<AppointmentManagement />} />
-            <Route path="statistics" element={<Statistics />} />
-            <Route path="roles" element={<RoleManagement />} />
+          <Route path="/doctor" element={<ProtectedRoute allowedRole="doctor" />}>
+            <Route element={<DoctorLayout />}>
+              <Route index element={<DoctorDashboard />} />
+              <Route path="dashboard" element={<DoctorDashboard />} />
+              <Route path="patients" element={<DoctorPatientManagement />} />
+              <Route path="appointments" element={<DoctorAppointmentManagement />} />
+              <Route path="arv-protocols" element={<ARVProtocolManagement />} />
+              <Route path="medical-records" element={<MedicalRecordManagement />} />
+              <Route path="lab-tests" element={<LabTestManagement />} />
+            </Route>
           </Route>
-        </Route>
 
-        {/* Doctor routes */}
-        <Route path="/doctor" element={<ProtectedRoute allowedRole="doctor" />}>
-          <Route element={<DoctorLayout />}>
-            <Route index element={<DoctorDashboard />} />
-            <Route path="dashboard" element={<DoctorDashboard />} />
-            <Route path="patients" element={<DoctorPatientManagement />} />
-            <Route path="appointments" element={<DoctorAppointmentManagement />} />
-            <Route path="arv-protocols" element={<ARVProtocolManagement />} />
-            <Route path="medical-records" element={<MedicalRecordManagement />} />
-            <Route path="lab-tests" element={<LabTestManagement />} />
+          {/* Staff routes */}
+          <Route path="/staff" element={<ProtectedRoute allowedRole="staff" />}>
+            <Route element={<StaffLayout />}>
+              <Route index element={<StaffDashboard />} />
+              <Route path="dashboard" element={<StaffDashboard />} />
+              <Route path="patients" element={<StaffPatientManagement />} />
+              <Route path="appointments" element={<StaffAppointmentManagement />} />
+              <Route path="medical-records" element={<StaffMedicalRecordManagement />} />
+              <Route path="medications" element={<StaffMedicationManagement />} />
+              <Route path="counseling" element={<StaffCounseling />} />
+            </Route>
           </Route>
-        </Route>
 
-        {/* Staff routes */}
-        <Route path="/staff" element={<ProtectedRoute allowedRole="staff" />}>
-          <Route element={<StaffLayout />}>
-            <Route index element={<StaffDashboard />} />
-            <Route path="dashboard" element={<StaffDashboard />} />
-            <Route path="patients" element={<StaffPatientManagement />} />
-            <Route path="appointments" element={<StaffAppointmentManagement />} />
-            <Route path="medical-records" element={<StaffMedicalRecordManagement />} />
-            <Route path="medications" element={<StaffMedicationManagement />} />
-            <Route path="counseling" element={<StaffCounseling />} />
+          {/* User routes */}
+          <Route path="/user" element={<ProtectedRoute allowedRole="user" />}>
+            <Route element={<UserLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="appointments" element={<AppointmentsUser />} />
+              <Route path="medical-records" element={<MedicalRecords />} />
+              <Route path="notifications" element={<Notifications />} />
+              <Route path="history" element={<HIVHistory />} />
+            </Route>
           </Route>
-        </Route>
 
-        {/* User routes */}
-        <Route path="/user" element={<ProtectedRoute allowedRole="user" />}>
-          <Route element={<UserLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="profile" element={<Profile />} />
-            <Route path="appointments" element={<AppointmentsUser />} />
-            <Route path="medical-records" element={<MedicalRecords />} />
-            <Route path="notifications" element={<Notifications />} />
-            <Route path="history" element={<HIVHistory />} />
-          </Route>
-        </Route>
+          {/* Redirects */}
+          <Route path="/login" element={<Navigate to="/auth/login" replace />} />
+          <Route path="/register" element={<Navigate to="/auth/register" replace />} />
+          <Route path="/forgot-password" element={<Navigate to="/auth/forgot-password" replace />} />
 
-        {/* Redirects */}
-        <Route path="/login" element={<Navigate to="/auth/login" replace />} />
-        <Route path="/register" element={<Navigate to="/auth/register" replace />} />
-        <Route path="/forgot-password" element={<Navigate to="/auth/forgot-password" replace />} />
-        
-        {/* 404 route */}
-        <Route path="*" element={<FallbackComponent />} />
-      </Routes>
-    </AuthProvider>
-  );
-};
+          {/* 404 route */}
+          <Route path="*" element={<FallbackComponent />} />
+        </Routes>
+      </ServiceProvider>
+    </CategoryProvider>
+  </AuthProvider>
+);
+}
 
 export default App;

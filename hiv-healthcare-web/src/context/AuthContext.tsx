@@ -4,7 +4,7 @@ import { jwtDecode } from "jwt-decode";
 import { toast } from "react-toastify";
 
 type Gender = "male" | "female" | "other";
-type Role = "user" | "admin" | "doctor" | "staff";
+type Role = "user" | "admin" | "doctor" | "staff" | "manager";
 
 interface User {
   _id: string;
@@ -41,6 +41,9 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isDoctor: boolean;
+  isStaff: boolean;
+  isManager: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -55,11 +58,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const decoded: JwtPayload = jwtDecode(token);
-      console.log("Decoded token:", decoded); // Debug token
+      console.log("Decoded token:", decoded);
 
       const currentTime = Date.now() / 1000;
-
-      // Kiểm tra token hết hạn nếu có trường exp
       if (decoded.exp && decoded.exp < currentTime) {
         throw new Error("Token has expired");
       }
@@ -91,6 +92,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error decoding token:", error.message);
         localStorage.removeItem("token");
         setUser(null);
+        toast.error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.", {
+          position: "top-right",
+          autoClose: 3000,
+        });
       }
     }
   }, []);
@@ -109,6 +114,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error("Error decoding token from storage event:", error.message);
             localStorage.removeItem("token");
             setUser(null);
+            toast.error("Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.", toastConfig);
           }
         }
       }
@@ -120,25 +126,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-const login = (token: string) => {
-  try {
-    if (!token || typeof token !== "string") {
-      throw new Error("Token is missing or invalid");
-    }
-    console.log("Token received for login:", token);
+  const login = (token: string) => {
+    try {
+      if (!token || typeof token !== "string") {
+        throw new Error("Token is missing or invalid");
+      }
+      console.log("Token received for login:", token);
 
-    const userData = decodeAndValidateToken(token);
-    localStorage.setItem("token", token);
-    setUser(userData);
-    toast.success("Đăng nhập thành công!", {
-      position: "top-right",
-      autoClose: 3000,
-    });
-  } catch (error: any) {
-    console.error("Error during login:", error.message);
-    throw error;
-  }
-};
+      const userData = decodeAndValidateToken(token);
+      localStorage.setItem("token", token);
+      setUser(userData);
+      toast.success("Đăng nhập thành công!", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+    } catch (error: any) {
+      console.error("Error during login:", error.message);
+      throw error;
+    }
+  };
 
   const logout = () => {
     localStorage.removeItem("token");
@@ -167,6 +173,9 @@ const login = (token: string) => {
         logout,
         isAuthenticated: !!user,
         isAdmin: user?.role === "admin",
+        isDoctor: user?.role === "doctor",
+        isStaff: user?.role === "staff",
+        isManager: user?.role === "manager",
       }}
       aria-live="polite"
     >

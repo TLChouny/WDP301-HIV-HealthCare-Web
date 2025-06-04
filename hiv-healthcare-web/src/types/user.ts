@@ -1,7 +1,7 @@
 // types/User.ts
 
 export type Gender = "male" | "female" | "other";
-export type Role = "user" | "admin";
+export type Role = "user" | "admin" | "doctor" | "staff" | "manager";
 
 export interface User {
   _id: string;
