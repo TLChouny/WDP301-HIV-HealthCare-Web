@@ -27,10 +27,10 @@ export const register = async (data: {
   userName?: string;
   email: string;
   password: string;
-  phoneNumber?: string;
+  phone_number?: string;
   role?: string;
 }) => {
-  try {
+ try {
     const res = await apiClient.post(API_ENDPOINTS.SIGNUP, data);
     return res.data;
   } catch (error) {

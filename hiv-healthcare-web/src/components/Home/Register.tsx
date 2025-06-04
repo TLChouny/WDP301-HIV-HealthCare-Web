@@ -111,7 +111,7 @@ const Register: React.FC = () => {
 
     try {
       // Gửi yêu cầu đăng ký
-      await register({ userName, email, phoneNumber, password });
+      await register({ userName, email, phone_number: phoneNumber, password });
       setShowOTPForm(true);
       // setResendCooldown(60); // 60 giây cooldown cho gửi lại OTP
       toast.success("Đã gửi mã OTP qua email!", toastConfig);
