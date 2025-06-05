@@ -1,18 +1,7 @@
 {
-  "version": 2,
-  "framework": "vite",
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist"
-}
+    "rewrites": [
+      { "source": "/api/(.*)", "destination": "https://wdp301-hiv-healthcare-be.onrender.com/api/$1" },
+      { "source": "/(.*)", "destination": "/index.html" }
+    ]
+  }
+  
