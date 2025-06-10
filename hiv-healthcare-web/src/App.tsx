@@ -115,7 +115,6 @@ const ProtectedRoute: React.FC<{ allowedRole: 'user' | 'admin' | 'doctor' | 'sta
     const redirectPath = user?.role === 'admin' ? '/admin/dashboard' :
       user?.role === 'doctor' ? '/doctor/dashboard' :
         user?.role === 'staff' ? '/staff/dashboard' :
-          user?.role === 'manager' ? '/manager/dashboard' :
             '/user/dashboard';
     return <Navigate to={redirectPath} replace />;
   }

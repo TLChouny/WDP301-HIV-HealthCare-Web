@@ -70,7 +70,7 @@ const Layout: React.FC = () => {
       {/* Header */}
       <header
         className={`bg-gradient-to-r from-teal-700 to-teal-800 text-white sticky top-0 z-50 transition-all duration-300 ${
-          isScrolled ? "shadow-lg py-2" : "py-4"
+          isScrolled ? "shadow-lg py-4" : "py-6"
         }`}
       >
         <div className="container mx-auto px-4">
@@ -203,7 +203,7 @@ const Layout: React.FC = () => {
                     className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium text-lg uppercase cursor-pointer"
                     onClick={() => toggleDropdown("userDesktop")}
                   >
-                    {user.email.charAt(6)}
+                    {user?.email?.charAt(6) ?? ""}
                   </div>
                   <div
                     className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-10 transition-all duration-300 ${
@@ -378,7 +378,7 @@ const Layout: React.FC = () => {
                       onClick={() => toggleDropdown("userMobile")}
                     >
                       <span className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium text-lg uppercase">
-                        {user.email.charAt(0)}
+                        {user?.email?.charAt(0) ?? ""}
                       </span>
                       <ChevronDown
                         className={`h-4 w-4 ml-1 transition-transform duration-300 ${

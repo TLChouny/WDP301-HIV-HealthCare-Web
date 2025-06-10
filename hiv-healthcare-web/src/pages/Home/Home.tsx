@@ -270,7 +270,7 @@ const Home: React.FC = () => {
           >
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Tìm Bác Sĩ <br />
-              Chuyên Khoa HIV.
+              Chuyên Khoa HIV
             </h1>
 
             <AnimatedElement animationType="fade-up" delay={300} duration={800}>
@@ -281,7 +281,7 @@ const Home: React.FC = () => {
             </AnimatedElement>
 
             <AnimatedElement animationType="zoom-in" delay={600} duration={800}>
-              <div className="bg-white p-6 rounded-lg shadow-xl max-w-md flex flex-col items-center justify-center transform transition-all duration-500 hover:shadow-2xl">
+              <div className="p-6 rounded-lg max-w-md flex flex-col items-center justify-center transform transition-all duration-500">
                 <button
                   className="w-full bg-teal-600 text-white py-3 px-6 rounded-lg font-medium text-lg transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 flex items-center justify-center gap-2"
                   onClick={() => navigate('/appointment')}
@@ -375,18 +375,18 @@ const Home: React.FC = () => {
                 delay={300 + index * 150}
                 duration={800}
               >
-                <div className="group text-center p-6 border border-gray-100 rounded-lg transition-all duration-500 hover:shadow-xl hover:border-teal-100 hover:-translate-y-2 bg-white relative overflow-hidden">
+                <div className="group text-center p-6 border border-gray-100 rounded-lg transition-all duration-500 hover:shadow-xl hover:border-teal-100 hover:-translate-y-2 bg-white relative overflow-hidden flex flex-col items-center h-full min-h-[260px]">
                   {/* Background hover effect */}
                   <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-                  <div className="relative z-10">
+                  <div className="relative z-10 flex flex-col flex-1 items-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-50 mb-4 transition-all duration-500 group-hover:bg-teal-100 group-hover:scale-110 group-hover:shadow-md">
                       {service.icon}
                     </div>
                     <h3 className="text-xl font-semibold mb-2 text-gray-800 transition-transform duration-300 group-hover:translate-y-[-2px]">
                       {service.title}
                     </h3>
-                    <p className="text-gray-600 transition-all duration-300 group-hover:text-gray-700">
+                    <p className="text-gray-600 transition-all duration-300 group-hover:text-gray-700 flex-1 flex items-center text-center">
                       {service.description}
                     </p>
                   </div>
@@ -398,7 +398,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Home Care Section */}
-      <ParallaxSection speed={0.15} className="py-16 bg-gray-50">
+      <ParallaxSection speed={0.15} className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="flex flex-col lg:flex-row items-center">
             <AnimatedElement
@@ -563,12 +563,12 @@ const Home: React.FC = () => {
               className="lg:w-1/2"
             >
               <div className="relative group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-teal-200 rounded-full opacity-50 -z-10 transform translate-x-10 -translate-y-10 transition-all duration-500 group-hover:scale-110"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-teal-200 rounded-full opacity-50 -z-10 transform translate-x-10 -translate-y-10 transition-all duration-500"></div>
                 <div className="relative z-10 transition-transform duration-700 group-hover:scale-105">
                   <img
                     src={doingubacsi3 || "/placeholder.svg"}
                     alt="Bác sĩ chuyên khoa"
-                    className="rounded-lg shadow-xl transition-all duration-500 group-hover:shadow-2xl"
+                    className="rounded-lg  transition-all duration-500 "
                   />
                 </div>
               </div>

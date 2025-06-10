@@ -1,7 +1,7 @@
 // types/User.ts
 
 export type Gender = "male" | "female" | "other";
-export type Role = "user" | "admin" | "doctor" | "staff" | "manager";
+export type Role = "user" | "admin" | "doctor" | "staff";
 
 export interface User {
   _id: string;
@@ -17,4 +17,6 @@ export interface User {
   isVerified: boolean;
   createdAt: string;
   updatedAt: string;
+  accessToken?: string;
+  tokenExpiresAt?: string;
 }

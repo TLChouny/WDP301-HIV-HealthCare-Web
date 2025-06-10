@@ -2,10 +2,18 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import { toast } from "react-toastify";
-import { login } from "../../api/authApi";
 import { useAuth } from "../../context/AuthContext";
-import { jwtDecode } from "jwt-decode";
 import "../../styles/animation.css";
+
+const TOAST_CONFIG = {
+  position: "top-right" as const,
+  autoClose: 3000,
+  hideProgressBar: false,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
+  progress: undefined,
+};
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -13,17 +21,7 @@ const Login: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { login: authLogin } = useAuth();
-
-  const toastConfig = {
-    position: "top-right" as const,
-    autoClose: 3000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-  };
+  const { login: authLogin, user } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +29,7 @@ const Login: React.FC = () => {
 
     // Kiểm tra email trống
     if (!email) {
-      toast.error("Vui lòng nhập email!", toastConfig);
+      toast.error("Vui lòng nhập email!", TOAST_CONFIG);
       setIsLoading(false);
       return;
     }
@@ -39,51 +37,41 @@ const Login: React.FC = () => {
     // Kiểm tra định dạng email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      toast.error("Email phải chứa @ và đúng định dạng!", toastConfig);
+      toast.error("Email phải chứa @ và đúng định dạng!", TOAST_CONFIG);
       setIsLoading(false);
       return;
     }
 
     // Kiểm tra mật khẩu trống
     if (!password) {
-      toast.error("Vui lòng nhập mật khẩu!", toastConfig);
+      toast.error("Vui lòng nhập mật khẩu!", TOAST_CONFIG);
       setIsLoading(false);
       return;
     }
 
     // Kiểm tra độ dài mật khẩu
     if (password.length < 6) {
-      toast.error("Mật khẩu phải có ít nhất 6 ký tự!", toastConfig);
+      toast.error("Mật khẩu phải có ít nhất 6 ký tự!", TOAST_CONFIG);
       setIsLoading(false);
       return;
     }
 
     try {
-      // Gửi yêu cầu đăng nhập
-      const response = await login({ email, password });
+      // Gọi login từ AuthContext
+      await authLogin({ email, password });
+
+      // Lưu token vào storage dựa trên rememberMe
       const storage = rememberMe ? localStorage : sessionStorage;
-      storage.setItem("token", response.token);
-      authLogin(response.token);
-
-      const decoded: any = jwtDecode(response.token);
-      const role = decoded.user?.role || decoded.role;
-
-      // Thông báo đăng nhập thành công
-      // toast.success("Đăng nhập thành công!", toastConfig);
-
-      // Chuyển hướng dựa trên vai trò
-      navigate(role === "admin" ? "/admin" : "/");
-    } catch (error: any) {
-      let errorMessage = "Email hoặc mật khẩu không đúng!";
-      if (error.response?.data?.message) {
-        // Kiểm tra lỗi cụ thể từ API
-        if (error.response.data.message.includes("password")) {
-          errorMessage = "Mật khẩu không đúng!";
-        } else if (error.response.data.message.includes("email")) {
-          errorMessage = "Email không tồn tại!";
+      const token = localStorage.getItem("token");
+      if (token) {
+        storage.setItem("token", token);
+        if (!rememberMe) {
+          localStorage.removeItem("token"); // Xóa khỏi localStorage nếu không ghi nhớ
         }
       }
-      toast.error(errorMessage, toastConfig);
+    } catch (error: any) {
+      // Lỗi đã được xử lý bởi AuthContext qua toast, không cần lặp lại
+      console.error("Login error:", error.message);
     } finally {
       setIsLoading(false);
     }
@@ -175,6 +163,11 @@ const Login: React.FC = () => {
                   <span className="relative z-10">
                     {isLoading ? "Đang xử lý..." : "Đăng Nhập"}
                   </span>
+                  {isLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
                 </button>
               </div>
             </form>
