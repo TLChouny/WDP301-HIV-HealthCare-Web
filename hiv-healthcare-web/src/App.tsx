@@ -11,9 +11,6 @@ import StaffLayout from './layouts/StaffLayout';
 // Public Pages
 import Home from './pages/Home/Home';
 import ServiceByCategoryId from './pages/ServicesHome/ServiceByCategoryId';
-import Support from './pages/ServicesHome/Support';
-import Testing from './pages/ServicesHome/Testing';
-import Treatment from './pages/ServicesHome/Treatment';
 import About from './pages/Home/About';
 import Blog from './pages/Home/Blog';
 import Contact from './pages/Home/Contact';
@@ -136,9 +133,6 @@ const App: React.FC = () => {
             <Route path="blog" element={<Blog />} />
             <Route path="contact" element={<Contact />} />
             <Route path="services/category/:id" element={<ServiceByCategoryId />} />
-            <Route path="services/support" element={<Support />} />
-            <Route path="services/testing" element={<Testing />} />
-            <Route path="services/treatment" element={<Treatment />} />
             <Route path="appointment" element={<Appointment />} />
 
             {/* Doctor routes */}
