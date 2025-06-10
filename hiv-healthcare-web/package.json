@@ -19,7 +19,7 @@
     "@mui/x-date-pickers": "^8.4.0",
     "antd": "^5.25.3",
     "axios": "^1.9.0",
-    "framer-motion": "^12.15.0",
+    "framer-motion": "^12.16.0",
     "hiv-healthcare-web": "file:",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.510.0",
