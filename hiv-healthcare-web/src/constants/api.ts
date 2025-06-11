@@ -1,5 +1,5 @@
-// export const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
-export const BASE_URL = `http://localhost:5000/api`;
+export const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
+// export const BASE_URL = `http://localhost:5000/api`;
 
 
 export const API_ENDPOINTS = {
@@ -9,6 +9,8 @@ export const API_ENDPOINTS = {
   VERIFYOTP: "/users/verify-otp",
   RESENDOTP: "/users/resend-otp",
   FORGOT_PASSWORD: "/users/forgot-password",
+  VERIFY_RESET_OTP: "/users/verify-reset-otp",
+  RESET_PASSWORD: "/users/reset-password",
   USER_BY_ID: (id: string) => `/users/${id}`,
   GET_ALL_USERS: "/users",
   UPDATE_USER: (id: string) => `/users/${id}`,

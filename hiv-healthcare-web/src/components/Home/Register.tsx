@@ -22,9 +22,11 @@ const Register: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
   const [showOTPForm, setShowOTPForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [isOtpExpired, setIsOtpExpired] = useState(false); // Thêm trạng thái để theo dõi OTP hết hạn
   const navigate = useNavigate();
   const { register, verifyOTP, resendOTP } = useAuth();
 
@@ -84,6 +86,7 @@ const Register: React.FC = () => {
       await register({ userName, email, password, phone_number: phoneNumber });
       setShowOTPForm(true);
       setResendCooldown(60);
+      setIsOtpExpired(false); // Reset trạng thái OTP hết hạn
     } catch (error: any) {
       let errorMessage = "Đăng ký thất bại!";
       if (error.response?.data?.message) {
@@ -100,23 +103,33 @@ const Register: React.FC = () => {
   const handleOTPSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setOtpError(""); // Reset lỗi OTP
 
     const otpRegex = /^\d{6}$/;
     if (!otp || !otpRegex.test(otp)) {
-      toast.error(!otp ? "Vui lòng nhập mã OTP!" : "Mã OTP phải là 6 chữ số!", TOAST_CONFIG);
+      setOtpError(!otp ? "Vui lòng nhập mã OTP!" : "Mã OTP phải là 6 chữ số!");
       setIsLoading(false);
       return;
     }
 
     try {
       await verifyOTP({ email, otp });
-      // Chuyển hướng sau khi AuthContext cập nhật user
       navigate("/");
     } catch (error: any) {
       let errorMessage = "Xác minh OTP thất bại!";
       if (error.response?.data?.message) {
-        errorMessage = error.response.data.message.includes("otp") ? "Mã OTP không đúng!" : error.response.data.message;
+        if (error.response.data.message.includes("expired")) {
+          errorMessage = "Mã OTP đã hết hạn! Vui lòng nhấn 'Gửi lại OTP'.";
+          setIsOtpExpired(true); // Đánh dấu OTP hết hạn
+        } else if (error.response.data.message.includes("otp")) {
+          errorMessage = "Mã OTP không đúng!";
+          setIsOtpExpired(false);
+        } else {
+          errorMessage = error.response.data.message;
+          setIsOtpExpired(false);
+        }
       }
+      setOtpError(errorMessage);
       toast.error(errorMessage, TOAST_CONFIG);
     } finally {
       setIsLoading(false);
@@ -133,6 +146,8 @@ const Register: React.FC = () => {
     try {
       await resendOTP({ email });
       setResendCooldown(60);
+      setIsOtpExpired(false); // Reset trạng thái sau khi gửi lại thành công
+      setOtp(""); // Xóa OTP cũ để người dùng nhập mã mới
       toast.success("Đã gửi lại mã OTP qua email!", TOAST_CONFIG);
     } catch (error: any) {
       toast.error(error.message || "Gửi lại OTP thất bại!", TOAST_CONFIG);
@@ -159,42 +174,100 @@ const Register: React.FC = () => {
                 <div className="mb-4">
                   <label htmlFor="name" className="block text-gray-700 text-sm font-medium mb-1">Họ và tên</label>
                   <div className="relative group">
-                    <input type="text" id="name" value={userName} onChange={(e) => setName(e.target.value)} className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300" placeholder="Nhập họ và tên" disabled={isLoading} />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3"><User className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" /></div>
+                    <input
+                      type="text"
+                      id="name"
+                      value={userName}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
+                      placeholder="Nhập họ và tên"
+                      disabled={isLoading}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <User className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" />
+                    </div>
                   </div>
                 </div>
                 <div className="mb-4">
                   <label htmlFor="email" className="block text-gray-700 text-sm font-medium mb-1">Email</label>
                   <div className="relative group">
-                    <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300" placeholder="Nhập email của bạn" disabled={isLoading} />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3"><Mail className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" /></div>
+                    <input
+                      type="email"
+                      id="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
+                      placeholder="Nhập email của bạn"
+                      disabled={isLoading}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <Mail className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" />
+                    </div>
                   </div>
                 </div>
                 <div className="mb-4">
                   <label htmlFor="phone-number" className="block text-gray-700 text-sm font-medium mb-1">Số điện thoại</label>
                   <div className="relative group">
-                    <input type="tel" id="phone-number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300" placeholder="Nhập số điện thoại (VD: 0123456789)" disabled={isLoading} />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3"><Phone className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" /></div>
+                    <input
+                      type="tel"
+                      id="phone-number"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
+                      placeholder="Nhập số điện thoại (VD: 0123456789)"
+                      disabled={isLoading}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <Phone className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" />
+                    </div>
                   </div>
                 </div>
                 <div className="mb-4">
                   <label htmlFor="password" className="block text-gray-700 text-sm font-medium mb-1">Mật khẩu</label>
                   <div className="relative group">
-                    <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300" placeholder="Nhập mật khẩu" disabled={isLoading} />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3"><Lock className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" /></div>
+                    <input
+                      type="password"
+                      id="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
+                      placeholder="Nhập mật khẩu"
+                      disabled={isLoading}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <Lock className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" />
+                    </div>
                   </div>
                 </div>
                 <div className="mb-6">
                   <label htmlFor="confirm-password" className="block text-gray-700 text-sm font-medium mb-1">Xác nhận mật khẩu</label>
                   <div className="relative group">
-                    <input type="password" id="confirm-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300" placeholder="Xác nhận mật khẩu" disabled={isLoading} />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3"><Lock className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" /></div>
+                    <input
+                      type="password"
+                      id="confirm-password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
+                      placeholder="Xác nhận mật khẩu"
+                      disabled={isLoading}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <Lock className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" />
+                    </div>
                   </div>
                 </div>
                 <div className="animate-zoomIn">
-                  <button type="submit" className="w-full bg-teal-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 relative overflow-hidden group" disabled={isLoading}>
+                  <button
+                    type="submit"
+                    className="w-full bg-teal-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 relative overflow-hidden group"
+                    disabled={isLoading}
+                  >
                     <span className="relative z-10">{isLoading ? "Đang xử lý..." : "Đăng Ký"}</span>
-                    {isLoading && <div className="absolute inset-0 flex items-center justify-center"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div></div>}
+                    {isLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    )}
                   </button>
                 </div>
               </form>
@@ -203,25 +276,67 @@ const Register: React.FC = () => {
                 <div className="mb-4">
                   <label htmlFor="otp" className="block text-gray-700 text-sm font-medium mb-1">Mã OTP</label>
                   <div className="relative group">
-                    <input type="text" id="otp" value={otp} onChange={(e) => setOtp(e.target.value)} className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300 text-center tracking-widest" placeholder="Nhập mã OTP (6 chữ số)" maxLength={6} disabled={isLoading} />
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-3"><Mail className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" /></div>
+                    <input
+                      type="text"
+                      id="otp"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      className={`w-full border ${otpError ? "border-red-500" : "border-gray-300"} rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300 text-center tracking-widest`}
+                      placeholder="Nhập mã OTP (6 chữ số)"
+                      maxLength={6}
+                      disabled={isLoading}
+                    />
+                    <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                      <Mail className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" />
+                    </div>
                   </div>
+                  {otpError && (
+                    <p className="mt-2 text-sm text-red-500 animate-fadeIn">{otpError}</p>
+                  )}
                 </div>
                 <div className="animate-zoomIn">
-                  <button type="submit" className="w-full bg-teal-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 relative overflow-hidden group" disabled={isLoading}>
+                  <button
+                    type="submit"
+                    className="w-full bg-teal-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 relative overflow-hidden group"
+                    disabled={isLoading}
+                  >
                     <span className="relative z-10">{isLoading ? "Đang xử lý..." : "Xác minh OTP"}</span>
-                    {isLoading && <div className="absolute inset-0 flex items-center justify-center"><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div></div>}
+                    {isLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    )}
                   </button>
                 </div>
-                <div className="text-center">
-                  <button type="button" onClick={handleResendOTP} className={`text-teal-600 hover:text-teal-700 text-sm font-medium transition-all duration-300 ${resendCooldown > 0 ? "opacity-50 cursor-not-allowed" : ""}`} disabled={isLoading || resendCooldown > 0}>
-                    Gửi lại OTP {resendCooldown > 0 ? `(${resendCooldown}s)` : ""}
+                <div className="text-center space-y-3">
+                  <p className={`text-sm ${isOtpExpired ? "text-red-500 font-medium" : "text-gray-600"}`}>
+                    {isOtpExpired ? "Mã OTP đã hết hạn! Hãy yêu cầu mã mới:" : "Không nhận được mã OTP?"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleResendOTP}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-md ${
+                      resendCooldown > 0 || isLoading
+                        ? "bg-gray-400 text-white opacity-50 cursor-not-allowed"
+                        : isOtpExpired
+                        ? "bg-red-500 text-white hover:bg-red-600 animate-pulse"
+                        : "bg-teal-600 text-white hover:bg-teal-700"
+                    }`}
+                    disabled={isLoading || resendCooldown > 0}
+                  >
+                    {resendCooldown > 0 ? `Gửi lại OTP (${resendCooldown}s)` : "Gửi lại OTP"}
                   </button>
                 </div>
               </form>
             )}
             <div className="mt-6 text-center">
-              <p className="text-gray-600">Đã có tài khoản? <Link to="/login" className="text-teal-600 hover:text-teal-700 font-medium transition-all duration-300 flex items-center justify-center group"><span>Đăng nhập ngay</span><ArrowRight className="h-4 w-4 ml-1 transition-all duration-300 group-hover:ml-2" /></Link></p>
+              <p className="text-gray-600">
+                Đã có tài khoản?{" "}
+                <Link to="/login" className="text-teal-600 hover:text-teal-700 font-medium transition-all duration-300 flex items-center justify-center group">
+                  <span>Đăng nhập ngay</span>
+                  <ArrowRight className="h-4 w-4 ml-1 transition-all duration-300 group-hover:ml-2" />
+                </Link>
+              </p>
             </div>
           </div>
         </div>

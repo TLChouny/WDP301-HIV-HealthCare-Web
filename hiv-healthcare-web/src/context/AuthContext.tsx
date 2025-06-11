@@ -11,6 +11,8 @@ import {
   resendOTP as apiResendOTP,
   getAllUsers as apiGetAllUsers,
   forgotPassword as apiForgotPassword,
+  verifyResetOTP as apiVerifyResetOTP,
+  resetPassword as apiResetPassword,
   getUserById as apiGetUserById,
   updateUser as apiUpdateUser,
   deleteUser as apiDeleteUser,
@@ -50,9 +52,16 @@ interface AuthContextType {
   resendOTP: (data: { email: string }) => Promise<void>;
   getAllUsers: () => Promise<User[]>;
   forgotPassword: (data: { email: string }) => Promise<void>;
+  verifyResetOTP: (data: { email: string; otp: string }) => Promise<VerifyResetOTPResponse>;
+  resetPassword: (data: { resetToken: string; newPassword: string }) => Promise<void>;
   getUserById: (id: string) => Promise<User>;
   updateUser: (id: string, data: any) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
+}
+
+interface VerifyResetOTPResponse {
+  resetToken: string;
+  message?: string; // Tùy chọn nếu backend trả thêm message
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -67,7 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error("Token is empty or not a string");
       }
       const decoded: JwtPayload = jwtDecode(token);
-      console.log("Decoded token:", decoded);
+      // console.log("Decoded token:", decoded);
       const currentTime = Date.now() / 1000;
       if (decoded.exp && decoded.exp < currentTime) {
         throw new Error("Token has expired");
@@ -153,7 +162,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("Token after login:", token);
       const userData = decodeAndValidateToken(token);
       localStorage.setItem("token", token);
-      console.log("Token stored in localStorage after login:", localStorage.getItem("token"));
+      // console.log("Token stored in localStorage after login:", localStorage.getItem("token"));
       setUser(userData);
       toast.success("Đăng nhập thành công!", { position: "top-right", autoClose: 3000 });
       if (userData.role === "admin") {
@@ -181,7 +190,6 @@ const logout = async () => {
     setUser(null);
     toast.success("Đã đăng xuất.", { position: "top-right", autoClose: 3000 });
   } catch (error : any) {
-    console.error("Error during logout:", error.message);
     localStorage.removeItem("token");
     setUser(null);
     toast.success("Đã đăng xuất.", { position: "top-right", autoClose: 3000 });
@@ -242,16 +250,62 @@ const logout = async () => {
     }
   };
 
-  const forgotPassword = async (data: { email: string }) => {
-    try {
-      await apiForgotPassword(data);
-      toast.success("Yêu cầu đặt lại mật khẩu đã được gửi!", { position: "top-right", autoClose: 3000 });
-    } catch (error: any) {
-      console.error("Error during forgot password:", error.message);
-      toast.error(error.message || "Yêu cầu đặt lại mật khẩu thất bại.", { position: "top-right", autoClose: 3000 });
-      throw error;
+const forgotPassword = async (data: { email: string }) => {
+  try {
+    await apiForgotPassword(data);
+    toast.success("Yêu cầu đặt lại mật khẩu đã được gửi!", { position: "top-right", autoClose: 3000 });
+  } catch (error: any) {
+    console.error("Error during forgot password:", error.message);
+    let errorMessage = "Yêu cầu đặt lại mật khẩu thất bại.";
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+      if (errorMessage.includes("not found")) errorMessage = "Email không tồn tại!";
     }
-  };
+    toast.error(errorMessage, { position: "top-right", autoClose: 3000 });
+    throw error;
+  }
+};
+
+const verifyResetOTP = async (data: { email: string; otp: string }) => {
+  try {
+    const response = await apiVerifyResetOTP(data);
+    toast.success("Xác minh OTP thành công!", { position: "top-right", autoClose: 3000 });
+    return response; // Trả về response để lấy resetToken
+  } catch (error: any) {
+    console.error("Error during reset OTP verification:", error.message);
+    let errorMessage = "Xác minh OTP thất bại.";
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+      if (errorMessage.includes("expired")) errorMessage = "Mã OTP đã hết hạn!";
+      else if (errorMessage.includes("otp")) errorMessage = "Mã OTP không đúng!";
+    }
+    toast.error(errorMessage, { position: "top-right", autoClose: 3000 });
+    throw error;
+  }
+};
+
+const resetPassword = async (data: { resetToken: string; newPassword: string }) => {
+  try {
+    const response = await apiResetPassword(data); // Response now includes token
+    if (response.token) {
+      localStorage.setItem("token", response.token);
+      const userData = decodeAndValidateToken(response.token);
+      setUser(userData);
+    }
+    toast.success("Đặt lại mật khẩu thành công!", { position: "top-right", autoClose: 3000 });
+  } catch (error: any) {
+    let errorMessage = "Đặt lại mật khẩu thất bại!";
+    if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+      if (errorMessage.includes("token")) {
+        errorMessage = "Phiên đặt lại mật khẩu đã hết hạn! Vui lòng thử lại.";
+      }
+    }
+    console.error("Error during password reset:", error.message);
+    toast.error(errorMessage, { position: "top-right", autoClose: 3000 });
+    throw error;
+  }
+};
 
   const getUserById = async (id: string) => {
     try {
@@ -308,6 +362,8 @@ const logout = async () => {
         resendOTP,
         getAllUsers,
         forgotPassword,
+        verifyResetOTP,
+        resetPassword,
         getUserById,
         updateUser,
         deleteUser,

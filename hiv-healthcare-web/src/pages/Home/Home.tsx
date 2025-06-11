@@ -15,6 +15,7 @@ import {
 import doingubacsi from "../../assets/doingubacsi.png";
 import doingubacsi2 from "../../assets/doingubacsi2.png";
 import doingubacsi3 from "../../assets/doingubacsi3.png";
+import MeetingModal from "../../components/Home/MeetingModal";
 
 // Hàm tiện ích để kiểm tra nếu element trong viewport
 const useInView = (ref: React.RefObject<HTMLElement>, threshold = 0.1) => {
@@ -54,14 +55,14 @@ interface AnimatedElementProps {
   delay?: number;
   duration?: number;
   animationType?:
-    | "fade-up"
-    | "fade-down"
-    | "fade-left"
-    | "fade-right"
-    | "zoom-in"
-    | "zoom-out"
-    | "flip"
-    | "bounce";
+  | "fade-up"
+  | "fade-down"
+  | "fade-left"
+  | "fade-right"
+  | "zoom-in"
+  | "zoom-out"
+  | "flip"
+  | "bounce";
 }
 
 const AnimatedElement: React.FC<AnimatedElementProps> = ({
@@ -229,6 +230,7 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   // Scroll progress indicator
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [showMeetingModal, setShowMeetingModal] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -279,12 +281,11 @@ const Home: React.FC = () => {
                 kỳ thị
               </p>
             </AnimatedElement>
-
             <AnimatedElement animationType="zoom-in" delay={600} duration={800}>
               <div className="p-6 rounded-lg max-w-md flex flex-col items-center justify-center transform transition-all duration-500">
                 <button
                   className="w-full bg-teal-600 text-white py-3 px-6 rounded-lg font-medium text-lg transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 flex items-center justify-center gap-2"
-                  onClick={() => navigate('/appointment')}
+                  onClick={() => setShowMeetingModal(true)}
                 >
                   <Calendar className="h-5 w-5 mr-2" />
                   Đặt lịch tư vấn trực tuyến
@@ -292,7 +293,9 @@ const Home: React.FC = () => {
               </div>
             </AnimatedElement>
           </AnimatedElement>
-
+            <div className="absolute top-0 right-0 w-64 h-64 bg-teal-200 rounded-full opacity-20 -z-10 transform translate-x-1/3 -translate-y-1/3"></div>
+          {/* Đặt MeetingModal ở ngoài cùng để modal overlay không bị chèn trong div */}
+          <MeetingModal isOpen={showMeetingModal} onClose={() => setShowMeetingModal(false)} />
           <AnimatedElement
             animationType="fade-left"
             delay={300}

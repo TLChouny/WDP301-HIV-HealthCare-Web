@@ -23,59 +23,48 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login: authLogin, user } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+  console.log("Login payload:", { email, password });
 
-    // Kiểm tra email trống
-    if (!email) {
-      toast.error("Vui lòng nhập email!", TOAST_CONFIG);
-      setIsLoading(false);
-      return;
-    }
+  if (!email) {
+    toast.error("Vui lòng nhập email!", TOAST_CONFIG);
+    setIsLoading(false);
+    return;
+  }
 
-    // Kiểm tra định dạng email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      toast.error("Email phải chứa @ và đúng định dạng!", TOAST_CONFIG);
-      setIsLoading(false);
-      return;
-    }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    toast.error("Email phải chứa @ và đúng định dạng!", TOAST_CONFIG);
+    setIsLoading(false);
+    return;
+  }
 
-    // Kiểm tra mật khẩu trống
-    if (!password) {
-      toast.error("Vui lòng nhập mật khẩu!", TOAST_CONFIG);
-      setIsLoading(false);
-      return;
-    }
+  if (!password) {
+    toast.error("Vui lòng nhập mật khẩu!", TOAST_CONFIG);
+    setIsLoading(false);
+    return;
+  }
 
-    // Kiểm tra độ dài mật khẩu
-    if (password.length < 6) {
-      toast.error("Mật khẩu phải có ít nhất 6 ký tự!", TOAST_CONFIG);
-      setIsLoading(false);
-      return;
-    }
+  if (password.length < 6) {
+    toast.error("Mật khẩu phải có ít nhất 6 ký tự!", TOAST_CONFIG);
+    setIsLoading(false);
+    return;
+  }
 
-    try {
-      // Gọi login từ AuthContext
-      await authLogin({ email, password });
-
-      // Lưu token vào storage dựa trên rememberMe
-      const storage = rememberMe ? localStorage : sessionStorage;
-      const token = localStorage.getItem("token");
-      if (token) {
-        storage.setItem("token", token);
-        if (!rememberMe) {
-          localStorage.removeItem("token"); // Xóa khỏi localStorage nếu không ghi nhớ
-        }
-      }
-    } catch (error: any) {
-      // Lỗi đã được xử lý bởi AuthContext qua toast, không cần lặp lại
-      console.error("Login error:", error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  try {
+    await authLogin({ email, password });
+    const token = localStorage.getItem("token");
+    console.log("Token after login:", token);
+    navigate("/");
+  } catch (error: any) {
+    console.error("Login error:", error.message);
+    toast.error(error.message || "Đăng nhập thất bại.", TOAST_CONFIG);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <section className="min-h-screen bg-gray-50 py-16 relative overflow-hidden">

@@ -106,6 +106,30 @@ export const forgotPassword = async (data: { email: string }) => {
   }
 };
 
+export const verifyResetOTP = async (data: { email: string; otp: string }) => {
+  try {
+    const res = await apiClient.post(API_ENDPOINTS.VERIFY_RESET_OTP, data);
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Reset OTP verification failed");
+    }
+    throw new Error("An unexpected error occurred during reset OTP verification");
+  }
+};
+
+export const resetPassword = async (data: { resetToken: string; newPassword: string }) => {
+  try {
+    const res = await apiClient.post(API_ENDPOINTS.RESET_PASSWORD, data);
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Reset password failed");
+    }
+    throw new Error("An unexpected error occurred during password reset");
+  }
+};
+
 export const getUserById = async (id: string) => {
   try {
     const res = await apiClient.get(`${API_ENDPOINTS.USER_BY_ID(id)}`);

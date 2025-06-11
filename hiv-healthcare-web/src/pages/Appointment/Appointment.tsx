@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, User, Phone, MessageSquare, AlertCircle, FileText, Heart, Shield, EyeOff } from 'lucide-react';
+import { Calendar, Clock, User, Phone, MessageSquare, AlertCircle, Shield } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from 'react-toastify';
@@ -10,42 +10,24 @@ const Appointment: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [selectedDoctor, setSelectedDoctor] = useState<string>('');
-  const [selectedService, setSelectedService] = useState<string>('');
   const [isAnonymous, setIsAnonymous] = useState<boolean>(false);
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
     email: '',
-    age: '',
-    gender: '',
-    hivStatus: '',
-    currentMedication: '',
-    lastTestDate: '',
-    reason: '',
     notes: ''
   });
 
-  // Danh sách các khung giờ khám
   const timeSlots = [
     '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
     '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'
   ];
 
-  // Danh sách bác sĩ chuyên khoa HIV
   const doctors = [
     { id: '1', name: 'BS. Nguyễn Văn A', specialty: 'Chuyên gia điều trị HIV' },
     { id: '2', name: 'BS. Trần Thị B', specialty: 'Tư vấn xét nghiệm HIV' },
     { id: '3', name: 'BS. Lê Văn C', specialty: 'Chuyên gia tâm lý' },
     { id: '4', name: 'BS. Phạm Thị D', specialty: 'Chuyên gia dinh dưỡng' }
-  ];
-
-  // Danh sách dịch vụ
-  const services = [
-    { id: '1', name: 'Tư vấn xét nghiệm HIV', description: 'Tư vấn trước và sau xét nghiệm HIV' },
-    { id: '2', name: 'Điều trị ARV', description: 'Tư vấn và theo dõi điều trị ARV' },
-    { id: '3', name: 'Tư vấn tâm lý', description: 'Hỗ trợ tâm lý cho người nhiễm HIV' },
-    { id: '4', name: 'Tư vấn dinh dưỡng', description: 'Tư vấn chế độ dinh dưỡng phù hợp' },
-    { id: '5', name: 'Khám tổng quát', description: 'Khám sức khỏe định kỳ' }
   ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -58,15 +40,12 @@ const Appointment: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Kiểm tra các trường bắt buộc
-    if (!selectedDate || !selectedTime || !selectedDoctor || !selectedService || 
-        !formData.hivStatus) {
+
+    if (!selectedDate || !selectedTime || !selectedDoctor) {
       toast.error('Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
 
-    // Kiểm tra thông tin liên hệ nếu không phải đặt lịch ẩn danh
     if (!isAnonymous && (!formData.fullName || !formData.phone)) {
       toast.error('Vui lòng điền đầy đủ thông tin liên hệ!');
       return;
@@ -77,15 +56,12 @@ const Appointment: React.FC = () => {
       date: selectedDate,
       time: selectedTime,
       doctor: selectedDoctor,
-      service: selectedService,
       isAnonymous,
       ...formData
     });
 
-    // Hiển thị thông báo thành công
     toast.success('Đặt lịch khám thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất.');
-    
-    // Chuyển hướng về trang chủ sau 2 giây
+
     setTimeout(() => {
       navigate('/');
     }, 2000);
@@ -95,7 +71,6 @@ const Appointment: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-800 mb-4">Đặt Lịch Khám HIV</h1>
             <p className="text-gray-600">
@@ -104,35 +79,8 @@ const Appointment: React.FC = () => {
             </p>
           </div>
 
-          {/* Form */}
           <div className="bg-white rounded-lg shadow-lg p-6 md:p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Tùy chọn đặt lịch ẩn danh */}
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <EyeOff className="h-5 w-5 text-gray-500 mr-2" />
-                    <span className="text-gray-700 font-medium">Đặt lịch ẩn danh</span>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={isAnonymous}
-                      onChange={(e) => setIsAnonymous(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
-                  </label>
-                </div>
-                {isAnonymous && (
-                  <p className="mt-2 text-sm text-gray-600">
-                    Khi chọn đặt lịch ẩn danh, bạn chỉ cần cung cấp số điện thoại để chúng tôi liên hệ xác nhận lịch hẹn.
-                    Mọi thông tin cá nhân khác sẽ được giữ bí mật.
-                  </p>
-                )}
-              </div>
-
-              {/* Thông tin cá nhân */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -192,89 +140,6 @@ const Appointment: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tuổi
-                  </label>
-                  <input
-                    type="number"
-                    name="age"
-                    value={formData.age}
-                    onChange={handleInputChange}
-                    className="w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    placeholder="Nhập tuổi"
-                    disabled={isAnonymous}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Giới tính
-                  </label>
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleInputChange}
-                    className="w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    disabled={isAnonymous}
-                  >
-                    <option value="">Chọn giới tính</option>
-                    <option value="male">Nam</option>
-                    <option value="female">Nữ</option>
-                    <option value="other">Khác</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Tình trạng HIV <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    name="hivStatus"
-                    value={formData.hivStatus}
-                    onChange={handleInputChange}
-                    className="w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="">Chọn tình trạng</option>
-                    <option value="positive">Dương tính</option>
-                    <option value="negative">Âm tính</option>
-                    <option value="unknown">Chưa xét nghiệm</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Thuốc đang sử dụng
-                  </label>
-                  <input
-                    type="text"
-                    name="currentMedication"
-                    value={formData.currentMedication}
-                    onChange={handleInputChange}
-                    className="w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    placeholder="Nhập tên thuốc (nếu có)"
-                    disabled={isAnonymous}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ngày xét nghiệm gần nhất
-                  </label>
-                  <DatePicker
-                    selected={formData.lastTestDate ? new Date(formData.lastTestDate) : null}
-                    onChange={(date) => setFormData(prev => ({ ...prev, lastTestDate: date?.toISOString() || '' }))}
-                    className="w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                    dateFormat="dd/MM/yyyy"
-                    placeholderText="Chọn ngày"
-                    disabled={isAnonymous}
-                  />
-                </div>
-              </div>
-
-              {/* Chọn bác sĩ và dịch vụ */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Chọn bác sĩ <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
@@ -296,33 +161,8 @@ const Appointment: React.FC = () => {
                     </select>
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Chọn dịch vụ <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Heart className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <select
-                      value={selectedService}
-                      onChange={(e) => setSelectedService(e.target.value)}
-                      className="pl-10 w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      required
-                    >
-                      <option value="">Chọn dịch vụ</option>
-                      {services.map((service) => (
-                        <option key={service.id} value={service.id}>
-                          {service.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
               </div>
 
-              {/* Chọn ngày và giờ */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -369,23 +209,6 @@ const Appointment: React.FC = () => {
                 </div>
               </div>
 
-              {/* Lý do khám */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Lý do khám <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="reason"
-                  value={formData.reason}
-                  onChange={handleInputChange}
-                  className="w-full rounded-lg border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                  placeholder="Nhập lý do khám"
-                  required
-                />
-              </div>
-
-              {/* Ghi chú */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Ghi chú
@@ -405,7 +228,6 @@ const Appointment: React.FC = () => {
                 </div>
               </div>
 
-              {/* Thông báo bảo mật */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex">
                   <Shield className="h-5 w-5 text-blue-500 mr-2" />
@@ -416,7 +238,6 @@ const Appointment: React.FC = () => {
                 </div>
               </div>
 
-              {/* Thông báo xác nhận */}
               <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                 <div className="flex">
                   <AlertCircle className="h-5 w-5 text-green-500 mr-2" />
@@ -426,7 +247,6 @@ const Appointment: React.FC = () => {
                 </div>
               </div>
 
-              {/* Nút đặt lịch */}
               <div className="flex justify-center">
                 <button
                   type="submit"
@@ -443,4 +263,4 @@ const Appointment: React.FC = () => {
   );
 };
 
-export default Appointment; 
+export default Appointment;
