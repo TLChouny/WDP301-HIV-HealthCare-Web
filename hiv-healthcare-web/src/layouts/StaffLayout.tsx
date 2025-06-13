@@ -9,7 +9,8 @@ import {
   Menu,
   X,
   ClipboardList,
-  MessageSquare
+  MessageSquare,
+  Settings
 } from 'lucide-react';
 
 const StaffLayout: React.FC = () => {
@@ -33,21 +34,18 @@ const StaffLayout: React.FC = () => {
       path: '/staff/patients',
       icon: <Users className="w-5 h-5" />
     },
+    
     {
       name: 'Lịch hẹn',
       path: '/staff/appointments',
       icon: <Calendar className="w-5 h-5" />
     },
-    {
-      name: 'Hồ sơ bệnh án',
-      path: '/staff/medical-records',
-      icon: <FileText className="w-5 h-5" />
-    },
-    {
-      name: 'Danh sách thuốc',
-      path: '/staff/medications',
-      icon: <ClipboardList className="w-5 h-5" />
-    },
+    
+    // {
+    //   name: 'Danh sách thuốc',
+    //   path: '/staff/medications',
+    //   icon: <ClipboardList className="w-5 h-5" />
+    // },
     {
       name: 'Tư vấn',
       path: '/staff/counseling',
@@ -111,13 +109,6 @@ const StaffLayout: React.FC = () => {
                 </p>
               </div>
             </div>
-            <button 
-              onClick={handleLogout}
-              className="w-full flex items-center space-x-2 px-4 py-2 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50"
-            >
-              <LogOut className="w-5 h-5" />
-              <span>Đăng xuất</span>
-            </button>
           </div>
         </div>
       </div>
@@ -135,6 +126,13 @@ const StaffLayout: React.FC = () => {
             </button>
 
             <div className="flex items-center space-x-4">
+              <Link 
+                to="/staff/settings"
+                className="flex items-center space-x-2 text-gray-500 hover:text-gray-600"
+              >
+                <Settings className="w-6 h-6" />
+                <span className="hidden md:inline">Cài đặt</span>
+              </Link>
               <button 
                 onClick={handleLogout}
                 className="flex items-center space-x-2 text-gray-500 hover:text-gray-600"

@@ -43,11 +43,11 @@ import Counselors from './pages/Doctor/Counselors';
 
 // Staff Pages
 import StaffDashboard from './pages/Staff/StaffDashboard';
-import StaffPatientManagement from './pages/Staff/PatientManagement';
+import StaffPatientAndRecordManagement from './pages/Staff/PatientAndRecordManagement';
 import StaffAppointmentManagement from './pages/Staff/AppointmentManagement';
-import StaffMedicalRecordManagement from './pages/Staff/MedicalRecordManagement';
 import StaffMedicationManagement from './pages/Staff/MedicationManagement';
 import StaffCounseling from './pages/Staff/Counseling';
+import StaffSettings from './pages/Staff/StaffSettings';
 
 // User Pages
 import {
@@ -179,11 +179,11 @@ const App: React.FC = () => {
             <Route element={<StaffLayout />}>
               <Route index element={<StaffDashboard />} />
               <Route path="dashboard" element={<StaffDashboard />} />
-              <Route path="patients" element={<StaffPatientManagement />} />
+              <Route path="patients" element={<StaffPatientAndRecordManagement />} />
               <Route path="appointments" element={<StaffAppointmentManagement />} />
-              <Route path="medical-records" element={<StaffMedicalRecordManagement />} />
               <Route path="medications" element={<StaffMedicationManagement />} />
               <Route path="counseling" element={<StaffCounseling />} />
+              <Route path="settings" element={<StaffSettings />} />
             </Route>
           </Route>
 
