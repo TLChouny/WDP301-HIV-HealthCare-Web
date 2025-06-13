@@ -167,7 +167,7 @@ const LabTestManagement: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="w-full">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Quản lý Xét nghiệm</h1>
@@ -229,7 +229,7 @@ const LabTestManagement: React.FC = () => {
         </div>
 
         {/* Tests List */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-lg shadow overflow-x-auto w-full">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -459,4 +459,4 @@ const LabTestManagement: React.FC = () => {
   );
 };
 
-export default LabTestManagement; 
+export default LabTestManagement;

@@ -32,6 +32,7 @@ interface MedicalRecord {
     temperature: string;
     weight: string;
   };
+  hivLoad?: string; // Thêm dòng này
   notes: string;
   attachments?: string[];
 }
@@ -59,6 +60,7 @@ const MedicalRecordManagement: React.FC = () => {
         temperature: '37.0°C',
         weight: '65 kg'
       },
+      hivLoad: '1200 copies/mL', // Thêm dòng này
       notes: 'Bệnh nhân đáp ứng tốt với phác đồ điều trị',
       attachments: ['xet-nghiem.pdf', 'hinh-anh.pdf']
     },
@@ -80,6 +82,7 @@ const MedicalRecordManagement: React.FC = () => {
         temperature: '36.8°C',
         weight: '58 kg'
       },
+      hivLoad: 'Không phát hiện', // Thêm dòng này
       notes: 'Cần tăng cường tư vấn dinh dưỡng',
       attachments: ['ket-qua.pdf']
     }
@@ -123,7 +126,7 @@ const MedicalRecordManagement: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+      <div>
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Quản lý Hồ sơ bệnh án</h1>
@@ -167,144 +170,67 @@ const MedicalRecordManagement: React.FC = () => {
           </div>
         </div>
 
-        {/* Records List */}
-        <div className="space-y-6">
-          {filteredRecords.map((record) => (
-            <div key={record.id} className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <User className="w-5 h-5 text-blue-600" />
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {record.patientName}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Mã BN: {record.patientId}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
+        {/* Records Table */}
+        <div className="bg-white rounded-lg shadow p-4 overflow-x-auto">
+          <table className="w-full table-fixed border-collapse">
+            <thead>
+              <tr>
+                <th className="w-32 px-3 py-2 text-left text-xs font-semibold text-gray-600 bg-gray-50 border-b border-gray-200">Bệnh nhân</th>
+                <th className="w-20 px-3 py-2 text-center text-xs font-semibold text-gray-600 bg-gray-50 border-b border-gray-200">Mã BN</th>
+                <th className="w-28 px-3 py-2 text-center text-xs font-semibold text-gray-600 bg-gray-50 border-b border-gray-200">Ngày khám</th>
+                <th className="w-24 px-3 py-2 text-center text-xs font-semibold text-gray-600 bg-gray-50 border-b border-gray-200">Loại khám</th>
+                <th className="w-40 px-3 py-2 text-center text-xs font-semibold text-gray-600 bg-gray-50 border-b border-gray-200">Chẩn đoán</th>
+                <th className="w-32 px-3 py-2 text-center text-xs font-semibold text-gray-600 bg-gray-50 border-b border-gray-200">Phác đồ ARV</th>
+                <th className="w-40 px-3 py-2 text-center text-xs font-semibold text-gray-600 bg-gray-50 border-b border-gray-200">Tải lượng HIV</th>
+                <th className="w-28 px-3 py-2 text-center text-xs font-semibold text-gray-600 bg-gray-50 border-b border-gray-200">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredRecords.map((record) => (
+                <tr key={record.id} className="hover:bg-gray-50">
+                  <td className="px-3 py-2 text-left align-middle border-b border-gray-200">
+                    <span className="truncate">{record.patientName}</span>
+                  </td>
+                  <td className="px-3 py-2 text-center align-middle border-b border-gray-200">{record.patientId}</td>
+                  <td className="px-3 py-2 text-center align-middle border-b border-gray-200">{record.date}</td>
+                  <td className="px-3 py-2 text-center align-middle border-b border-gray-200">
                     <span className={`px-2 py-1 text-xs rounded-full ${getTypeColor(record.type)}`}>
                       {getTypeText(record.type)}
                     </span>
-                    <span className="text-sm text-gray-500">
-                      {record.date}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Diagnosis and Treatment */}
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Chẩn đoán:</h4>
-                      <p className="text-sm text-gray-600">{record.diagnosis}</p>
+                  </td>
+                  <td className="px-3 py-2 text-center align-middle border-b border-gray-200">{record.diagnosis}</td>
+                  <td className="px-3 py-2 text-center align-middle border-b border-gray-200">
+                    {record.treatment.arvProtocol || <span className="text-gray-400">-</span>}
+                  </td>
+                  <td className="px-3 py-2 text-center align-middle max-w-[160px] truncate border-b border-gray-200">
+                    {record.hivLoad && record.hivLoad.trim() !== '' ? record.hivLoad : <span className="text-gray-400">-</span>}
+                  </td>
+                  <td className="px-3 py-2 text-center align-middle border-b border-gray-200">
+                    <div className="flex justify-center gap-2">
+                      <button className="p-1 text-blue-600 hover:bg-blue-50 rounded" title="Xem chi tiết">
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button className="p-1 text-blue-600 hover:bg-blue-50 rounded" title="Chỉnh sửa">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button className="p-1 text-red-600 hover:bg-red-50 rounded" title="Xóa">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Điều trị:</h4>
-                      {record.treatment.arvProtocol && (
-                        <div className="mb-2">
-                          <span className="text-sm text-gray-600">
-                            Phác đồ ARV: {record.treatment.arvProtocol}
-                          </span>
-                        </div>
-                      )}
-                      <div className="space-y-1">
-                        {record.treatment.medications.map((med, index) => (
-                          <div key={index} className="flex items-center space-x-2">
-                            <Pill className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm text-gray-600">{med}</span>
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-sm text-gray-600 mt-2">
-                        Liều dùng: {record.treatment.dosage}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Vitals and Notes */}
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Dấu hiệu sinh tồn:</h4>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div className="flex items-center space-x-2">
-                          <Activity className="w-4 h-4 text-blue-600" />
-                          <span className="text-sm text-gray-600">
-                            Huyết áp: {record.vitals.bloodPressure}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Heart className="w-4 h-4 text-red-600" />
-                          <span className="text-sm text-gray-600">
-                            Nhịp tim: {record.vitals.heartRate}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Activity className="w-4 h-4 text-yellow-600" />
-                          <span className="text-sm text-gray-600">
-                            Nhiệt độ: {record.vitals.temperature}
-                          </span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Activity className="w-4 h-4 text-green-600" />
-                          <span className="text-sm text-gray-600">
-                            Cân nặng: {record.vitals.weight}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 mb-2">Ghi chú:</h4>
-                      <p className="text-sm text-gray-600">{record.notes}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Attachments */}
-                {record.attachments && record.attachments.length > 0 && (
-                  <div className="mt-4 pt-4 border-t">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Tài liệu đính kèm:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {record.attachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center space-x-2 px-3 py-1 bg-gray-100 rounded-full"
-                        >
-                          <FileText className="w-4 h-4 text-gray-600" />
-                          <span className="text-sm text-gray-600">{file}</span>
-                          <button className="text-blue-600 hover:text-blue-800">
-                            <Download className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="mt-6 flex justify-end space-x-2">
-                  <button className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded flex items-center">
-                    <Eye className="w-4 h-4 mr-1" />
-                    Xem chi tiết
-                  </button>
-                  <button className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded flex items-center">
-                    <Edit className="w-4 h-4 mr-1" />
-                    Chỉnh sửa
-                  </button>
-                  <button className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded flex items-center">
-                    <Trash2 className="w-4 h-4 mr-1" />
-                    Xóa
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+                  </td>
+                </tr>
+              ))}
+              {filteredRecords.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="text-center py-6 text-gray-400">Không có hồ sơ phù hợp</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   );
 };
 
-export default MedicalRecordManagement; 
+export default MedicalRecordManagement;
