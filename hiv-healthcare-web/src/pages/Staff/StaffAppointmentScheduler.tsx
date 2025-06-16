@@ -136,7 +136,7 @@ const StaffAppointmentScheduler: React.FC = () => {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-4">Quản lý lịch hẹn</h1>
+        <h1 className="text-2xl font-bold mb-4">Tạo lịch hẹn</h1>
         
         {/* View Mode Selection */}
         <div className="flex gap-2 mb-4">
