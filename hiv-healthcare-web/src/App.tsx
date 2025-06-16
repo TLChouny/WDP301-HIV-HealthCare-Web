@@ -48,6 +48,7 @@ import StaffAppointmentManagement from './pages/Staff/AppointmentManagement';
 import StaffMedicationManagement from './pages/Staff/MedicationManagement';
 import StaffCounseling from './pages/Staff/Counseling';
 import StaffSettings from './pages/Staff/StaffSettings';
+import StaffAppointmentScheduler from './pages/Staff/StaffAppointmentScheduler';
 
 // User Pages
 import {
@@ -175,12 +176,13 @@ const App: React.FC = () => {
           </Route>
 
           {/* Staff routes */}
-          <Route path="/staff" element={<ProtectedRoute allowedRole="staff" />}>
+          <Route path="/staff" >
             <Route element={<StaffLayout />}>
               <Route index element={<StaffDashboard />} />
               <Route path="dashboard" element={<StaffDashboard />} />
               <Route path="patients" element={<StaffPatientAndRecordManagement />} />
               <Route path="appointments" element={<StaffAppointmentManagement />} />
+              <Route path="appointment-scheduler" element={<StaffAppointmentScheduler />} />
               <Route path="medications" element={<StaffMedicationManagement />} />
               <Route path="counseling" element={<StaffCounseling />} />
               <Route path="settings" element={<StaffSettings />} />
