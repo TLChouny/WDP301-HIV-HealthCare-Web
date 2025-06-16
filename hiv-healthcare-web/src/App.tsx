@@ -176,7 +176,7 @@ const App: React.FC = () => {
           </Route>
 
           {/* Staff routes */}
-          <Route path="/staff" >
+          <Route path="/staff" element={<ProtectedRoute allowedRole="staff" />}>
             <Route element={<StaffLayout />}>
               <Route index element={<StaffDashboard />} />
               <Route path="dashboard" element={<StaffDashboard />} />
