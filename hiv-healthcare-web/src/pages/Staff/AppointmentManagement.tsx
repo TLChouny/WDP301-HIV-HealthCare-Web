@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Calendar,
   Search,
@@ -58,7 +58,39 @@ const StaffAppointmentManagement: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
 
-  const appointments: Appointment[] = [
+  // Add new state for managing appointments
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Add new state for adding a new appointment
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [newAppointment, setNewAppointment] = useState<Partial<Appointment>>({
+    patientName: '',
+    patientPhone: '',
+    patientEmail: '',
+    patientAddress: '',
+    date: new Date().toISOString().split('T')[0],
+    time: '09:00',
+    type: 'first-test',
+    doctor: '',
+    status: 'pending',
+    insurance: {
+      hasInsurance: false
+    },
+    counseling: {
+      preTestDone: false,
+      postTestDone: false
+    },
+    testType: {
+      rapid: false,
+      elisa: false,
+      pcr: false
+    }
+  });
+
+  // Mock data for appointments
+  const mockAppointments: Appointment[] = [
     {
       id: '1',
       patientName: 'Nguyễn Văn A',
@@ -262,6 +294,80 @@ const StaffAppointmentManagement: React.FC = () => {
     }
   ];
 
+  // Mock data for doctors
+  const doctors = [
+    { id: '1', name: 'BS. Trần Thị B' },
+    { id: '2', name: 'BS. Lê Văn D' },
+    { id: '3', name: 'BS. Phạm Thị F' },
+    { id: '4', name: 'BS. Nguyễn Văn H' }
+  ];
+
+  // Load appointments data
+  useEffect(() => {
+    const loadAppointments = async () => {
+      try {
+        setLoading(true);
+        // In a real application, this would be an API call
+        // const response = await fetch('/api/appointments');
+        // const data = await response.json();
+        
+        // For now, we'll use mock data
+        setAppointments(mockAppointments);
+        setError(null);
+      } catch (err) {
+        setError('Không thể tải dữ liệu lịch hẹn');
+        console.error('Error loading appointments:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAppointments();
+  }, []);
+
+  // Function to handle appointment status change
+  const handleStatusChange = async (appointmentId: string, newStatus: 'confirmed' | 'pending' | 'cancelled') => {
+    try {
+      // In a real application, this would be an API call
+      // await fetch(`/api/appointments/${appointmentId}`, {
+      //   method: 'PATCH',
+      //   body: JSON.stringify({ status: newStatus })
+      // });
+
+      // Update local state
+      setAppointments(prevAppointments =>
+        prevAppointments.map(appointment =>
+          appointment.id === appointmentId
+            ? { ...appointment, status: newStatus }
+            : appointment
+        )
+      );
+    } catch (err) {
+      console.error('Error updating appointment status:', err);
+      // You could add a toast notification here
+    }
+  };
+
+  // Function to handle appointment deletion
+  const handleDeleteAppointment = async (appointmentId: string) => {
+    if (window.confirm('Bạn có chắc chắn muốn xóa lịch hẹn này?')) {
+      try {
+        // In a real application, this would be an API call
+        // await fetch(`/api/appointments/${appointmentId}`, {
+        //   method: 'DELETE'
+        // });
+
+        // Update local state
+        setAppointments(prevAppointments =>
+          prevAppointments.filter(appointment => appointment.id !== appointmentId)
+        );
+      } catch (err) {
+        console.error('Error deleting appointment:', err);
+        // You could add a toast notification here
+      }
+    }
+  };
+
   const appointmentTypes = [
     { value: 'all', label: 'Tất cả loại khám' },
     { value: 'first-test', label: 'Xét nghiệm lần đầu' },
@@ -341,6 +447,86 @@ const StaffAppointmentManagement: React.FC = () => {
     }
   };
 
+  // Function to handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target;
+    
+    if (name.startsWith('insurance.')) {
+      const field = name.split('.')[1];
+      setNewAppointment(prev => ({
+        ...prev,
+        insurance: {
+          ...prev.insurance!,
+          [field]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+        }
+      }));
+    } else if (name.startsWith('testType.')) {
+      const field = name.split('.')[1];
+      setNewAppointment(prev => ({
+        ...prev,
+        testType: {
+          ...prev.testType!,
+          [field]: (e.target as HTMLInputElement).checked
+        }
+      }));
+    } else {
+      setNewAppointment(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  // Function to handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      // In a real application, this would be an API call
+      // const response = await fetch('/api/appointments', {
+      //   method: 'POST',
+      //   body: JSON.stringify(newAppointment)
+      // });
+      // const data = await response.json();
+
+      // For now, we'll just add it to the local state
+      const newAppointmentWithId = {
+        ...newAppointment,
+        id: `app-${Date.now()}`,
+      } as Appointment;
+
+      setAppointments(prev => [...prev, newAppointmentWithId]);
+      setShowAddModal(false);
+      
+      // Reset form
+      setNewAppointment({
+        patientName: '',
+        patientPhone: '',
+        patientEmail: '',
+        patientAddress: '',
+        date: new Date().toISOString().split('T')[0],
+        time: '09:00',
+        type: 'first-test',
+        doctor: '',
+        status: 'pending',
+        insurance: {
+          hasInsurance: false
+        },
+        counseling: {
+          preTestDone: false,
+          postTestDone: false
+        },
+        testType: {
+          rapid: false,
+          elisa: false,
+          pcr: false
+        }
+      });
+    } catch (err) {
+      console.error('Error creating appointment:', err);
+      // You could add a toast notification here
+    }
+  };
+
   const filteredAppointments = appointments.filter((appointment) => {
     const matchesSearch = 
       appointment.patientName.toLowerCase().includes(search.toLowerCase()) ||
@@ -408,136 +594,433 @@ const StaffAppointmentManagement: React.FC = () => {
                 ))}
               </select>
             </div>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+            <button 
+              onClick={() => setShowAddModal(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+            >
               <Plus className="w-5 h-5" />
               <span>Thêm lịch hẹn</span>
             </button>
           </div>
         </div>
 
+        {/* Loading and Error States */}
+        {loading && (
+          <div className="text-center py-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+            <strong className="font-bold">Lỗi! </strong>
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+
+        {/* Add Appointment Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">
+                Thêm lịch hẹn mới
+              </h3>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Patient Information */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Họ và tên bệnh nhân
+                    </label>
+                    <input
+                      type="text"
+                      name="patientName"
+                      value={newAppointment.patientName}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Số điện thoại
+                    </label>
+                    <input
+                      type="tel"
+                      name="patientPhone"
+                      value={newAppointment.patientPhone}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      name="patientEmail"
+                      value={newAppointment.patientEmail}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Địa chỉ
+                    </label>
+                    <input
+                      type="text"
+                      name="patientAddress"
+                      value={newAppointment.patientAddress}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Appointment Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Ngày hẹn
+                    </label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={newAppointment.date}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Giờ hẹn
+                    </label>
+                    <input
+                      type="time"
+                      name="time"
+                      value={newAppointment.time}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Loại khám
+                    </label>
+                    <select
+                      name="type"
+                      value={newAppointment.type}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      {appointmentTypes.filter(type => type.value !== 'all').map(type => (
+                        <option key={type.value} value={type.value}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Bác sĩ
+                    </label>
+                    <select
+                      name="doctor"
+                      value={newAppointment.doctor}
+                      onChange={handleInputChange}
+                      required
+                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      <option value="">Chọn bác sĩ</option>
+                      {doctors.map(doctor => (
+                        <option key={doctor.id} value={doctor.name}>
+                          {doctor.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Insurance Information */}
+                <div className="border-t pt-4">
+                  <div className="flex items-center mb-4">
+                    <input
+                      type="checkbox"
+                      name="insurance.hasInsurance"
+                      checked={newAppointment.insurance?.hasInsurance}
+                      onChange={handleInputChange}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                    <label className="ml-2 block text-sm text-gray-900">
+                      Có bảo hiểm y tế
+                    </label>
+                  </div>
+                  {newAppointment.insurance?.hasInsurance && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Số bảo hiểm
+                        </label>
+                        <input
+                          type="text"
+                          name="insurance.insuranceNumber"
+                          value={newAppointment.insurance?.insuranceNumber || ''}
+                          onChange={handleInputChange}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          Loại bảo hiểm
+                        </label>
+                        <input
+                          type="text"
+                          name="insurance.insuranceType"
+                          value={newAppointment.insurance?.insuranceType || ''}
+                          onChange={handleInputChange}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Test Types */}
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Loại xét nghiệm</h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="testType.rapid"
+                        checked={newAppointment.testType?.rapid}
+                        onChange={handleInputChange}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label className="ml-2 block text-sm text-gray-900">
+                        Rapid Test
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="testType.elisa"
+                        checked={newAppointment.testType?.elisa}
+                        onChange={handleInputChange}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label className="ml-2 block text-sm text-gray-900">
+                        ELISA
+                      </label>
+                    </div>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        name="testType.pcr"
+                        checked={newAppointment.testType?.pcr}
+                        onChange={handleInputChange}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <label className="ml-2 block text-sm text-gray-900">
+                        PCR
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Ghi chú
+                  </label>
+                  <textarea
+                    name="notes"
+                    value={newAppointment.notes || ''}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Form Actions */}
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                  >
+                    Tạo lịch hẹn
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Appointments List */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thông tin bệnh nhân
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thời gian
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Loại khám
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Bảo hiểm & Tư vấn
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Xét nghiệm
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trạng thái
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredAppointments.map((appointment) => (
-                  <tr key={appointment.id}>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {appointment.patientName}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        <Phone className="inline w-4 h-4 mr-1" />
-                        {appointment.patientPhone}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        <Mail className="inline w-4 h-4 mr-1" />
-                        {appointment.patientEmail}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        <MapPin className="inline w-4 h-4 mr-1" />
-                        {appointment.patientAddress}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {new Date(appointment.date).toLocaleDateString('vi-VN')}
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {appointment.time}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTypeColor(appointment.type)}`}>
-                        {getTypeText(appointment.type)}
-                      </span>
-                      <div className="text-sm text-gray-500 mt-1">
-                        BS: {appointment.doctor}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-900">
-                        <div className="flex items-center">
-                          <CreditCard className="w-4 h-4 mr-1" />
-                          {appointment.insurance.hasInsurance ? (
-                            <>
-                              {appointment.insurance.insuranceType}
-                              <span className="text-xs text-gray-500 ml-1">
-                                ({appointment.insurance.insuranceNumber})
-                              </span>
-                            </>
-                          ) : (
-                            'Không có bảo hiểm'
-                          )}
+        {!loading && !error && (
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Thông tin bệnh nhân
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Thời gian
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Loại khám
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Bảo hiểm & Tư vấn
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Xét nghiệm
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Trạng thái
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Thao tác
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredAppointments.map((appointment) => (
+                    <tr key={appointment.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-gray-900">
+                          {appointment.patientName}
                         </div>
-                        <div className="flex items-center mt-1">
-                          <MessageSquare className="w-4 h-4 mr-1" />
-                          Tư vấn: {appointment.counseling.preTestDone ? '✓' : '✗'} Trước / {appointment.counseling.postTestDone ? '✓' : '✗'} Sau
+                        <div className="text-sm text-gray-500">
+                          <Phone className="inline w-4 h-4 mr-1" />
+                          {appointment.patientPhone}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {appointment.testType && (
+                        <div className="text-sm text-gray-500">
+                          <Mail className="inline w-4 h-4 mr-1" />
+                          {appointment.patientEmail}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          <MapPin className="inline w-4 h-4 mr-1" />
+                          {appointment.patientAddress}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {new Date(appointment.date).toLocaleDateString('vi-VN')}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {appointment.time}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTypeColor(appointment.type)}`}>
+                          {getTypeText(appointment.type)}
+                        </span>
+                        <div className="text-sm text-gray-500 mt-1">
+                          BS: {appointment.doctor}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
                           <div className="flex items-center">
-                            <FileText className="w-4 h-4 mr-1" />
-                            {appointment.testType.rapid && 'Rapid Test'}
+                            <CreditCard className="w-4 h-4 mr-1" />
+                            {appointment.insurance.hasInsurance ? (
+                              <>
+                                {appointment.insurance.insuranceType}
+                                <span className="text-xs text-gray-500 ml-1">
+                                  ({appointment.insurance.insuranceNumber})
+                                </span>
+                              </>
+                            ) : (
+                              'Không có bảo hiểm'
+                            )}
                           </div>
                           <div className="flex items-center mt-1">
-                            <FileText className="w-4 h-4 mr-1" />
-                            {appointment.testType.elisa && 'ELISA'}
-                          </div>
-                          <div className="flex items-center mt-1">
-                            <FileText className="w-4 h-4 mr-1" />
-                            {appointment.testType.pcr && 'PCR'}
+                            <MessageSquare className="w-4 h-4 mr-1" />
+                            Tư vấn: {appointment.counseling.preTestDone ? '✓' : '✗'} Trước / {appointment.counseling.postTestDone ? '✓' : '✗'} Sau
                           </div>
                         </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusInfo(appointment.status).color}`}>
-                        {getStatusInfo(appointment.status).text}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button className="text-blue-600 hover:text-blue-900 mr-3">
-                        <Edit className="w-5 h-5" />
-                      </button>
-                      <button className="text-red-600 hover:text-red-900">
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="px-6 py-4">
+                        {appointment.testType && (
+                          <div className="text-sm text-gray-900">
+                            <div className="flex items-center">
+                              <FileText className="w-4 h-4 mr-1" />
+                              {appointment.testType.rapid && 'Rapid Test'}
+                            </div>
+                            <div className="flex items-center mt-1">
+                              <FileText className="w-4 h-4 mr-1" />
+                              {appointment.testType.elisa && 'ELISA'}
+                            </div>
+                            <div className="flex items-center mt-1">
+                              <FileText className="w-4 h-4 mr-1" />
+                              {appointment.testType.pcr && 'PCR'}
+                            </div>
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusInfo(appointment.status).color}`}>
+                          {getStatusInfo(appointment.status).text}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          <select
+                            value={appointment.status}
+                            onChange={(e) => handleStatusChange(appointment.id, e.target.value as 'confirmed' | 'pending' | 'cancelled')}
+                            className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="confirmed">Đã xác nhận</option>
+                            <option value="pending">Chờ xác nhận</option>
+                            <option value="cancelled">Đã hủy</option>
+                          </select>
+                          <button 
+                            onClick={() => handleDeleteAppointment(appointment.id)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Empty State */}
+        {!loading && !error && filteredAppointments.length === 0 && (
+          <div className="text-center py-8">
+            <div className="text-gray-400 mb-2">
+              <Calendar className="w-12 h-12 mx-auto" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">Không có lịch hẹn nào</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Hãy thử thay đổi bộ lọc hoặc tạo lịch hẹn mới
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

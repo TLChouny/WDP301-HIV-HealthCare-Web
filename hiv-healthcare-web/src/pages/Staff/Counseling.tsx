@@ -13,8 +13,11 @@ import {
   Plus,
   Link,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Mail,
+  Bell
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 interface CounselingSession {
   id: string;
@@ -42,6 +45,20 @@ interface MeetLink {
   status: 'active' | 'expired' | 'cancelled';
 }
 
+interface Notification {
+  id: string;
+  type: 'email' | 'in-app';
+  recipient: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  title: string;
+  message: string;
+  link?: string;
+  status: 'sent' | 'pending' | 'failed';
+}
+
 const StaffCounseling: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>('');
@@ -49,6 +66,8 @@ const StaffCounseling: React.FC = () => {
   const [showMeetLinkModal, setShowMeetLinkModal] = useState<boolean>(false);
   const [selectedSession, setSelectedSession] = useState<CounselingSession | null>(null);
   const [meetLink, setMeetLink] = useState<string>('');
+  const [sendingNotifications, setSendingNotifications] = useState<boolean>(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   // Mock data for doctors
   const doctors = [
@@ -143,11 +162,92 @@ const StaffCounseling: React.FC = () => {
     return matchesSearch && matchesDate && matchesStatus;
   });
 
+  // Function to send notifications
+  const sendNotifications = async (session: CounselingSession, meetLink: string) => {
+    setSendingNotifications(true);
+    try {
+      // Create notifications for both doctor and patient
+      const newNotifications: Notification[] = [
+        {
+          id: `notif-${Date.now()}-1`,
+          type: 'email',
+          recipient: {
+            id: session.doctor?.id || '',
+            name: session.doctor?.name || '',
+            email: session.doctor?.email || ''
+          },
+          title: 'Lịch tư vấn mới',
+          message: `Bạn có lịch tư vấn với bệnh nhân ${session.patientName} vào ${session.date} ${session.time}`,
+          link: meetLink,
+          status: 'pending'
+        },
+        {
+          id: `notif-${Date.now()}-2`,
+          type: 'in-app',
+          recipient: {
+            id: session.patientId,
+            name: session.patientName,
+            email: '' // Patient email would come from your user database
+          },
+          title: 'Lịch tư vấn mới',
+          message: `Bạn có lịch tư vấn với bác sĩ ${session.doctor?.name} vào ${session.date} ${session.time}`,
+          link: meetLink,
+          status: 'pending'
+        }
+      ];
+
+      // Send notifications
+      for (const notification of newNotifications) {
+        if (notification.type === 'email') {
+          // Send email
+          await sendEmail(notification);
+          notification.status = 'sent';
+        } else {
+          // Send in-app notification
+          await sendInAppNotification(notification);
+          notification.status = 'sent';
+        }
+      }
+
+      // Update notifications state
+      setNotifications(prev => [...prev, ...newNotifications]);
+      toast.success('Đã gửi thông báo cho bác sĩ và bệnh nhân');
+    } catch (error) {
+      console.error('Error sending notifications:', error);
+      toast.error('Có lỗi khi gửi thông báo');
+    } finally {
+      setSendingNotifications(false);
+    }
+  };
+
+  // Mock function to send email
+  const sendEmail = async (notification: Notification) => {
+    // In a real application, this would call your email service
+    console.log('Sending email to:', notification.recipient.email);
+    console.log('Subject:', notification.title);
+    console.log('Message:', notification.message);
+    console.log('Meet Link:', notification.link);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  };
+
+  // Mock function to send in-app notification
+  const sendInAppNotification = async (notification: Notification) => {
+    // In a real application, this would call your notification service
+    console.log('Sending in-app notification to:', notification.recipient.id);
+    console.log('Title:', notification.title);
+    console.log('Message:', notification.message);
+    console.log('Meet Link:', notification.link);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  };
+
   // Function to generate Google Meet link
   const generateMeetLink = async (session: CounselingSession) => {
     try {
       // In a real application, this would call your backend API
-      // which would then call the Google Calendar API to create a meeting
       const mockMeetLink = `https://meet.google.com/${Math.random().toString(36).substring(7)}`;
       setMeetLink(mockMeetLink);
       
@@ -157,9 +257,8 @@ const StaffCounseling: React.FC = () => {
         meetLink: mockMeetLink
       };
       
-      // In a real application, you would save this to your database
-      console.log('Generated meet link:', mockMeetLink);
-      console.log('Updated session:', updatedSession);
+      // Send notifications to doctor and patient
+      await sendNotifications(updatedSession, mockMeetLink);
       
       return mockMeetLink;
     } catch (error) {
@@ -230,6 +329,59 @@ const StaffCounseling: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Notifications History */}
+        {notifications.length > 0 && (
+          <div className="bg-white rounded-lg shadow p-4 mb-6">
+            <h2 className="text-lg font-semibold mb-4">Lịch sử thông báo</h2>
+            <div className="space-y-4">
+              {notifications.map((notification) => (
+                <div key={notification.id} className="border rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      {notification.type === 'email' ? (
+                        <Mail className="w-5 h-5 text-blue-600" />
+                      ) : (
+                        <Bell className="w-5 h-5 text-green-600" />
+                      )}
+                      <div>
+                        <h3 className="font-medium">{notification.title}</h3>
+                        <p className="text-sm text-gray-600">{notification.message}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        notification.status === 'sent' 
+                          ? 'bg-green-100 text-green-800'
+                          : notification.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800'
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {notification.status === 'sent' 
+                          ? 'Đã gửi'
+                          : notification.status === 'pending'
+                          ? 'Đang gửi'
+                          : 'Lỗi'}
+                      </span>
+                      {notification.link && (
+                        <button
+                          onClick={() => copyMeetLink(notification.link!)}
+                          className="text-gray-600 hover:text-gray-900"
+                          title="Sao chép link"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-2 text-sm text-gray-500">
+                    Gửi đến: {notification.recipient.name} ({notification.recipient.email || 'In-app'})
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Sessions List */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -406,15 +558,30 @@ const StaffCounseling: React.FC = () => {
                       try {
                         const link = await generateMeetLink(selectedSession);
                         setShowMeetLinkModal(false);
-                        // You could add a success notification here
+                        toast.success('Đã tạo link Google Meet và gửi thông báo');
                       } catch (error) {
-                        // You could add an error notification here
+                        toast.error('Có lỗi khi tạo link Google Meet');
                         console.error('Error:', error);
                       }
                     }}
-                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700"
+                    disabled={sendingNotifications}
+                    className={`px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
+                      sendingNotifications 
+                        ? 'bg-blue-400 cursor-not-allowed' 
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
                   >
-                    Tạo link
+                    {sendingNotifications ? (
+                      <span className="flex items-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Đang gửi thông báo...
+                      </span>
+                    ) : (
+                      'Tạo link và gửi thông báo'
+                    )}
                   </button>
                 </div>
               </div>
