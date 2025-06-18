@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
 
 interface ARVProtocol {
   id: string;
@@ -36,91 +36,100 @@ const ARVProtocolManagement: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col py-10 px-4">
-      <div className="w-full"> {/* Bỏ max-w-2xl mx-auto */}
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="w-full">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Quản lý Phác đồ ARV</h1>
-          <p className="mt-2 text-base text-gray-600">
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý Phác đồ ARV</h1>
+          <p className="mt-2 text-sm text-gray-600">
             Quản lý và tùy chỉnh các phác đồ điều trị ARV
           </p>
         </div>
 
         {/* Search & Add */}
-        <div className="bg-white rounded-xl shadow p-5 mb-8 flex flex-col md:flex-row gap-4">
-          <input
-            type="text"
-            placeholder="Tìm kiếm theo tên hoặc mô tả..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg flex items-center space-x-2"
-            onClick={() => {
-              setEditingProtocol(null);
-              setIsModalOpen(true);
-            }}
-          >
-            <Plus className="w-5 h-5" />
-            <span>Thêm phác đồ</span>
-          </button>
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm theo tên hoặc mô tả..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              </div>
+            </div>
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+              onClick={() => {
+                setEditingProtocol(null);
+                setIsModalOpen(true);
+              }}
+            >
+              <Plus className="w-5 h-5" />
+              <span>Thêm phác đồ</span>
+            </button>
+          </div>
         </div>
 
         {/* Protocols Table */}
-        <div className="bg-white rounded-xl shadow p-5">
-          <table className="min-w-full table-auto">
-            <thead>
-              <tr>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Tên phác đồ</th>
-                <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">Mô tả</th>
-                <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProtocols.length === 0 && (
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
                 <tr>
-                  <td colSpan={3} className="text-center py-4 text-gray-500">Không có phác đồ nào</td>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên phác đồ</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mô tả</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
                 </tr>
-              )}
-              {filteredProtocols.map((protocol) => (
-                <tr key={protocol.id} className="border-t">
-                  <td className="px-4 py-2">{protocol.name}</td>
-                  <td className="px-4 py-2">{protocol.description}</td>
-                  <td className="px-4 py-2 text-center">
-                    <button
-                      className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded flex items-center inline-flex mr-2"
-                      onClick={() => {
-                        setEditingProtocol(protocol);
-                        setIsModalOpen(true);
-                      }}
-                    >
-                      <Edit className="w-4 h-4 mr-1" />
-                      Chỉnh sửa
-                    </button>
-                    <button
-                      className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded flex items-center inline-flex"
-                      onClick={() => {
-                        if (window.confirm('Bạn có chắc chắn muốn xóa phác đồ này?')) {
-                          console.log('Delete protocol:', protocol.id);
-                        }
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 mr-1" />
-                      Xóa
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredProtocols.length === 0 && (
+                  <tr>
+                    <td colSpan={3} className="text-center py-4 text-gray-500">Không có phác đồ nào</td>
+                  </tr>
+                )}
+                {filteredProtocols.map((protocol) => (
+                  <tr key={protocol.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{protocol.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{protocol.description}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-2">
+                        <button
+                          className="text-blue-600 hover:text-blue-900"
+                          onClick={() => {
+                            setEditingProtocol(protocol);
+                            setIsModalOpen(true);
+                          }}
+                        >
+                          <Edit className="w-5 h-5" />
+                        </button>
+                        <button
+                          className="text-red-600 hover:text-red-900"
+                          onClick={() => {
+                            if (window.confirm('Bạn có chắc chắn muốn xóa phác đồ này?')) {
+                              // TODO: Xử lý xóa
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       {/* Modal for Add/Edit Protocol */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-start justify-center z-50 pt-24">
-          <div className="bg-white rounded-xl p-8 w-full max-w-sm shadow-lg">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 w-full max-w-sm shadow-lg">
             <h2 className="text-xl font-bold mb-6">
               {editingProtocol ? 'Chỉnh sửa phác đồ' : 'Thêm phác đồ mới'}
             </h2>
