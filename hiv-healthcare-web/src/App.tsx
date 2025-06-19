@@ -11,6 +11,7 @@ import StaffLayout from './layouts/StaffLayout';
 // Public Pages
 import Home from './pages/Home/Home';
 import ServiceByCategoryId from './pages/ServicesHome/ServiceByCategoryId';
+import ServiceDetail from './pages/ServicesHome/ServiceDetail';
 import About from './pages/Home/About';
 import Blog from './pages/Home/Blog';
 import Contact from './pages/Home/Contact';
@@ -64,6 +65,7 @@ import { AuthProvider } from "../src/context/AuthContext";
 import { jwtDecode } from 'jwt-decode';
 import { CategoryProvider } from './context/CategoryContext';
 import { ServiceProvider } from './context/ServiceContext';
+import { BookingProvider } from './context/bookingContext';
 
 // Fallback component
 const FallbackComponent: React.FC = () => (
@@ -125,6 +127,7 @@ const App: React.FC = () => {
     <AuthProvider>
       <CategoryProvider>
         <ServiceProvider>
+          <BookingProvider>
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<Layout />}>
@@ -133,6 +136,7 @@ const App: React.FC = () => {
             <Route path="blog" element={<Blog />} />
             <Route path="contact" element={<Contact />} />
             <Route path="services/category/:id" element={<ServiceByCategoryId />} />
+            <Route path="services/detail/:id" element={<ServiceDetail />} />
             <Route path="appointment" element={<Appointment />} />
 
             {/* Doctor routes */}
@@ -210,6 +214,7 @@ const App: React.FC = () => {
           {/* 404 route */}
           <Route path="*" element={<FallbackComponent />} />
         </Routes>
+          </BookingProvider>
       </ServiceProvider>
     </CategoryProvider>
   </AuthProvider>

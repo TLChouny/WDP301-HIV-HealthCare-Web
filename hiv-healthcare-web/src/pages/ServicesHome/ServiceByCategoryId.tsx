@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Service } from "../../types/service";
 import { Loader2, AlertCircle, Package, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const ServiceByCategoryId: React.FC = () => {
   const { id: categoryId } = useParams<{ id: string }>();
@@ -12,6 +13,7 @@ const ServiceByCategoryId: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoryName, setCategoryName] = useState<string>("");
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!categoryId) return;
@@ -133,9 +135,7 @@ const ServiceByCategoryId: React.FC = () => {
                 <div className="px-8 py-6 bg-gray-50 border-t border-gray-100">
                   <button 
                     className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-xl transition-all duration-300 flex items-center justify-center group-hover:shadow-lg"
-                    onClick={() => {
-                      console.log(`View service details: ${service._id}`);
-                    }}
+                    onClick={() => navigate(`/services/detail/${service._id}`)}
                   >
                     <span>Xem chi tiết</span>
                     <ArrowRight className="ml-2 h-5 w-5 transform group-hover:translate-x-1 transition-transform duration-300" />

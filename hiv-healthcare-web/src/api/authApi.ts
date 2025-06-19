@@ -60,7 +60,7 @@ export const register = async (data: {
 
 export const verifyOTP = async (data: { email: string; otp: string }) => {
   try {
-    const res = await apiClient.post(API_ENDPOINTS.VERIFYOTP, data);
+    const res = await apiClient.post(API_ENDPOINTS.VERIFY_OTP, data);
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -72,7 +72,7 @@ export const verifyOTP = async (data: { email: string; otp: string }) => {
 
 export const resendOTP = async (data: { email: string }) => {
   try {
-    const res = await apiClient.post(API_ENDPOINTS.RESENDOTP, data);
+    const res = await apiClient.post(API_ENDPOINTS.RESEND_OTP, data);
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

@@ -1,23 +1,54 @@
 // export const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 export const BASE_URL = `http://localhost:5000/api`;
 
-
 export const API_ENDPOINTS = {
+  // User Authentication
   SIGNUP: "/users",
   LOGIN: "/users/login",
   LOGOUT: "/users/logout",
-  VERIFYOTP: "/users/verify-otp",
-  RESENDOTP: "/users/resend-otp",
+  VERIFY_OTP: "/users/verify-otp",
+  RESEND_OTP: "/users/resend-otp",
   FORGOT_PASSWORD: "/users/forgot-password",
   VERIFY_RESET_OTP: "/users/verify-reset-otp",
   RESET_PASSWORD: "/users/reset-password",
-  USER_BY_ID: (id: string) => `/users/${id}`,
+
+  // User CRUD
   GET_ALL_USERS: "/users",
+  USER_BY_ID: (id: string) => `/users/${id}`,
   UPDATE_USER: (id: string) => `/users/${id}`,
   DELETE_USER: (id: string) => `/users/${id}`,
 
+  // Category
   CATEGORIES: "/categories",
+  CATEGORY_BY_ID: (id: string) => `/categories/${id}`,
+
+  // Blog
+  BLOGS: "/blogs",
+  BLOG_BY_ID: (id: string) => `/blogs/${id}`,
+
+  // Service
   SERVICES: "/services",
-  SERVICE_BY_ID: (_id: any) => `/services/${_id}`,
-  SERVICES_BY_CATEGORY: (categoryId: any) => `/services/category/${categoryId}`,
+  SERVICE_DETAIL: (id: string) => `/services/detail/${id}`,
+  SERVICE_BY_ID: (id: string) => `/services/${id}`,
+  SERVICES_BY_CATEGORY: (categoryId: string) => `/services/category/${categoryId}`,
+
+  // AR/VR Regimen
+  ARVR_REGIMENS: "/arvrregimens",
+  ARVR_REGIMEN_BY_ID: (id: string) => `/arvrregimens/${id}`,
+
+  // Booking
+  BOOKINGS: "/bookings",
+  BOOKING_BY_ID: (id: string) => `/bookings/${id}`,
+
+  // Result
+  RESULTS: "/results",
+  RESULT_BY_ID: (id: string) => `/results/${id}`,
+
+  // Notification
+  NOTIFICATIONS: "/notifications",
+  NOTIFICATION_BY_ID: (id: string) => `/notifications/${id}`,
+
+  // Review
+  REVIEWS: "/reviews",
+  REVIEW_BY_ID: (id: string) => `/reviews/${id}`,
 };

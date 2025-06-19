@@ -39,7 +39,8 @@ export const createService = async (data: Partial<Service>): Promise<Service> =>
 
 export const getServiceById = async (id: string): Promise<Service> => {
   try {
-    const res = await apiClient.get(`${API_ENDPOINTS.SERVICES}/${id}`);
+    // API_ENDPOINTS.SERVICE_BY_ID là một function, cần truyền id vào
+    const res = await apiClient.get(API_ENDPOINTS.SERVICE_BY_ID(id));
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -51,8 +52,8 @@ export const getServiceById = async (id: string): Promise<Service> => {
 
 export const getServicesByCategoryId = async (categoryId: string): Promise<Service[]> => {
   try {
-    const res = await apiClient.get(`${API_ENDPOINTS.SERVICES}/category/${categoryId}`);
-    return res.data.services || res.data; // Hỗ trợ cả trường hợp trả về mảng hoặc object
+    const res = await apiClient.get(API_ENDPOINTS.SERVICES_BY_CATEGORY(categoryId));
+    return res.data.services || res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || "Failed to fetch services by category");
@@ -60,3 +61,17 @@ export const getServicesByCategoryId = async (categoryId: string): Promise<Servi
     throw new Error("An unexpected error occurred while fetching services by category");
   }
 };
+
+export const getServiceDetail = async (id: string): Promise<Service> => {
+  try {
+    // API_ENDPOINTS.SERVICE_DETAIL là một function, cần truyền id vào
+    const res = await apiClient.get(API_ENDPOINTS.SERVICE_DETAIL(id));
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Failed to fetch service detail");
+    }
+    throw new Error("An unexpected error occurred while fetching service detail");
+  }
+};
+
