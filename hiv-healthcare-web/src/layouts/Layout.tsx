@@ -1,6 +1,4 @@
-// src/components/Layout.tsx
-
-import React from "react";
+import React, { useEffect } from "react";
 import {
   ChevronDown,
   Clock,
@@ -14,26 +12,20 @@ import {
   X,
   Youtube,
 } from "react-feather";
-import { useState, useEffect } from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../context/AuthContext";
-
-// Import hook lấy danh sách category từ Context
 import { useCategoryContext } from "../context/CategoryContext";
 
 const Layout: React.FC = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const [isScrolled, setIsScrolled] = React.useState(false);
+  const [activeDropdown, setActiveDropdown] = React.useState<string | null>(null);
   const location = useLocation();
   const { user, logout } = useAuth();
-
-  // Lấy categories trực tiếp từ Context; không cần state/ fetch nữa
   const { categories } = useCategoryContext();
 
-  // Kiểm tra xem có đang ở trang auth hay không
   const isAuthPage =
     location.pathname.startsWith("/auth") ||
     location.pathname === "/login" ||
@@ -61,8 +53,19 @@ const Layout: React.FC = () => {
     };
   }, []);
 
+  // Auto-close dropdown after 3 seconds if no interaction
+  useEffect(() => {
+    if (activeDropdown === "userDesktop" || activeDropdown === "userMobile") {
+      const timer = setTimeout(() => {
+        setActiveDropdown(null);
+      }, 3000); // 3 seconds
+
+      return () => clearTimeout(timer); // Cleanup timer on unmount or state change
+    }
+  }, [activeDropdown]);
+
   const toggleDropdown = (name: string) => {
-    setActiveDropdown(activeDropdown === name ? null : name);
+    setActiveDropdown((prev) => (prev === name ? null : name));
   };
 
   return (
@@ -104,7 +107,7 @@ const Layout: React.FC = () => {
                 Trang chủ
               </Link>
 
-              {/* Dropdown "Dịch vụ" sử dụng categories từ Context */}
+              {/* Dropdown "Dịch vụ" */}
               <div className="relative group">
                 <button
                   className={`py-2 font-medium flex items-center relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
@@ -203,7 +206,7 @@ const Layout: React.FC = () => {
                     className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium text-lg uppercase cursor-pointer"
                     onClick={() => toggleDropdown("userDesktop")}
                   >
-                    {user?.email?.charAt(6) ?? ""}
+                    {user?.email?.charAt(0) ?? ""}
                   </div>
                   <div
                     className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-10 transition-all duration-300 ${
@@ -215,13 +218,14 @@ const Layout: React.FC = () => {
                     <Link
                       to="/user/profile"
                       className="block px-4 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-700"
+                      onClick={() => setActiveDropdown(null)}
                     >
                       Hồ sơ
                     </Link>
                     <button
                       onClick={() => {
                         logout();
-                        setIsMenuOpen(false);
+                        setActiveDropdown(null);
                       }}
                       className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-700"
                     >
@@ -280,7 +284,7 @@ const Layout: React.FC = () => {
                 Trang chủ
               </Link>
 
-              {/* Dropdown Mobile dùng categories từ Context */}
+              {/* Dropdown Mobile */}
               <div className="py-2">
                 <button
                   className={`text-white font-medium flex items-center justify-between w-full rounded-md px-3 py-2 ${
@@ -394,14 +398,14 @@ const Layout: React.FC = () => {
                       <Link
                         to="/user/profile"
                         className="block py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
-                        onClick={() => setIsMenuOpen(false)}
+                        onClick={() => setActiveDropdown(null)}
                       >
                         Hồ sơ
                       </Link>
                       <button
                         onClick={() => {
                           logout();
-                          setIsMenuOpen(false);
+                          setActiveDropdown(null);
                         }}
                         className="block w-full text-left py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
                       >
@@ -440,7 +444,7 @@ const Layout: React.FC = () => {
         <Outlet />
       </main>
 
-          {/* Footer */}
+      {/* Footer */}
       <footer className="bg-gradient-to-r from-teal-800 to-teal-900 text-white shadow-inner relative">
         {/* Wave Separator */}
         <div className="absolute top-0 left-0 w-full overflow-hidden leading-none h-12">

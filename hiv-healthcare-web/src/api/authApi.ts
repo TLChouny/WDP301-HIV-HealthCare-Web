@@ -1,6 +1,7 @@
 import axios from "axios";
 import { BASE_URL, API_ENDPOINTS } from "../constants/api";
 import type { User } from "../types/user";
+
 // Cấu hình Axios mặc định
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -11,15 +12,26 @@ const apiClient = axios.create({
   },
 });
 
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export const login = async (data: { email: string; password: string }) => {
   try {
     const res = await apiClient.post(API_ENDPOINTS.LOGIN, data);
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Login failed");
+      throw new Error(error.response?.data?.message || "Đăng nhập thất bại");
     }
-    throw new Error("An unexpected error occurred during login");
+    throw new Error("Đã xảy ra lỗi không mong muốn khi đăng nhập");
   }
 };
 
@@ -33,12 +45,11 @@ export const logout = async (token: string) => {
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Logout failed");
+      throw new Error(error.response?.data?.message || "Đăng xuất thất bại");
     }
-    throw new Error("An unexpected error occurred during logout");
+    throw new Error("Đã xảy ra lỗi không mong muốn khi đăng xuất");
   }
 };
-
 
 export const register = async (data: {
   userName?: string;
@@ -47,14 +58,14 @@ export const register = async (data: {
   phone_number?: string;
   role?: string;
 }) => {
- try {
+  try {
     const res = await apiClient.post(API_ENDPOINTS.SIGNUP, data);
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Registration failed");
+      throw new Error(error.response?.data?.message || "Đăng ký thất bại");
     }
-    throw new Error("An unexpected error occurred during registration");
+    throw new Error("Đã xảy ra lỗi không mong muốn khi đăng ký");
   }
 };
 
@@ -64,9 +75,9 @@ export const verifyOTP = async (data: { email: string; otp: string }) => {
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "OTP verification failed");
+      throw new Error(error.response?.data?.message || "Xác minh OTP thất bại");
     }
-    throw new Error("An unexpected error occurred during OTP verification");
+    throw new Error("Đã xảy ra lỗi không mong muốn khi xác minh OTP");
   }
 };
 
@@ -76,21 +87,21 @@ export const resendOTP = async (data: { email: string }) => {
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Resend OTP failed");
+      throw new Error(error.response?.data?.message || "Gửi lại OTP thất bại");
     }
-    throw new Error("An unexpected error occurred during OTP resend");
+    throw new Error("Đã xảy ra lỗi không mong muốn khi gửi lại OTP");
   }
 };
 
 export const getAllUsers = async () => {
   try {
-    const res = await apiClient.get(API_ENDPOINTS.GET_ALL_USERS); // /users
+    const res = await apiClient.get(API_ENDPOINTS.GET_ALL_USERS);
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Failed to get users");
+      throw new Error(error.response?.data?.message || "Lấy danh sách người dùng thất bại");
     }
-    throw new Error("An unexpected error occurred while fetching users");
+    throw new Error("Đã xảy ra lỗi không mong muốn khi lấy danh sách người dùng");
   }
 };
 
@@ -100,9 +111,9 @@ export const forgotPassword = async (data: { email: string }) => {
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Forgot password failed");
+      throw new Error(error.response?.data?.message || "Yêu cầu đặt lại mật khẩu thất bại");
     }
-    throw new Error("An unexpected error occurred during forgot password");
+    throw new Error("Đã xảy ra lỗi không mong muốn khi yêu cầu đặt lại mật khẩu");
   }
 };
 
@@ -112,9 +123,9 @@ export const verifyResetOTP = async (data: { email: string; otp: string }) => {
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Reset OTP verification failed");
+      throw new Error(error.response?.data?.message || "Xác minh OTP đặt lại mật khẩu thất bại");
     }
-    throw new Error("An unexpected error occurred during reset OTP verification");
+    throw new Error("Đã xảy ra lỗi không mong muốn khi xác minh OTP đặt lại mật khẩu");
   }
 };
 
@@ -124,33 +135,49 @@ export const resetPassword = async (data: { resetToken: string; newPassword: str
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Reset password failed");
+      throw new Error(error.response?.data?.message || "Đặt lại mật khẩu thất bại");
     }
-    throw new Error("An unexpected error occurred during password reset");
+    throw new Error("Đã xảy ra lỗi không mong muốn khi đặt lại mật khẩu");
   }
 };
 
 export const getUserById = async (id: string) => {
   try {
-    const res = await apiClient.get(`${API_ENDPOINTS.USER_BY_ID(id)}`);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Không tìm thấy token xác thực");
+    }
+    const res = await apiClient.get(`${API_ENDPOINTS.USER_BY_ID(id)}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Failed to get user");
+      throw new Error(error.response?.data?.message || "Lấy thông tin người dùng thất bại");
     }
-    throw new Error("An unexpected error occurred while fetching user");
+    throw new Error("Đã xảy ra lỗi không mong muốn khi lấy thông tin người dùng");
   }
 };
 
 export const updateUser = async (id: string, data: any) => {
   try {
-    const res = await apiClient.put(`${API_ENDPOINTS.UPDATE_USER(id)}`, data);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Không tìm thấy token xác thực");
+    }
+    const res = await apiClient.put(`${API_ENDPOINTS.UPDATE_USER(id)}`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Failed to update user");
+      throw new Error(error.response?.data?.message || "Cập nhật người dùng thất bại");
     }
-    throw new Error("An unexpected error occurred while updating user");
+    throw new Error("Đã xảy ra lỗi không mong muốn khi cập nhật người dùng");
   }
 };
 
@@ -160,8 +187,8 @@ export const deleteUser = async (id: string) => {
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Failed to delete user");
+      throw new Error(error.response?.data?.message || "Xóa người dùng thất bại");
     }
-    throw new Error("An unexpected error occurred while deleting user");
+    throw new Error("Đã xảy ra lỗi không mong muốn khi xóa người dùng");
   }
 };
