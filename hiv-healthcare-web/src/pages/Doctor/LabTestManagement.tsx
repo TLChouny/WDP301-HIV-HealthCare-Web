@@ -27,14 +27,12 @@ interface LabTest {
   notes?: string;
   doctorId: string;
   doctorName: string;
-  priority: 'normal' | 'urgent';
   attachments?: string[];
 }
 
 const LabTestManagement: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingTest, setEditingTest] = useState<LabTest | null>(null);
 
@@ -57,7 +55,6 @@ const LabTestManagement: React.FC = () => {
       notes: 'Bệnh nhân cần theo dõi sát',
       doctorId: 'D001',
       doctorName: 'BS. Trần Văn B',
-      priority: 'normal',
       attachments: ['cd4_result.pdf']
     },
     {
@@ -69,7 +66,6 @@ const LabTestManagement: React.FC = () => {
       status: 'pending',
       doctorId: 'D001',
       doctorName: 'BS. Trần Văn B',
-      priority: 'urgent'
     },
     {
       id: '3',
@@ -88,7 +84,6 @@ const LabTestManagement: React.FC = () => {
       ],
       doctorId: 'D001',
       doctorName: 'BS. Trần Văn B',
-      priority: 'normal'
     }
   ];
 
@@ -106,15 +101,13 @@ const LabTestManagement: React.FC = () => {
   ];
 
   const statuses = ['all', 'pending', 'completed', 'cancelled'];
-  const priorities = ['all', 'normal', 'urgent'];
 
   const filteredTests = labTests.filter((test) => {
     const matchesSearch = 
       test.patientName.toLowerCase().includes(search.toLowerCase()) ||
       test.testType.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = selectedStatus === 'all' || test.status === selectedStatus;
-    const matchesPriority = selectedPriority === 'all' || test.priority === selectedPriority;
-    return matchesSearch && matchesStatus && matchesPriority;
+    return matchesSearch && matchesStatus;
   });
 
   const getStatusColor = (status: string) => {
@@ -140,28 +133,6 @@ const LabTestManagement: React.FC = () => {
         return 'Đã hủy';
       default:
         return status;
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'bg-red-100 text-red-800';
-      case 'normal':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'Khẩn cấp';
-      case 'normal':
-        return 'Bình thường';
-      default:
-        return priority;
     }
   };
 
@@ -203,17 +174,6 @@ const LabTestManagement: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <select
-                value={selectedPriority}
-                onChange={(e) => setSelectedPriority(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {priorities.map((priority) => (
-                  <option key={priority} value={priority}>
-                    {priority === 'all' ? 'Tất cả độ ưu tiên' : getPriorityText(priority)}
-                  </option>
-                ))}
-              </select>
             </div>
             <button 
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
@@ -246,9 +206,6 @@ const LabTestManagement: React.FC = () => {
                   Trạng thái
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Độ ưu tiên
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Thao tác
                 </th>
               </tr>
@@ -269,11 +226,6 @@ const LabTestManagement: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(test.status)}`}>
                       {getStatusText(test.status)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(test.priority)}`}>
-                      {getPriorityText(test.priority)}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -365,21 +317,6 @@ const LabTestManagement: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
-              </div>
-
-              {/* Độ ưu tiên */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Độ ưu tiên *
-                </label>
-                <select
-                  defaultValue={editingTest?.priority || 'normal'}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="normal">Bình thường</option>
-                  <option value="urgent">Khẩn cấp</option>
-                </select>
               </div>
 
               {/* Ghi chú */}
