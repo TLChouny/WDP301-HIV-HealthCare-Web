@@ -36,14 +36,24 @@ const LabTestManagement: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingTest, setEditingTest] = useState<LabTest | null>(null);
 
-  const labTests: LabTest[] = [
+  // Thêm state cho form
+  const [form, setForm] = useState({
+    patientId: '',
+    testType: '',
+    testDate: '',
+    notes: '',
+    // status luôn là 'pending' khi thêm mới
+  });
+
+  // Thay đổi labTests thành state
+  const [labTests, setLabTests] = useState<LabTest[]>([
     {
       id: '1',
       patientId: 'P001',
       patientName: 'Nguyễn Văn A',
       testType: 'CD4 Count',
       testDate: '2024-03-15',
-      status: 'completed',
+      status: 'pending',
       results: [
         {
           value: '350',
@@ -73,19 +83,11 @@ const LabTestManagement: React.FC = () => {
       patientName: 'Lê Văn D',
       testType: 'Hepatitis B',
       testDate: '2024-03-14',
-      status: 'completed',
-      results: [
-        {
-          value: 'Negative',
-          unit: '',
-          referenceRange: 'Negative',
-          interpretation: 'Không phát hiện'
-        }
-      ],
+      status: 'pending',
       doctorId: 'D001',
       doctorName: 'BS. Trần Văn B',
     }
-  ];
+  ]);
 
   const testTypes = [
     'CD4 Count',
@@ -239,16 +241,26 @@ const LabTestManagement: React.FC = () => {
                       >
                         <Edit className="w-5 h-5" />
                       </button>
-                      {test.status === 'completed' && (
-                        <button className="text-green-600 hover:text-green-900">
-                          <Download className="w-5 h-5" />
+                      {test.status === 'pending' && (
+                        <button
+                          className="text-green-600 hover:text-green-900"
+                          title="Hoàn thành"
+                          onClick={() => {
+                            setLabTests(labTests =>
+                              labTests.map(t =>
+                                t.id === test.id ? { ...t, status: 'completed' } : t
+                              )
+                            );
+                          }}
+                        >
+                          <CheckCircle2 className="w-5 h-5" />
                         </button>
                       )}
                       <button 
                         className="text-red-600 hover:text-red-900"
                         onClick={() => {
                           if (window.confirm('Bạn có chắc chắn muốn xóa xét nghiệm này?')) {
-                            console.log('Delete test:', test.id);
+                            setLabTests(labTests => labTests.filter(t => t.id !== test.id));
                           }
                         }}
                       >
@@ -271,14 +283,24 @@ const LabTestManagement: React.FC = () => {
               {editingTest ? 'Chỉnh sửa xét nghiệm' : 'Thêm xét nghiệm mới'}
             </h2>
             
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={e => {
+              e.preventDefault();
+              // Khi thêm mới, status luôn là 'pending'
+              if (!editingTest) {
+                // TODO: Thêm mới xét nghiệm với status: 'pending'
+              } else {
+                // TODO: Cập nhật xét nghiệm
+              }
+              setIsModalOpen(false);
+            }}>
               {/* Bệnh nhân */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Bệnh nhân *
                 </label>
                 <select
-                  defaultValue={editingTest?.patientId}
+                  value={form.patientId}
+                  onChange={e => setForm(f => ({ ...f, patientId: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 >
@@ -295,7 +317,8 @@ const LabTestManagement: React.FC = () => {
                   Loại xét nghiệm *
                 </label>
                 <select
-                  defaultValue={editingTest?.testType}
+                  value={form.testType}
+                  onChange={e => setForm(f => ({ ...f, testType: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 >
@@ -313,7 +336,8 @@ const LabTestManagement: React.FC = () => {
                 </label>
                 <input
                   type="date"
-                  defaultValue={editingTest?.testDate}
+                  value={form.testDate}
+                  onChange={e => setForm(f => ({ ...f, testDate: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
@@ -325,7 +349,8 @@ const LabTestManagement: React.FC = () => {
                   Ghi chú
                 </label>
                 <textarea
-                  defaultValue={editingTest?.notes}
+                  value={form.notes}
+                  onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={3}
                   placeholder="Nhập ghi chú nếu cần"
@@ -376,15 +401,14 @@ const LabTestManagement: React.FC = () => {
               <button
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
                 onClick={() => setIsModalOpen(false)}
+                type="button"
               >
                 Hủy
               </button>
               <button
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                onClick={() => {
-                  // TODO: Implement save functionality
-                  setIsModalOpen(false);
-                }}
+                type="submit"
+                form="form"
               >
                 Lưu
               </button>
