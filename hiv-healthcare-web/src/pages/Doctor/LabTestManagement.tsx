@@ -27,25 +27,33 @@ interface LabTest {
   notes?: string;
   doctorId: string;
   doctorName: string;
-  priority: 'normal' | 'urgent';
   attachments?: string[];
 }
 
 const LabTestManagement: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [selectedPriority, setSelectedPriority] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingTest, setEditingTest] = useState<LabTest | null>(null);
 
-  const labTests: LabTest[] = [
+  // Thêm state cho form
+  const [form, setForm] = useState({
+    patientId: '',
+    testType: '',
+    testDate: '',
+    notes: '',
+    // status luôn là 'pending' khi thêm mới
+  });
+
+  // Thay đổi labTests thành state
+  const [labTests, setLabTests] = useState<LabTest[]>([
     {
       id: '1',
       patientId: 'P001',
       patientName: 'Nguyễn Văn A',
       testType: 'CD4 Count',
       testDate: '2024-03-15',
-      status: 'completed',
+      status: 'pending',
       results: [
         {
           value: '350',
@@ -57,7 +65,6 @@ const LabTestManagement: React.FC = () => {
       notes: 'Bệnh nhân cần theo dõi sát',
       doctorId: 'D001',
       doctorName: 'BS. Trần Văn B',
-      priority: 'normal',
       attachments: ['cd4_result.pdf']
     },
     {
@@ -69,7 +76,6 @@ const LabTestManagement: React.FC = () => {
       status: 'pending',
       doctorId: 'D001',
       doctorName: 'BS. Trần Văn B',
-      priority: 'urgent'
     },
     {
       id: '3',
@@ -77,20 +83,11 @@ const LabTestManagement: React.FC = () => {
       patientName: 'Lê Văn D',
       testType: 'Hepatitis B',
       testDate: '2024-03-14',
-      status: 'completed',
-      results: [
-        {
-          value: 'Negative',
-          unit: '',
-          referenceRange: 'Negative',
-          interpretation: 'Không phát hiện'
-        }
-      ],
+      status: 'pending',
       doctorId: 'D001',
       doctorName: 'BS. Trần Văn B',
-      priority: 'normal'
     }
-  ];
+  ]);
 
   const testTypes = [
     'CD4 Count',
@@ -106,15 +103,13 @@ const LabTestManagement: React.FC = () => {
   ];
 
   const statuses = ['all', 'pending', 'completed', 'cancelled'];
-  const priorities = ['all', 'normal', 'urgent'];
 
   const filteredTests = labTests.filter((test) => {
     const matchesSearch = 
       test.patientName.toLowerCase().includes(search.toLowerCase()) ||
       test.testType.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = selectedStatus === 'all' || test.status === selectedStatus;
-    const matchesPriority = selectedPriority === 'all' || test.priority === selectedPriority;
-    return matchesSearch && matchesStatus && matchesPriority;
+    return matchesSearch && matchesStatus;
   });
 
   const getStatusColor = (status: string) => {
@@ -140,28 +135,6 @@ const LabTestManagement: React.FC = () => {
         return 'Đã hủy';
       default:
         return status;
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'bg-red-100 text-red-800';
-      case 'normal':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'Khẩn cấp';
-      case 'normal':
-        return 'Bình thường';
-      default:
-        return priority;
     }
   };
 
@@ -203,17 +176,6 @@ const LabTestManagement: React.FC = () => {
                   </option>
                 ))}
               </select>
-              <select
-                value={selectedPriority}
-                onChange={(e) => setSelectedPriority(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {priorities.map((priority) => (
-                  <option key={priority} value={priority}>
-                    {priority === 'all' ? 'Tất cả độ ưu tiên' : getPriorityText(priority)}
-                  </option>
-                ))}
-              </select>
             </div>
             <button 
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
@@ -246,9 +208,6 @@ const LabTestManagement: React.FC = () => {
                   Trạng thái
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Độ ưu tiên
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Thao tác
                 </th>
               </tr>
@@ -271,11 +230,6 @@ const LabTestManagement: React.FC = () => {
                       {getStatusText(test.status)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getPriorityColor(test.priority)}`}>
-                      {getPriorityText(test.priority)}
-                    </span>
-                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex space-x-2">
                       <button 
@@ -287,16 +241,26 @@ const LabTestManagement: React.FC = () => {
                       >
                         <Edit className="w-5 h-5" />
                       </button>
-                      {test.status === 'completed' && (
-                        <button className="text-green-600 hover:text-green-900">
-                          <Download className="w-5 h-5" />
+                      {test.status === 'pending' && (
+                        <button
+                          className="text-green-600 hover:text-green-900"
+                          title="Hoàn thành"
+                          onClick={() => {
+                            setLabTests(labTests =>
+                              labTests.map(t =>
+                                t.id === test.id ? { ...t, status: 'completed' } : t
+                              )
+                            );
+                          }}
+                        >
+                          <CheckCircle2 className="w-5 h-5" />
                         </button>
                       )}
                       <button 
                         className="text-red-600 hover:text-red-900"
                         onClick={() => {
                           if (window.confirm('Bạn có chắc chắn muốn xóa xét nghiệm này?')) {
-                            console.log('Delete test:', test.id);
+                            setLabTests(labTests => labTests.filter(t => t.id !== test.id));
                           }
                         }}
                       >
@@ -319,14 +283,24 @@ const LabTestManagement: React.FC = () => {
               {editingTest ? 'Chỉnh sửa xét nghiệm' : 'Thêm xét nghiệm mới'}
             </h2>
             
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={e => {
+              e.preventDefault();
+              // Khi thêm mới, status luôn là 'pending'
+              if (!editingTest) {
+                // TODO: Thêm mới xét nghiệm với status: 'pending'
+              } else {
+                // TODO: Cập nhật xét nghiệm
+              }
+              setIsModalOpen(false);
+            }}>
               {/* Bệnh nhân */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Bệnh nhân *
                 </label>
                 <select
-                  defaultValue={editingTest?.patientId}
+                  value={form.patientId}
+                  onChange={e => setForm(f => ({ ...f, patientId: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 >
@@ -343,7 +317,8 @@ const LabTestManagement: React.FC = () => {
                   Loại xét nghiệm *
                 </label>
                 <select
-                  defaultValue={editingTest?.testType}
+                  value={form.testType}
+                  onChange={e => setForm(f => ({ ...f, testType: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 >
@@ -361,25 +336,11 @@ const LabTestManagement: React.FC = () => {
                 </label>
                 <input
                   type="date"
-                  defaultValue={editingTest?.testDate}
+                  value={form.testDate}
+                  onChange={e => setForm(f => ({ ...f, testDate: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
-              </div>
-
-              {/* Độ ưu tiên */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Độ ưu tiên *
-                </label>
-                <select
-                  defaultValue={editingTest?.priority || 'normal'}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="normal">Bình thường</option>
-                  <option value="urgent">Khẩn cấp</option>
-                </select>
               </div>
 
               {/* Ghi chú */}
@@ -388,7 +349,8 @@ const LabTestManagement: React.FC = () => {
                   Ghi chú
                 </label>
                 <textarea
-                  defaultValue={editingTest?.notes}
+                  value={form.notes}
+                  onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   rows={3}
                   placeholder="Nhập ghi chú nếu cần"
@@ -439,15 +401,14 @@ const LabTestManagement: React.FC = () => {
               <button
                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
                 onClick={() => setIsModalOpen(false)}
+                type="button"
               >
                 Hủy
               </button>
               <button
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                onClick={() => {
-                  // TODO: Implement save functionality
-                  setIsModalOpen(false);
-                }}
+                type="submit"
+                form="form"
               >
                 Lưu
               </button>
