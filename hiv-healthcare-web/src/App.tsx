@@ -7,6 +7,8 @@ import AdminLayout from './layouts/AdminLayout';
 import UserLayout from './layouts/UserLayout';
 import DoctorLayout from './layouts/DoctorLayout';
 import StaffLayout from './layouts/StaffLayout';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Public Pages
 import Home from './pages/Home/Home';
@@ -218,6 +220,7 @@ const App: React.FC = () => {
               {/* 404 route */}
               <Route path="*" element={<FallbackComponent />} />
             </Routes>
+            <ToastContainer />
           </BookingProvider>
         </ServiceProvider>
       </CategoryProvider>
