@@ -40,11 +40,11 @@ const StaffLayout: React.FC = () => {
       path: '/staff/appointments',
       icon: <Calendar className="w-5 h-5" />
     },
-    {
-      name: 'Lập lịch hẹn',
-      path: '/staff/appointment-scheduler',
-      icon: <Calendar className="w-5 h-5" />
-    },
+    // {
+    //   name: 'Lập lịch hẹn',
+    //   path: '/staff/appointment-scheduler',
+    //   icon: <Calendar className="w-5 h-5" />
+    // },
     
     // {
     //   name: 'Danh sách thuốc',
