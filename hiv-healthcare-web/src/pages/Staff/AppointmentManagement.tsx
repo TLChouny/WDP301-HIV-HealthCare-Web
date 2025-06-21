@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Calendar,
   Search,
   Filter,
   Plus,
@@ -25,6 +24,12 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
+
+// Định nghĩa type cho value của Calendar
+// eslint-disable-next-line @typescript-eslint/no-type-alias
+type CalendarValue = Date | Date[] | null;
 
 interface Appointment {
   _id: string;
@@ -62,11 +67,15 @@ const StaffAppointmentManagement: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [showPatientInfo, setShowPatientInfo] = useState<boolean>(false);
+  const [calendarDate, setCalendarDate] = useState<Date>(new Date());
 
   // Add new state for managing appointments
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Lấy danh sách các ngày có lịch hẹn (dạng yyyy-mm-dd)
+  const appointmentDates = appointments.map(a => a.bookingDate && new Date(a.bookingDate).toISOString().split('T')[0]);
 
   // Hàm ẩn danh tên bệnh nhân
   const anonymizeName = (name: string): string => {
@@ -191,6 +200,7 @@ const StaffAppointmentManagement: React.FC = () => {
     }
   };
 
+  // Lọc lịch hẹn theo ngày được chọn trên calendar
   const filteredAppointments = appointments.filter((appointment) => {
     const matchesSearch =
       (appointment.customerName && appointment.customerName.toLowerCase().includes(search.toLowerCase())) ||
@@ -205,6 +215,27 @@ const StaffAppointmentManagement: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
+        {/* Calendar ở đầu trang */}
+        <div className="mb-8 flex flex-col items-center">
+          <Calendar
+            onChange={(value) => {
+              if (value instanceof Date) {
+                setCalendarDate(value);
+                setSelectedDate(value.toISOString().split('T')[0]);
+              }
+            }}
+            value={calendarDate}
+            tileContent={({ date, view }) => {
+              // Đánh dấu chấm cho ngày có lịch hẹn
+              const dateStr = date.toISOString().split('T')[0];
+              if (view === 'month' && appointmentDates.includes(dateStr)) {
+                return <div className="flex justify-center"><span className="block w-2 h-2 bg-blue-500 rounded-full mt-1"></span></div>;
+              }
+              return null;
+            }}
+            locale="vi-VN"
+          />
+        </div>
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
