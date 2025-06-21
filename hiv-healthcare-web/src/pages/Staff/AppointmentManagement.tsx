@@ -61,9 +61,20 @@ interface Appointment {
   __v: number;
 }
 
+// Hàm so sánh ngày theo local
+function isSameDayLocal(date1: string | Date, date2: string | Date) {
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+}
+
 const StaffAppointmentManagement: React.FC = () => {
   const [search, setSearch] = useState<string>('');
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [showPatientInfo, setShowPatientInfo] = useState<boolean>(false);
@@ -74,8 +85,8 @@ const StaffAppointmentManagement: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Lấy danh sách các ngày có lịch hẹn (dạng yyyy-mm-dd)
-  const appointmentDates = appointments.map(a => a.bookingDate && new Date(a.bookingDate).toISOString().split('T')[0]);
+  // Lấy danh sách các ngày có lịch hẹn (dạng Date)
+  const appointmentDates = appointments.map(a => new Date(a.bookingDate));
 
   // Hàm ẩn danh tên bệnh nhân
   const anonymizeName = (name: string): string => {
@@ -207,7 +218,7 @@ const StaffAppointmentManagement: React.FC = () => {
       (appointment.customerPhone && appointment.customerPhone.includes(search)) ||
       (appointment.customerEmail && appointment.customerEmail.toLowerCase().includes(search.toLowerCase())) ||
       (appointment.bookingCode && appointment.bookingCode.toLowerCase().includes(search.toLowerCase()));
-    const matchesDate = appointment.bookingDate && new Date(appointment.bookingDate).toISOString().split('T')[0] === selectedDate;
+    const matchesDate = appointment.bookingDate && isSameDayLocal(appointment.bookingDate, selectedDate);
     const matchesStatus = selectedStatus === 'all' || appointment.status === selectedStatus;
     return matchesSearch && matchesDate && matchesStatus;
   });
@@ -221,14 +232,13 @@ const StaffAppointmentManagement: React.FC = () => {
             onChange={(value) => {
               if (value instanceof Date) {
                 setCalendarDate(value);
-                setSelectedDate(value.toISOString().split('T')[0]);
+                setSelectedDate(value);
               }
             }}
             value={calendarDate}
             tileContent={({ date, view }) => {
-              // Đánh dấu chấm cho ngày có lịch hẹn
-              const dateStr = date.toISOString().split('T')[0];
-              if (view === 'month' && appointmentDates.includes(dateStr)) {
+              // Đánh dấu chấm cho ngày có lịch hẹn (so sánh local)
+              if (view === 'month' && appointmentDates.some(d => isSameDayLocal(d, date))) {
                 return <div className="flex justify-center"><span className="block w-2 h-2 bg-blue-500 rounded-full mt-1"></span></div>;
               }
               return null;
@@ -273,8 +283,13 @@ const StaffAppointmentManagement: React.FC = () => {
             <div className="flex gap-4">
               <input
                 type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                value={selectedDate.toISOString().split('T')[0]}
+                onChange={(e) => {
+                  // Chuyển yyyy-mm-dd thành Date local
+                  const [year, month, day] = e.target.value.split('-').map(Number);
+                  setSelectedDate(new Date(year, month - 1, day));
+                  setCalendarDate(new Date(year, month - 1, day));
+                }}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <select
