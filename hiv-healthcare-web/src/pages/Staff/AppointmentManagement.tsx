@@ -287,8 +287,8 @@ const StaffAppointmentManagement: React.FC = () => {
                 onChange={(e) => {
                   // Chuyển yyyy-mm-dd thành Date local
                   const [year, month, day] = e.target.value.split('-').map(Number);
-                  setSelectedDate(new Date(year, month - 1, day));
-                  setCalendarDate(new Date(year, month - 1, day));
+                  setSelectedDate(new Date(year, month , day));
+                  setCalendarDate(new Date(year, month , day));
                 }}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />

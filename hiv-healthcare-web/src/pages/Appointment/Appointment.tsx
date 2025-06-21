@@ -12,14 +12,16 @@ import type { User } from '../../types/user';
 import { Booking } from '../../types/booking';
 import { useAuth } from '../../context/AuthContext';
 import { u } from 'framer-motion/dist/types.d-CtuPurYT';
-
+import { format } from 'date-fns';
 const Appointment: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { create } = useBooking();
   const { user } = useAuth();
-
+// Chuyển sang chuỗi trước khi gửi lên server:
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const formattedDate = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
+
   const [selectedTime, setSelectedTime] = useState('');
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [doctors, setDoctors] = useState<User[]>([]);
@@ -50,7 +52,7 @@ const Appointment: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedDate || !selectedTime || !selectedDoctor) {
+    if (!formattedDate || !selectedTime || !selectedDoctor) {
       toast.error('Vui lòng điền đầy đủ thông tin bắt buộc!');
       return;
     }
@@ -67,7 +69,7 @@ const Appointment: React.FC = () => {
       const selectedDoctorObj = doctors.find(doc => doc._id === selectedDoctor);
 
       const bookingData = {
-        bookingDate: selectedDate.toISOString().split('T')[0],
+        bookingDate: formattedDate.split('T')[0],
         startTime: selectedTime,
         fullName: isAnonymous ? undefined : formData.customerName,
         phone: isAnonymous ? undefined : formData.customerPhone,
