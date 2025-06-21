@@ -10,7 +10,8 @@ import {
   X,
   ClipboardList,
   MessageSquare,
-  Settings
+  Settings,
+  Home
 } from 'lucide-react';
 
 const StaffLayout: React.FC = () => {
@@ -123,12 +124,22 @@ const StaffLayout: React.FC = () => {
         {/* Top Navigation */}
         <header className="bg-white shadow-sm">
           <div className="flex items-center justify-between h-16 px-4">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-500 hover:text-gray-600"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden text-gray-500 hover:text-gray-600"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              
+              <Link 
+                to="/"
+                className="flex items-center space-x-2 text-gray-500 hover:text-gray-600 px-3 py-2 rounded-lg hover:bg-gray-50"
+              >
+                <Home className="w-5 h-5" />
+                <span className="hidden md:inline">Trang chủ</span>
+              </Link>
+            </div>
 
             <div className="flex items-center space-x-4">
               <Link 

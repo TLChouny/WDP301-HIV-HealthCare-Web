@@ -158,11 +158,10 @@ const StaffAppointmentManagement: React.FC = () => {
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                {['all', 'confirmed', 'pending', 'cancelled'].map((status) => (
-                  <option key={status} value={status}>
-                    {status === 'all' ? 'Tất cả trạng thái' : status.charAt(0).toUpperCase() + status.slice(1)}
-                  </option>
-                ))}
+                <option value="all">Tất cả trạng thái</option>
+                <option value="confirmed">Đã xác nhận</option>
+                <option value="pending">Chờ xác nhận</option>
+                <option value="cancelled">Đã hủy</option>
               </select>
             </div>
           </div>
