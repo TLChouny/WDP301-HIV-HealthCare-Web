@@ -1,5 +1,3 @@
-// api/bookingApi.ts
-
 import axios from 'axios';
 import { BASE_URL, API_ENDPOINTS } from '../constants/api';
 import type { Booking } from '../types/booking';
@@ -26,6 +24,11 @@ apiClient.interceptors.request.use(
 
 export const getAllBookings = async (): Promise<Booking[]> => {
   const res = await apiClient.get(API_ENDPOINTS.BOOKINGS);
+  return res.data;
+};
+
+export const getBookingsByUserId = async (userId: string): Promise<Booking[]> => {
+  const res = await apiClient.get(`${API_ENDPOINTS.BOOKINGS}/user/${userId}`);
   return res.data;
 };
 

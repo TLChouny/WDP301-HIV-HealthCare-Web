@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
@@ -24,60 +24,140 @@ import {
   Cancel as CancelIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useBooking } from '../../context/BookingContext';
+import { useAuth } from '../../context/AuthContext';
+import type { Booking } from '../../types/booking';
+import axios from 'axios';
+
+interface ServiceResponse {
+  _id: string;
+  serviceName: string;
+  serviceDescription: string;
+  categoryId: string;
+  serviceImage: string;
+  duration: number;
+  price: number;
+  createdAt: string;
+  updatedAt: string;
+}
 
 const UserAppointments: React.FC = () => {
   const navigate = useNavigate();
-  const [openNewDialog, setOpenNewDialog] = React.useState(false);
-  const [openViewDialog, setOpenViewDialog] = React.useState(false);
-  const [selectedAppointment, setSelectedAppointment] = React.useState<any>(null);
+  const { getByUserId, create, remove } = useBooking();
+  const { user } = useAuth();
+  const [appointments, setAppointments] = useState<Booking[]>([]);
+  const [openNewDialog, setOpenNewDialog] = useState(false);
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Booking | null>(null);
+  const [services, setServices] = useState<ServiceResponse[]>([]);
+  const [doctors, setDoctors] = useState<string[]>([]);
+  const [newBooking, setNewBooking] = useState<Partial<Booking>>({
+    bookingDate: '',
+    startTime: '',
+    serviceId: undefined,
+    doctorName: '',
+    notes: '',
+    status: 'pending',
+    customerName: user?.userName || '',
+    customerEmail: user?.email || '',
+    customerPhone: user?.phone_number || '',
+    currency: 'VND',
+    isAnonymous: false,
+    userId: user?._id || null,
+  });
 
-  // Mock data - replace with actual data from your backend
-  const appointments = [
-    {
-      id: 1,
-      date: '20/03/2024',
-      time: '09:00',
-      type: 'Khám định kỳ',
-      doctor: 'BS. Trần Thị B',
-      status: 'Đã xác nhận',
-      notes: 'Khám định kỳ 3 tháng',
-    },
-    {
-      id: 2,
-      date: '25/03/2024',
-      time: '14:30',
-      type: 'Xét nghiệm',
-      doctor: 'BS. Lê Văn C',
-      status: 'Chờ xác nhận',
-      notes: 'Xét nghiệm máu và CD4',
-    },
-  ];
+  // Lấy danh sách dịch vụ và bác sĩ
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await axios.get('https://your-api-endpoint/services');
+        setServices(response.data);
+      } catch (error) {
+        console.error('Error fetching services:', error);
+      }
+    };
+    fetchServices();
 
-  const appointmentTypes = [
-    'Khám định kỳ',
-    'Xét nghiệm',
-    'Tư vấn',
-    'Cấp thuốc',
-  ];
+    // Mock danh sách bác sĩ (thay bằng API nếu có)
+    setDoctors(['BS. Trần Thị B', 'BS. Lê Văn C', 'BS. Nguyễn Văn D']);
+  }, []);
 
-  const doctors = [
-    'BS. Trần Thị B',
-    'BS. Lê Văn C',
-    'BS. Nguyễn Văn D',
-  ];
+  // Lấy danh sách bookings theo userId
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        if (user?._id) {
+          const userBookings = await getByUserId(user._id);
+          setAppointments(userBookings);
+        }
+      } catch (error) {
+        console.error('Error fetching appointments:', error);
+      }
+    };
+    if (user?._id) {
+      fetchAppointments();
+    }
+  }, [getByUserId, user]);
 
   const handleNewAppointment = () => {
     setOpenNewDialog(true);
   };
 
-  const handleViewAppointment = (appointment: any) => {
+  const handleViewAppointment = (appointment: Booking) => {
     setSelectedAppointment(appointment);
     setOpenViewDialog(true);
   };
 
-  const handleCancelAppointment = (id: number) => {
-    // Implement cancel logic
-    console.log('Cancel appointment:', id);
+  const handleCancelAppointment = async (id: string) => {
+    try {
+      await remove(id);
+      setAppointments(appointments.filter((appt) => appt._id !== id));
+      setOpenViewDialog(false);
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+    }
+  };
+
+  const handleCreateBooking = async () => {
+    try {
+      const createdBooking = await create(newBooking);
+      setAppointments([...appointments, createdBooking]);
+      setOpenNewDialog(false);
+      setNewBooking({
+        bookingDate: '',
+        startTime: '',
+        serviceId: undefined,
+        doctorName: '',
+        notes: '',
+        status: 'pending',
+        customerName: user?.userName || '',
+        customerEmail: user?.email || '',
+        customerPhone: user?.phone_number || '',
+        currency: 'VND',
+        isAnonymous: false,
+        userId: user?._id || null,
+      });
+    } catch (error) {
+      console.error('Error creating appointment:', error);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === 'serviceId') {
+      const selectedService = services.find((service) => service._id === value);
+      setNewBooking({
+        ...newBooking,
+        serviceId: selectedService
+          ? {
+              ...selectedService,
+              price: selectedService.price.toString(),
+            }
+          : undefined,
+      });
+    } else {
+      setNewBooking({ ...newBooking, [name]: value });
+    }
   };
 
   return (
@@ -107,11 +187,11 @@ const UserAppointments: React.FC = () => {
           </TableHead>
           <TableBody>
             {appointments.map((appointment) => (
-              <TableRow key={appointment.id}>
-                <TableCell>{appointment.date}</TableCell>
-                <TableCell>{appointment.time}</TableCell>
-                <TableCell>{appointment.type}</TableCell>
-                <TableCell>{appointment.doctor}</TableCell>
+              <TableRow key={appointment._id}>
+                <TableCell>{new Date(appointment.bookingDate).toLocaleDateString('vi-VN')}</TableCell>
+                <TableCell>{appointment.startTime}</TableCell>
+                <TableCell>{appointment.serviceId?.serviceName || 'Không xác định'}</TableCell>
+                <TableCell>{appointment.doctorName}</TableCell>
                 <TableCell>{appointment.status}</TableCell>
                 <TableCell align="right">
                   <IconButton
@@ -120,11 +200,11 @@ const UserAppointments: React.FC = () => {
                   >
                     <VisibilityIcon />
                   </IconButton>
-                  {appointment.status === 'Chờ xác nhận' && (
+                  {appointment.status === 'pending' && (
                     <IconButton
                       size="small"
                       color="error"
-                      onClick={() => handleCancelAppointment(appointment.id)}
+                      onClick={() => handleCancelAppointment(appointment._id!)}
                     >
                       <CancelIcon />
                     </IconButton>
@@ -136,7 +216,6 @@ const UserAppointments: React.FC = () => {
         </Table>
       </TableContainer>
 
-      {/* New Appointment Dialog */}
       <Dialog
         open={openNewDialog}
         onClose={() => setOpenNewDialog(false)}
@@ -151,6 +230,9 @@ const UserAppointments: React.FC = () => {
                 fullWidth
                 type="date"
                 label="Ngày"
+                name="bookingDate"
+                value={newBooking.bookingDate}
+                onChange={handleInputChange}
                 InputLabelProps={{ shrink: true }}
               />
             </Box>
@@ -159,6 +241,9 @@ const UserAppointments: React.FC = () => {
                 fullWidth
                 type="time"
                 label="Giờ"
+                name="startTime"
+                value={newBooking.startTime}
+                onChange={handleInputChange}
                 InputLabelProps={{ shrink: true }}
               />
             </Box>
@@ -167,11 +252,13 @@ const UserAppointments: React.FC = () => {
                 fullWidth
                 select
                 label="Loại lịch hẹn"
-                defaultValue=""
+                name="serviceId"
+                value={newBooking.serviceId?._id || ''}
+                onChange={handleInputChange}
               >
-                {appointmentTypes.map((type) => (
-                  <MenuItem key={type} value={type}>
-                    {type}
+                {services.map((service) => (
+                  <MenuItem key={service._id} value={service._id}>
+                    {service.serviceName}
                   </MenuItem>
                 ))}
               </TextField>
@@ -181,7 +268,9 @@ const UserAppointments: React.FC = () => {
                 fullWidth
                 select
                 label="Bác sĩ"
-                defaultValue=""
+                name="doctorName"
+                value={newBooking.doctorName}
+                onChange={handleInputChange}
               >
                 {doctors.map((doctor) => (
                   <MenuItem key={doctor} value={doctor}>
@@ -196,19 +285,21 @@ const UserAppointments: React.FC = () => {
                 multiline
                 rows={4}
                 label="Ghi chú"
+                name="notes"
+                value={newBooking.notes}
+                onChange={handleInputChange}
               />
             </Box>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenNewDialog(false)}>Hủy</Button>
-          <Button variant="contained" onClick={() => setOpenNewDialog(false)}>
-            Đặt lịch
+          <Button variant="contained" onClick={handleCreateBooking}>
+            Đ_lambda
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* View Appointment Dialog */}
       <Dialog
         open={openViewDialog}
         onClose={() => setOpenViewDialog(false)}
@@ -220,35 +311,32 @@ const UserAppointments: React.FC = () => {
           {selectedAppointment && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle1" gutterBottom>
-                Ngày: {selectedAppointment.date}
+                Ngày: {new Date(selectedAppointment.bookingDate).toLocaleDateString('vi-VN')}
               </Typography>
               <Typography variant="subtitle1" gutterBottom>
-                Giờ: {selectedAppointment.time}
+                Giờ: {selectedAppointment.startTime}
               </Typography>
               <Typography variant="subtitle1" gutterBottom>
-                Loại: {selectedAppointment.type}
+                Loại: {selectedAppointment.serviceId?.serviceName || 'Không xác định'}
               </Typography>
               <Typography variant="subtitle1" gutterBottom>
-                Bác sĩ: {selectedAppointment.doctor}
+                Bác sĩ: {selectedAppointment.doctorName}
               </Typography>
               <Typography variant="subtitle1" gutterBottom>
                 Trạng thái: {selectedAppointment.status}
               </Typography>
               <Typography variant="subtitle1" gutterBottom>
-                Ghi chú: {selectedAppointment.notes}
+                Ghi chú: {selectedAppointment.notes || 'Không có'}
               </Typography>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenViewDialog(false)}>Đóng</Button>
-          {selectedAppointment?.status === 'Chờ xác nhận' && (
+          {selectedAppointment?.status === 'pending' && (
             <Button
               color="error"
-              onClick={() => {
-                handleCancelAppointment(selectedAppointment.id);
-                setOpenViewDialog(false);
-              }}
+              onClick={() => handleCancelAppointment(selectedAppointment._id!)}
             >
               Hủy lịch
             </Button>
@@ -259,4 +347,4 @@ const UserAppointments: React.FC = () => {
   );
 };
 
-export default UserAppointments; 
+export default UserAppointments;
