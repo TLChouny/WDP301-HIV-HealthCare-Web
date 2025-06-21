@@ -19,7 +19,9 @@ import {
   CreditCard,
   MessageSquare,
   Edit,
-  Trash2
+  Trash2,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -59,26 +61,92 @@ const StaffAppointmentManagement: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
+  const [showPatientInfo, setShowPatientInfo] = useState<boolean>(false);
 
   // Add new state for managing appointments
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Hàm ẩn danh tên bệnh nhân
+  const anonymizeName = (name: string): string => {
+    if (!name) return 'Không xác định';
+    const words = name.trim().split(' ');
+    if (words.length === 1) {
+      return words[0].charAt(0) + '*'.repeat(words[0].length - 1);
+    }
+    return words[0].charAt(0) + '*'.repeat(words[0].length - 1) + ' ' + 
+           words[words.length - 1].charAt(0) + '*'.repeat(words[words.length - 1].length - 1);
+  };
+
+  // Hàm ẩn danh tên bác sĩ
+  const anonymizeDoctorName = (name: string): string => {
+    if (!name) return 'BS. Không xác định';
+    const words = name.trim().split(' ');
+    if (words.length === 1) {
+      return 'BS. ' + words[0].charAt(0) + '*'.repeat(words[0].length - 1);
+    }
+    return 'BS. ' + words[0].charAt(0) + '*'.repeat(words[0].length - 1) + ' ' + 
+           words[words.length - 1].charAt(0) + '*'.repeat(words[words.length - 1].length - 1);
+  };
+
+  // Hàm hiển thị thông tin bệnh nhân
+  const getPatientDisplayInfo = (appointment: Appointment) => {
+    const isAnonymous = appointment.isAnonymous;
+    
+    if (isAnonymous) {
+      // Nếu là booking ẩn danh, luôn ẩn thông tin
+      return {
+        name: anonymizeName(appointment.customerName || ''),
+        phone: '***-***-****',
+        email: '***@***.***',
+        doctorName: anonymizeDoctorName(appointment.doctorName || '')
+      };
+    } else {
+      // Nếu không phải ẩn danh, hiển thị theo toggle
+      if (showPatientInfo) {
+        return {
+          name: appointment.customerName || 'Không xác định',
+          phone: appointment.customerPhone || 'Không có',
+          email: appointment.customerEmail || 'Không có',
+          doctorName: appointment.doctorName || 'Chưa phân công'
+        };
+      } else {
+        return {
+          name: anonymizeName(appointment.customerName || ''),
+          phone: '***-***-****',
+          email: '***@***.***',
+          doctorName: anonymizeDoctorName(appointment.doctorName || '')
+        };
+      }
+    }
+  };
+
   // Load appointments data
   useEffect(() => {
     const loadAppointments = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/bookings');
-        const data = await response.json();
-        // Nếu backend trả về _id, map sang id
-        const mapped = data;
-        setAppointments(mapped);
         setError(null);
-      } catch (err) {
-        setError('Không thể tải dữ liệu lịch hẹn');
+        console.log('Fetching appointments from API...');
+        
+        const response = await fetch('http://localhost:5000/api/bookings');
+        console.log('API Response status:', response.status);
+        
+        if (!response.ok) {
+          const errorData = await response.text();
+          console.error('API Error:', errorData);
+          throw new Error(`Không thể tải dữ liệu lịch hẹn: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('API Data received:', data);
+        
+        setAppointments(data);
+      } catch (err: any) {
         console.error('Error loading appointments:', err);
+        setError(err.message);
+        toast.error(err.message);
       } finally {
         setLoading(false);
       }
@@ -89,13 +157,26 @@ const StaffAppointmentManagement: React.FC = () => {
   // Function to handle appointment status change (gọi API PATCH)
   const handleStatusChange = async (appointmentId: string, newStatus: 'confirmed' | 'pending' | 'cancelled') => {
     try {
+      console.log('Updating status for appointment:', appointmentId);
+      console.log('New status:', newStatus);
+      
       const response = await fetch(`http://localhost:5000/api/bookings/${appointmentId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
-      if (!response.ok) throw new Error('Cập nhật trạng thái thất bại');
+
+      console.log('Update response status:', response.status);
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('Update error:', errorData);
+        throw new Error(`Cập nhật trạng thái thất bại: ${response.status} ${response.statusText}`);
+      }
+
       const updated = await response.json();
+      console.log('Updated appointment:', updated);
+
       setAppointments(prevAppointments =>
         prevAppointments.map(appointment =>
           appointment._id === appointmentId
@@ -104,9 +185,9 @@ const StaffAppointmentManagement: React.FC = () => {
         )
       );
       toast.success('Cập nhật trạng thái thành công!');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error updating appointment status:', err);
-      toast.error('Cập nhật trạng thái thất bại!');
+      toast.error(err.message);
     }
   };
 
@@ -114,7 +195,8 @@ const StaffAppointmentManagement: React.FC = () => {
     const matchesSearch =
       (appointment.customerName && appointment.customerName.toLowerCase().includes(search.toLowerCase())) ||
       (appointment.customerPhone && appointment.customerPhone.includes(search)) ||
-      (appointment.customerEmail && appointment.customerEmail.toLowerCase().includes(search.toLowerCase()));
+      (appointment.customerEmail && appointment.customerEmail.toLowerCase().includes(search.toLowerCase())) ||
+      (appointment.bookingCode && appointment.bookingCode.toLowerCase().includes(search.toLowerCase()));
     const matchesDate = appointment.bookingDate && new Date(appointment.bookingDate).toISOString().split('T')[0] === selectedDate;
     const matchesStatus = selectedStatus === 'all' || appointment.status === selectedStatus;
     return matchesSearch && matchesDate && matchesStatus;
@@ -125,10 +207,21 @@ const StaffAppointmentManagement: React.FC = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý Lịch hẹn</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Quản lý và theo dõi lịch hẹn khám HIV
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Quản lý Lịch hẹn</h1>
+              <p className="mt-2 text-sm text-gray-600">
+                Quản lý và theo dõi lịch hẹn khám HIV. Thông tin ẩn danh chỉ áp dụng cho booking ẩn danh.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowPatientInfo(!showPatientInfo)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+            >
+              {showPatientInfo ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showPatientInfo ? 'Ẩn thông tin' : 'Hiện thông tin'}
+            </button>
+          </div>
         </div>
 
         {/* Filters and Search */}
@@ -138,7 +231,7 @@ const StaffAppointmentManagement: React.FC = () => {
               <div className="relative">
                 <input
                   type="text"
-                  placeholder="Tìm kiếm theo tên, số điện thoại hoặc email..."
+                  placeholder="Tìm kiếm theo mã lịch hẹn..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -169,16 +262,24 @@ const StaffAppointmentManagement: React.FC = () => {
 
         {/* Loading and Error States */}
         {loading && (
-          <div className="text-center py-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Đang tải dữ liệu...</p>
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-2 text-gray-600">Đang tải dữ liệu lịch hẹn...</p>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
-            <strong className="font-bold">Lỗi! </strong>
-            <span className="block sm:inline">{error}</span>
+          <div className="text-center py-8">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-600 font-medium">Lỗi tải dữ liệu</p>
+              <p className="text-red-500 text-sm mt-1">{error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+              >
+                Thử lại
+              </button>
+            </div>
           </div>
         )}
 
@@ -190,7 +291,7 @@ const StaffAppointmentManagement: React.FC = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Thông tin bệnh nhân
+                      Mã lịch hẹn & Thông tin
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Thời gian
@@ -207,66 +308,94 @@ const StaffAppointmentManagement: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredAppointments.map((appointment) => (
-                    <tr key={appointment._id}>
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-gray-900 flex items-center gap-2">
-                          {appointment.customerName}
-                          {appointment.isAnonymous && (
-                            <span className="ml-2 px-2 py-0.5 bg-pink-100 text-pink-700 text-xs rounded-full font-semibold">Ẩn danh</span>
-                          )}
-                        </div>
-                        <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                          <Phone className="inline w-4 h-4 mr-1" />
-                          {appointment.customerPhone}
-                        </div>
-                        <div className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                          <Mail className="inline w-4 h-4 mr-1" />
-                          {appointment.customerEmail}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">{appointment.bookingCode}</div>
-                        <div className="text-sm text-gray-500">
-                          {appointment.bookingDate ? new Date(appointment.bookingDate).toLocaleDateString('vi-VN') : ''}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {appointment.startTime} - {appointment.endTime}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-blue-700">{appointment.serviceId?.serviceName}</div>
-                        <div className="text-xs text-gray-500">{appointment.serviceId?.serviceDescription}</div>
-                        <div className="text-xs text-gray-400">Bác sĩ: {appointment.doctorName || appointment.serviceId?.doctorName}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          appointment.status === 'confirmed'
-                            ? 'bg-green-100 text-green-800'
-                            : appointment.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {appointment.status === 'confirmed'
-                            ? 'Đã xác nhận'
-                            : appointment.status === 'pending'
-                            ? 'Chờ xác nhận'
-                            : 'Đã hủy'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <select
-                          value={appointment.status}
-                          onChange={(e) => handleStatusChange(appointment._id, e.target.value as 'confirmed' | 'pending' | 'cancelled')}
-                          className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                        >
-                          <option value="confirmed">Đã xác nhận</option>
-                          <option value="pending">Chờ xác nhận</option>
-                          <option value="cancelled">Đã hủy</option>
-                        </select>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredAppointments.map((appointment) => {
+                    const patientInfo = getPatientDisplayInfo(appointment);
+                    return (
+                      <tr key={appointment._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-blue-600">{appointment.bookingCode || 'N/A'}</div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            <div className="flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              <span>Bệnh nhân: {patientInfo.name}</span>
+                              {appointment.isAnonymous && (
+                                <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded">Ẩn danh</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 mt-1">
+                              <Phone className="w-3 h-3" />
+                              <span>SĐT: {patientInfo.phone}</span>
+                            </div>
+                            <div className="flex items-center gap-1 mt-1">
+                              <Mail className="w-3 h-3" />
+                              <span>Email: {patientInfo.email}</span>
+                            </div>
+                            <div className="mt-2">
+                              <span>Bác sĩ: {patientInfo.doctorName}</span>
+                            </div>
+                            <div className="mt-1">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                appointment.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                appointment.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                appointment.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {appointment.status === 'confirmed' && <CheckCircle2 className="w-3 h-3 mr-1" />}
+                                {appointment.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
+                                {appointment.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
+                                {appointment.status === 'confirmed' ? 'Đã xác nhận' :
+                                 appointment.status === 'pending' ? 'Chờ xác nhận' :
+                                 appointment.status === 'cancelled' ? 'Đã hủy' :
+                                 appointment.status}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">
+                            {appointment.bookingDate ? new Date(appointment.bookingDate).toLocaleDateString('vi-VN') : 'N/A'}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {appointment.startTime || 'N/A'} - {appointment.endTime || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-blue-700">
+                            {appointment.serviceId?.serviceName || 'Không xác định'}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {appointment.serviceId?.serviceDescription || 'Không có mô tả'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            appointment.status === 'confirmed'
+                              ? 'bg-green-100 text-green-800'
+                              : appointment.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {appointment.status === 'confirmed'
+                              ? 'Đã xác nhận'
+                              : appointment.status === 'pending'
+                              ? 'Chờ xác nhận'
+                              : 'Đã hủy'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <select
+                            value={appointment.status}
+                            onChange={(e) => handleStatusChange(appointment._id, e.target.value as 'confirmed' | 'pending' | 'cancelled')}
+                            className="text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="confirmed">Đã xác nhận</option>
+                            <option value="pending">Chờ xác nhận</option>
+                            <option value="cancelled">Đã hủy</option>
+                          </select>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -275,13 +404,15 @@ const StaffAppointmentManagement: React.FC = () => {
 
         {/* Empty State */}
         {!loading && !error && filteredAppointments.length === 0 && (
-          <div className="text-center py-8">
-            <div className="text-gray-400 mb-2">
-              <Calendar className="w-12 h-12 mx-auto" />
+          <div className="text-center p-8">
+            <div className="text-gray-400 mb-4">
+              <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900">Không có lịch hẹn nào</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Hãy thử thay đổi bộ lọc hoặc tạo lịch hẹn mới
+            <p className="text-gray-500 font-medium">Không tìm thấy lịch hẹn nào</p>
+            <p className="text-gray-400 text-sm mt-1">
+              {search ? 'Thử thay đổi từ khóa tìm kiếm' : 'Chưa có lịch hẹn nào được tạo'}
             </p>
           </div>
         )}
