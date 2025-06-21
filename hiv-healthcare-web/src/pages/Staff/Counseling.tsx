@@ -11,7 +11,11 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
-  Send
+  Send,
+  Eye,
+  EyeOff,
+  Phone,
+  Mail
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -20,6 +24,8 @@ interface Booking {
   _id: string;
   bookingCode: string;
   customerName: string;
+  customerPhone?: string;
+  customerEmail?: string;
   serviceId: {
     serviceName: string;
   };
@@ -28,6 +34,7 @@ interface Booking {
   doctorName: string;
   status: 'confirmed' | 'pending' | 'cancelled';
   meetLink?: string;
+  isAnonymous?: boolean;
 }
 
 const StaffCounseling: React.FC = () => {
@@ -35,6 +42,7 @@ const StaffCounseling: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState<string>('');
+  const [showPatientInfo, setShowPatientInfo] = useState<boolean>(false);
   
   // State cho modal
   const [showMeetLinkModal, setShowMeetLinkModal] = useState<boolean>(false);
@@ -42,19 +50,83 @@ const StaffCounseling: React.FC = () => {
   const [meetLinkInput, setMeetLinkInput] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // Hàm ẩn danh tên bệnh nhân
+  const anonymizeName = (name: string): string => {
+    if (!name) return 'Không xác định';
+    const words = name.trim().split(' ');
+    if (words.length === 1) {
+      return words[0].charAt(0) + '*'.repeat(words[0].length - 1);
+    }
+    return words[0].charAt(0) + '*'.repeat(words[0].length - 1) + ' ' + 
+           words[words.length - 1].charAt(0) + '*'.repeat(words[words.length - 1].length - 1);
+  };
+
+  // Hàm ẩn danh tên bác sĩ
+  const anonymizeDoctorName = (name: string): string => {
+    if (!name) return 'BS. Không xác định';
+    const words = name.trim().split(' ');
+    if (words.length === 1) {
+      return 'BS. ' + words[0].charAt(0) + '*'.repeat(words[0].length - 1);
+    }
+    return 'BS. ' + words[0].charAt(0) + '*'.repeat(words[0].length - 1) + ' ' + 
+           words[words.length - 1].charAt(0) + '*'.repeat(words[words.length - 1].length - 1);
+  };
+
+  // Hàm hiển thị thông tin bệnh nhân
+  const getPatientDisplayInfo = (booking: Booking) => {
+    const isAnonymous = booking.isAnonymous;
+    
+    if (isAnonymous) {
+      // Nếu là booking ẩn danh, luôn ẩn thông tin
+      return {
+        name: anonymizeName(booking.customerName || ''),
+        phone: '***-***-****',
+        email: '***@***.***',
+        doctorName: anonymizeDoctorName(booking.doctorName || '')
+      };
+    } else {
+      // Nếu không phải ẩn danh, hiển thị theo toggle
+      if (showPatientInfo) {
+        return {
+          name: booking.customerName || 'Không xác định',
+          phone: booking.customerPhone || 'Không có',
+          email: booking.customerEmail || 'Không có',
+          doctorName: booking.doctorName || 'Chưa phân công'
+        };
+      } else {
+        return {
+          name: anonymizeName(booking.customerName || ''),
+          phone: '***-***-****',
+          email: '***@***.***',
+          doctorName: anonymizeDoctorName(booking.doctorName || '')
+        };
+      }
+    }
+  };
+
   // Lấy dữ liệu booking từ API
   useEffect(() => {
     const fetchBookings = async () => {
       try {
         setLoading(true);
+        setError(null);
+        console.log('Fetching bookings from API...');
+        
         const response = await fetch('http://localhost:5000/api/bookings');
+        console.log('API Response status:', response.status);
+        
         if (!response.ok) {
-          throw new Error('Không thể tải dữ liệu lịch hẹn');
+          const errorData = await response.text();
+          console.error('API Error:', errorData);
+          throw new Error(`Không thể tải dữ liệu lịch hẹn: ${response.status} ${response.statusText}`);
         }
+        
         const data = await response.json();
-        // Bỏ lọc để hiển thị tất cả các lịch hẹn
+        console.log('API Data received:', data);
+        
         setBookings(data);
       } catch (err: any) {
+        console.error('Error fetching bookings:', err);
         setError(err.message);
         toast.error(err.message);
       } finally {
@@ -72,21 +144,28 @@ const StaffCounseling: React.FC = () => {
     }
     setIsSubmitting(true);
     try {
+      console.log('Updating meetLink for booking:', selectedBooking._id);
+      console.log('New meetLink:', meetLinkInput);
+      
       const response = await fetch(`http://localhost:5000/api/bookings/${selectedBooking._id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          // Thêm Authorization header nếu API yêu cầu
-          // 'Authorization': `Bearer ${your_token}`
         },
         body: JSON.stringify({ meetLink: meetLinkInput }),
       });
 
+      console.log('Update response status:', response.status);
+
       if (!response.ok) {
-        throw new Error('Cập nhật link thất bại.');
+        const errorData = await response.text();
+        console.error('Update error:', errorData);
+        throw new Error(`Cập nhật link thất bại: ${response.status} ${response.statusText}`);
       }
 
-      // Cập nhật lại state và đóng modal
+      const updatedBooking = await response.json();
+      console.log('Updated booking:', updatedBooking);
+
       setBookings(prev =>
         prev.map(b => (b._id === selectedBooking._id ? { ...b, meetLink: meetLinkInput } : b))
       );
@@ -96,6 +175,7 @@ const StaffCounseling: React.FC = () => {
       setMeetLinkInput('');
 
     } catch (err: any) {
+      console.error('Error updating meetLink:', err);
       toast.error(err.message);
     } finally {
       setIsSubmitting(false);
@@ -111,26 +191,37 @@ const StaffCounseling: React.FC = () => {
   
   // Lọc danh sách booking
   const filteredBookings = bookings.filter(booking =>
-    booking.customerName.toLowerCase().includes(search.toLowerCase()) ||
-    booking.doctorName.toLowerCase().includes(search.toLowerCase()) ||
-    booking.bookingCode.toLowerCase().includes(search.toLowerCase())
+    (booking.customerName?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (booking.doctorName?.toLowerCase() || '').includes(search.toLowerCase()) ||
+    (booking.bookingCode?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý Tư vấn trực tuyến</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Thêm link Google Meet và quản lý các buổi tư vấn đã được xác nhận.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Quản lý Tư vấn trực tuyến</h1>
+              <p className="mt-2 text-sm text-gray-600">
+                Thêm link Google Meet và quản lý các buổi tư vấn. Thông tin ẩn danh chỉ áp dụng cho booking ẩn danh.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowPatientInfo(!showPatientInfo)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+            >
+              {showPatientInfo ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {showPatientInfo ? 'Ẩn thông tin' : 'Hiện thông tin'}
+            </button>
+          </div>
         </div>
 
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <div className="relative">
             <input
               type="text"
-              placeholder="Tìm kiếm theo tên bệnh nhân, bác sĩ, hoặc mã lịch hẹn..."
+              placeholder="Tìm kiếm theo mã lịch hẹn..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -139,8 +230,26 @@ const StaffCounseling: React.FC = () => {
           </div>
         </div>
         
-        {loading && <div className="text-center py-4">Đang tải dữ liệu...</div>}
-        {error && <div className="text-center py-4 text-red-500">{error}</div>}
+        {loading && (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-2 text-gray-600">Đang tải dữ liệu lịch hẹn...</p>
+          </div>
+        )}
+        {error && (
+          <div className="text-center py-8">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-600 font-medium">Lỗi tải dữ liệu</p>
+              <p className="text-red-500 text-sm mt-1">{error}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
+              >
+                Thử lại
+              </button>
+            </div>
+          </div>
+        )}
 
         {!loading && !error && (
           <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -148,53 +257,103 @@ const StaffCounseling: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bệnh nhân & Bác sĩ</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã lịch hẹn & Thông tin</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dịch vụ & Thời gian</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Link Google Meet</th>
                     <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredBookings.map((booking) => (
-                    <tr key={booking._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-gray-800">{booking.customerName}</div>
-                        <div className="text-sm text-gray-500 mt-1">BS: {booking.doctorName}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-blue-600">{booking.serviceId.serviceName}</div>
-                        <div className="text-sm text-gray-500 mt-1">
-                          {new Date(booking.bookingDate).toLocaleDateString('vi-VN')} - {booking.startTime}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {booking.meetLink ? (
-                          <div className="flex items-center gap-2">
-                            <a href={booking.meetLink} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline truncate max-w-xs">
-                              {booking.meetLink}
-                            </a>
-                            <Copy className="w-4 h-4 text-gray-500 cursor-pointer hover:text-blue-600" onClick={() => { navigator.clipboard.writeText(booking.meetLink!); toast.info("Đã sao chép link!"); }} />
+                  {filteredBookings.map((booking) => {
+                    const patientInfo = getPatientDisplayInfo(booking);
+                    return (
+                      <tr key={booking._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-blue-600">{booking.bookingCode || 'N/A'}</div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            <div className="flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              <span>Bệnh nhân: {patientInfo.name}</span>
+                              {booking.isAnonymous && (
+                                <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded">Ẩn danh</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 mt-1">
+                              <Phone className="w-3 h-3" />
+                              <span>SĐT: {patientInfo.phone}</span>
+                            </div>
+                            <div className="flex items-center gap-1 mt-1">
+                              <Mail className="w-3 h-3" />
+                              <span>Email: {patientInfo.email}</span>
+                            </div>
+                            <div className="mt-2">
+                              <span>Bác sĩ: {patientInfo.doctorName}</span>
+                            </div>
+                            <div className="mt-1">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {booking.status === 'confirmed' && <CheckCircle className="w-3 h-3 mr-1" />}
+                                {booking.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
+                                {booking.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
+                                {booking.status === 'confirmed' ? 'Đã xác nhận' :
+                                 booking.status === 'pending' ? 'Chờ xác nhận' :
+                                 booking.status === 'cancelled' ? 'Đã hủy' :
+                                 booking.status}
+                              </span>
+                            </div>
                           </div>
-                        ) : (
-                          <span className="text-sm text-gray-400">Chưa có link</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button 
-                          onClick={() => openModal(booking)}
-                          className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-md text-sm font-medium"
-                        >
-                          Thêm/Sửa Link
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-blue-600">
+                            {booking.serviceId?.serviceName || 'Không xác định'}
+                          </div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            {booking.bookingDate ? 
+                              new Date(booking.bookingDate).toLocaleDateString('vi-VN') : 'N/A'
+                            } - {booking.startTime || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {booking.meetLink ? (
+                            <div className="flex items-center gap-2">
+                              <a href={booking.meetLink} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline truncate max-w-xs">
+                                {booking.meetLink}
+                              </a>
+                              <Copy className="w-4 h-4 text-gray-500 cursor-pointer hover:text-blue-600" onClick={() => { navigator.clipboard.writeText(booking.meetLink!); toast.info("Đã sao chép link!"); }} />
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">Chưa có link</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <button 
+                            onClick={() => openModal(booking)}
+                            className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-md text-sm font-medium"
+                          >
+                            Thêm/Sửa Link
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
               {filteredBookings.length === 0 && (
-                  <div className="text-center p-6 text-gray-500">
-                      Không tìm thấy lịch hẹn nào phù hợp.
+                <div className="text-center p-8">
+                  <div className="text-gray-400 mb-4">
+                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
                   </div>
+                  <p className="text-gray-500 font-medium">Không tìm thấy lịch hẹn nào</p>
+                  <p className="text-gray-400 text-sm mt-1">
+                    {search ? 'Thử thay đổi từ khóa tìm kiếm' : 'Chưa có lịch hẹn nào được tạo'}
+                  </p>
+                </div>
               )}
             </div>
           </div>
@@ -208,9 +367,23 @@ const StaffCounseling: React.FC = () => {
                 Thêm Link Google Meet
               </h3>
               <div className="space-y-4">
-                <p className="text-sm">
-                  Cung cấp link Google Meet cho buổi tư vấn của bệnh nhân <span className="font-semibold">{selectedBooking.customerName}</span> với bác sĩ <span className="font-semibold">{selectedBooking.doctorName}</span>.
-                </p>
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-2">
+                    <strong>Mã lịch hẹn:</strong> {selectedBooking.bookingCode || 'N/A'}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    <strong>Bệnh nhân:</strong> {getPatientDisplayInfo(selectedBooking).name}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    <strong>SĐT:</strong> {getPatientDisplayInfo(selectedBooking).phone}
+                  </p>
+                  <p className="text-sm text-gray-600 mb-2">
+                    <strong>Email:</strong> {getPatientDisplayInfo(selectedBooking).email}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <strong>Bác sĩ:</strong> {getPatientDisplayInfo(selectedBooking).doctorName}
+                  </p>
+                </div>
                 <div>
                   <label htmlFor="meetLink" className="block text-sm font-medium text-gray-700 mb-1">
                     Đường dẫn Google Meet
