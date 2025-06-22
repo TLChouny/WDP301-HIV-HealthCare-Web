@@ -2,9 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useServiceContext } from "../../context/ServiceContext";
 import { Service } from "../../types/service";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Calendar, Clock, MapPin } from "lucide-react";
 import { getServiceById } from "../../api/serviceApi";
-import { Calendar } from "lucide-react"; // Thêm icon nếu muốn
 
 const ServiceDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,54 +27,127 @@ const ServiceDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-[40vh]">
-        <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <div className="text-center">
+          <Loader2 className="animate-spin h-10 w-10 text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Đang tải thông tin dịch vụ...</p>
+        </div>
       </div>
     );
   }
 
   if (!service) {
     return (
-      <div className="text-center text-gray-500 py-20">
-        Không tìm thấy dịch vụ.
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="text-center">
+          <div className="text-6xl mb-4">😕</div>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-2">Không tìm thấy dịch vụ</h2>
+          <p className="text-gray-600 mb-6">Dịch vụ bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
+          >
+            Quay lại trang trước
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-12 px-4">
-      <button
-        className="mb-6 flex items-center text-blue-600 hover:underline"
-        onClick={() => navigate(-1)}
-      >
-        <ArrowLeft className="mr-2 h-5 w-5" />
-        Quay lại
-      </button>
-      <div className="bg-white rounded-2xl shadow-lg p-8">
-        {service.serviceImage && (
-          <img
-            src={service.serviceImage}
-            alt={service.serviceName}
-            className="w-full h-64 object-cover rounded-xl mb-6"
-          />
-        )}
-        <h1 className="text-3xl font-bold mb-4 text-gray-900">{service.serviceName}</h1>
-        {service.price && (
-          <div className="text-xl font-semibold text-blue-600 mb-4">
-            {typeof service.price === "number"
-              ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(service.price)
-              : service.price}
-          </div>
-        )}
-        <div className="text-gray-700 text-lg mb-6">{service.serviceDescription}</div>
-        {/* Nút đặt lịch khám */}
+    <div className="bg-gray-50">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Back Button */}
         <button
-          className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-2 text-lg transition-all duration-300"
-          onClick={() => navigate(`/appointment?serviceId=${service._id}`)}
+          className="mb-6 flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+          onClick={() => navigate(-1)}
         >
-          <Calendar className="h-5 w-5 mr-2" />
-          Đặt lịch khám với dịch vụ này
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          <span className="text-sm font-medium">Quay lại</span>
         </button>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          {/* Hero Section */}
+          <div className="relative">
+            {service.serviceImage && (
+              <div className="h-80 w-full overflow-hidden">
+                <img
+                  src={service.serviceImage}
+                  alt={service.serviceName}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+          </div>
+
+          {/* Content Section */}
+          <div className="p-8">
+            {/* Header */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-gray-900 mb-3">{service.serviceName}</h1>
+              {service.price && (
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl font-bold text-blue-600">
+                    {typeof service.price === "number"
+                      ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(service.price)
+                      : service.price}
+                  </span>
+                  <span className="text-sm text-gray-500">/ lần khám</span>
+                </div>
+              )}
+            </div>
+
+            {/* Service Info Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+              <div className="flex items-center p-4 bg-blue-50 rounded-xl">
+                <Clock className="h-5 w-5 text-blue-600 mr-3" />
+                <div>
+                  <p className="text-sm text-gray-600">Thời gian</p>
+                  <p className="font-medium text-gray-900">30-60 phút</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 bg-green-50 rounded-xl">
+                <MapPin className="h-5 w-5 text-green-600 mr-3" />
+                <div>
+                  <p className="text-sm text-gray-600">Địa điểm</p>
+                  <p className="font-medium text-gray-900">Phòng khám</p>
+                </div>
+              </div>
+              <div className="flex items-center p-4 bg-purple-50 rounded-xl">
+                <Calendar className="h-5 w-5 text-purple-600 mr-3" />
+                <div>
+                  <p className="text-sm text-gray-600">Đặt lịch</p>
+                  <p className="font-medium text-gray-900">Trực tuyến</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Mô tả dịch vụ</h3>
+              <div className="prose prose-gray max-w-none">
+                <p className="text-gray-700 leading-relaxed text-base">
+                  {service.serviceDescription}
+                </p>
+              </div>
+            </div>
+
+            {/* CTA Button */}
+            <div className="border-t border-gray-100 pt-6">
+              <button
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-6 rounded-xl flex items-center justify-center gap-3 text-lg transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                onClick={() => navigate(`/appointment?serviceId=${service._id}`)}
+              >
+                <Calendar className="h-5 w-5" />
+                Đặt lịch khám ngay
+              </button>
+              <p className="text-center text-sm text-gray-500 mt-3">
+                Đặt lịch nhanh chóng và thuận tiện
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
