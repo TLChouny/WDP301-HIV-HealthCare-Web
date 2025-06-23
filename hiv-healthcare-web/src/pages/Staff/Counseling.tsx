@@ -196,6 +196,31 @@ const StaffCounseling: React.FC = () => {
     (booking.bookingCode?.toLowerCase() || '').includes(search.toLowerCase())
   );
 
+  // Sắp xếp danh sách booking theo ngày và giờ
+  const sortedBookings = [...filteredBookings].sort((a, b) => {
+    // So sánh ngày trước
+    const dateA = new Date(a.bookingDate);
+    const dateB = new Date(b.bookingDate);
+    if (dateA.getTime() !== dateB.getTime()) {
+      return dateA.getTime() - dateB.getTime();
+    }
+    
+    // Nếu cùng ngày, so sánh giờ bắt đầu
+    const timeA = a.startTime || '';
+    const timeB = b.startTime || '';
+    return timeA.localeCompare(timeB);
+  });
+
+  // Nhóm các booking theo ngày
+  const groupedBookings = sortedBookings.reduce((groups, booking) => {
+    const date = new Date(booking.bookingDate).toLocaleDateString('vi-VN');
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(booking);
+    return groups;
+  }, {} as Record<string, Booking[]>);
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -251,110 +276,124 @@ const StaffCounseling: React.FC = () => {
           </div>
         )}
 
+        {!loading && !error && sortedBookings.length === 0 && (
+          <div className="text-center p-8">
+            <div className="text-gray-400 mb-4">
+              <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <p className="text-gray-500 font-medium">Không tìm thấy lịch hẹn nào</p>
+            <p className="text-gray-400 text-sm mt-1">
+              {search ? 'Thử thay đổi từ khóa tìm kiếm' : 'Chưa có lịch hẹn nào được tạo'}
+            </p>
+          </div>
+        )}
+
         {!loading && !error && (
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã lịch hẹn & Thông tin</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dịch vụ & Thời gian</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Link Google Meet</th>
-                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredBookings.map((booking) => {
-                    const patientInfo = getPatientDisplayInfo(booking);
-                    return (
-                      <tr key={booking._id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4">
-                          <div className="font-semibold text-blue-600">{booking.bookingCode || 'N/A'}</div>
-                          <div className="text-sm text-gray-500 mt-1">
-                            <div className="flex items-center gap-1">
-                              <User className="w-3 h-3" />
-                              <span>Bệnh nhân: {patientInfo.name}</span>
-                              {booking.isAnonymous && (
-                                <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded">Ẩn danh</span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1 mt-1">
-                              <Phone className="w-3 h-3" />
-                              <span>SĐT: {patientInfo.phone}</span>
-                            </div>
-                            <div className="flex items-center gap-1 mt-1">
-                              <Mail className="w-3 h-3" />
-                              <span>Email: {patientInfo.email}</span>
-                            </div>
-                            <div className="mt-2">
-                              <span>Bác sĩ: {patientInfo.doctorName}</span>
-                            </div>
-                            <div className="mt-1">
-                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                                booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {booking.status === 'confirmed' && <CheckCircle className="w-3 h-3 mr-1" />}
-                                {booking.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
-                                {booking.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
-                                {booking.status === 'confirmed' ? 'Đã xác nhận' :
-                                 booking.status === 'pending' ? 'Chờ xác nhận' :
-                                 booking.status === 'cancelled' ? 'Đã hủy' :
-                                 booking.status}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="font-semibold text-blue-600">
-                            {booking.serviceId?.serviceName || 'Không xác định'}
-                          </div>
-                          <div className="text-sm text-gray-500 mt-1">
-                            {booking.bookingDate ? 
-                              new Date(booking.bookingDate).toLocaleDateString('vi-VN') : 'N/A'
-                            } - {booking.startTime || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          {booking.meetLink ? (
-                            <div className="flex items-center gap-2">
-                              <a href={booking.meetLink} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline truncate max-w-xs">
-                                {booking.meetLink}
-                              </a>
-                              <Copy className="w-4 h-4 text-gray-500 cursor-pointer hover:text-blue-600" onClick={() => { navigator.clipboard.writeText(booking.meetLink!); toast.info("Đã sao chép link!"); }} />
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400">Chưa có link</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          <button 
-                            onClick={() => openModal(booking)}
-                            className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-md text-sm font-medium"
-                          >
-                            Thêm/Sửa Link
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              {filteredBookings.length === 0 && (
-                <div className="text-center p-8">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
+              {Object.entries(groupedBookings).map(([date, dateBookings]) => (
+                <div key={date} className="mb-6">
+                  <div className="bg-gray-100 px-6 py-3">
+                    <h3 className="text-lg font-semibold text-gray-800">
+                      Ngày: {date}
+                    </h3>
                   </div>
-                  <p className="text-gray-500 font-medium">Không tìm thấy lịch hẹn nào</p>
-                  <p className="text-gray-400 text-sm mt-1">
-                    {search ? 'Thử thay đổi từ khóa tìm kiếm' : 'Chưa có lịch hẹn nào được tạo'}
-                  </p>
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase w-16">STT</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã lịch hẹn & Thông tin</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dịch vụ & Thời gian</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Link Google Meet</th>
+                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {dateBookings.map((booking, index) => {
+                        const patientInfo = getPatientDisplayInfo(booking);
+                        return (
+                          <tr key={booking._id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 text-sm text-gray-900">
+                              {index + 1}
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="font-semibold text-blue-600">{booking.bookingCode || 'N/A'}</div>
+                              <div className="text-sm text-gray-500 mt-1">
+                                <div className="flex items-center gap-1">
+                                  <User className="w-3 h-3" />
+                                  <span>Bệnh nhân: {patientInfo.name}</span>
+                                  {booking.isAnonymous && (
+                                    <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded">Ẩn danh</span>
+                                  )}
+                                </div>
+                                <div className="flex items-center gap-1 mt-1">
+                                  <Phone className="w-3 h-3" />
+                                  <span>SĐT: {patientInfo.phone}</span>
+                                </div>
+                                <div className="flex items-center gap-1 mt-1">
+                                  <Mail className="w-3 h-3" />
+                                  <span>Email: {patientInfo.email}</span>
+                                </div>
+                                <div className="mt-2">
+                                  <span>Bác sĩ: {patientInfo.doctorName}</span>
+                                </div>
+                                <div className="mt-1">
+                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                    booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                    booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                    booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                    'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {booking.status === 'confirmed' && <CheckCircle className="w-3 h-3 mr-1" />}
+                                    {booking.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
+                                    {booking.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
+                                    {booking.status === 'confirmed' ? 'Đã xác nhận' :
+                                     booking.status === 'pending' ? 'Chờ xác nhận' :
+                                     booking.status === 'cancelled' ? 'Đã hủy' :
+                                     booking.status}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="font-semibold text-blue-600">
+                                {booking.serviceId?.serviceName || 'Không xác định'}
+                              </div>
+                              <div className="text-sm text-gray-500 mt-1">
+                                {booking.bookingDate ? 
+                                  new Date(booking.bookingDate).toLocaleDateString('vi-VN') : 'N/A'
+                                } - {booking.startTime || 'N/A'}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4">
+                              {booking.meetLink ? (
+                                <div className="flex items-center gap-2">
+                                  <a href={booking.meetLink} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline truncate max-w-xs">
+                                    {booking.meetLink}
+                                  </a>
+                                  <Copy className="w-4 h-4 text-gray-500 cursor-pointer hover:text-blue-600" onClick={() => { navigator.clipboard.writeText(booking.meetLink!); toast.info("Đã sao chép link!"); }} />
+                                </div>
+                              ) : (
+                                <span className="text-sm text-gray-400">Chưa có link</span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              <button 
+                                onClick={() => openModal(booking)}
+                                className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-md text-sm font-medium"
+                              >
+                                Thêm/Sửa Link
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-              )}
+              ))}
             </div>
           </div>
         )}

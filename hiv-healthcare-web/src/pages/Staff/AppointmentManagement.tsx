@@ -223,6 +223,21 @@ const StaffAppointmentManagement: React.FC = () => {
     return matchesSearch && matchesDate && matchesStatus;
   });
 
+  // Sắp xếp lịch hẹn theo ngày và giờ
+  const sortedAppointments = [...filteredAppointments].sort((a, b) => {
+    // So sánh ngày trước
+    const dateA = new Date(a.bookingDate);
+    const dateB = new Date(b.bookingDate);
+    if (dateA.getTime() !== dateB.getTime()) {
+      return dateA.getTime() - dateB.getTime();
+    }
+    
+    // Nếu cùng ngày, so sánh giờ bắt đầu
+    const timeA = a.startTime || '';
+    const timeB = b.startTime || '';
+    return timeA.localeCompare(timeB);
+  });
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -354,7 +369,7 @@ const StaffAppointmentManagement: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredAppointments.map((appointment) => {
+                  {sortedAppointments.map((appointment) => {
                     const patientInfo = getPatientDisplayInfo(appointment);
                     return (
                       <tr key={appointment._id} className="hover:bg-gray-50">
@@ -449,7 +464,7 @@ const StaffAppointmentManagement: React.FC = () => {
         )}
 
         {/* Empty State */}
-        {!loading && !error && filteredAppointments.length === 0 && (
+        {!loading && !error && sortedAppointments.length === 0 && (
           <div className="text-center p-8">
             <div className="text-gray-400 mb-4">
               <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
