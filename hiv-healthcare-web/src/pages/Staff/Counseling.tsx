@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Video,
-  Calendar,
   Clock,
   User,
   Link,
@@ -15,9 +14,12 @@ import {
   Eye,
   EyeOff,
   Phone,
-  Mail
+  Mail,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 
 // Interface cho dữ liệu booking từ API
 interface Booking {
@@ -37,11 +39,21 @@ interface Booking {
   isAnonymous?: boolean;
 }
 
+// Định nghĩa interface cho tham số của tileContent
+interface TileContentParams {
+  date: Date;
+  view: string;
+}
+
+type CalendarValue = Date | null;
+
 const StaffCounseling: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState<string>('');
+  const [selectedDate, setSelectedDate] = useState<CalendarValue>(null);
+  const [showCalendar, setShowCalendar] = useState<boolean>(false);
   const [showPatientInfo, setShowPatientInfo] = useState<boolean>(false);
   
   // State cho modal
@@ -136,6 +148,30 @@ const StaffCounseling: React.FC = () => {
     fetchBookings();
   }, []);
 
+  // Lấy danh sách các ngày có lịch hẹn (dạng Date)
+  const appointmentDates = bookings.map(b => new Date(b.bookingDate));
+
+  // Lọc danh sách booking
+  const filteredBookings = bookings.filter(booking => {
+    const matchesSearch = (
+      (booking.customerName?.toLowerCase() || '').includes(search.toLowerCase()) ||
+      (booking.doctorName?.toLowerCase() || '').includes(search.toLowerCase()) ||
+      (booking.bookingCode?.toLowerCase() || '').includes(search.toLowerCase())
+    );
+
+    const matchesDate = selectedDate
+      ? new Date(booking.bookingDate).toDateString() === selectedDate.toDateString()
+      : true;
+
+    return matchesSearch && matchesDate;
+  });
+
+  // Reset selected date
+  const handleResetDate = () => {
+    setSelectedDate(null);
+    setShowCalendar(false);
+  };
+
   // Hàm cập nhật link Google Meet
   const handleUpdateMeetLink = async () => {
     if (!selectedBooking || !meetLinkInput) {
@@ -189,13 +225,6 @@ const StaffCounseling: React.FC = () => {
     setShowMeetLinkModal(true);
   };
   
-  // Lọc danh sách booking
-  const filteredBookings = bookings.filter(booking =>
-    (booking.customerName?.toLowerCase() || '').includes(search.toLowerCase()) ||
-    (booking.doctorName?.toLowerCase() || '').includes(search.toLowerCase()) ||
-    (booking.bookingCode?.toLowerCase() || '').includes(search.toLowerCase())
-  );
-
   // Sắp xếp danh sách booking theo ngày và giờ
   const sortedBookings = [...filteredBookings].sort((a, b) => {
     // So sánh ngày trước
@@ -243,15 +272,67 @@ const StaffCounseling: React.FC = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Tìm kiếm theo mã lịch hẹn..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <div className="flex gap-4">
+            <div className="flex-1 relative">
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo mã lịch hẹn..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            </div>
+
+            <div className="relative">
+              <button
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center gap-2"
+              >
+                <CalendarIcon className="w-5 h-5 text-gray-500" />
+                <span className="text-gray-700">
+                  {selectedDate ? new Date(selectedDate).toLocaleDateString('vi-VN') : 'Chọn ngày'}
+                </span>
+              </button>
+
+              {showCalendar && (
+                <div className="absolute right-0 mt-2 z-10 bg-white rounded-lg shadow-lg p-4">
+                  <Calendar
+                    onChange={(value) => {
+                      if (value instanceof Date) {
+                        setSelectedDate(value);
+                        setShowCalendar(false);
+                      }
+                    }}
+                    value={selectedDate}
+                    locale="vi-VN"
+                    tileContent={({ date, view }: { date: Date; view: string }) => {
+                      // Đánh dấu chấm cho ngày có lịch hẹn
+                      if (view === 'month' && appointmentDates.some(d => 
+                        d.toDateString() === date.toDateString()
+                      )) {
+                        return (
+                          <div className="flex justify-center">
+                            <span className="h-1 w-1 bg-blue-500 rounded-full"></span>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  {selectedDate && (
+                    <div className="mt-2 flex justify-end">
+                      <button
+                        onClick={handleResetDate}
+                        className="text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        Xóa lọc ngày
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         
@@ -300,98 +381,98 @@ const StaffCounseling: React.FC = () => {
                       Ngày: {date}
                     </h3>
                   </div>
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase w-16">STT</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã lịch hẹn & Thông tin</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dịch vụ & Thời gian</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Link Google Meet</th>
-                        <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Thao tác</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã lịch hẹn & Thông tin</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dịch vụ & Thời gian</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Link Google Meet</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
                       {dateBookings.map((booking, index) => {
-                        const patientInfo = getPatientDisplayInfo(booking);
-                        return (
-                          <tr key={booking._id} className="hover:bg-gray-50">
+                    const patientInfo = getPatientDisplayInfo(booking);
+                    return (
+                      <tr key={booking._id} className="hover:bg-gray-50">
                             <td className="px-6 py-4 text-sm text-gray-900">
                               {index + 1}
                             </td>
-                            <td className="px-6 py-4">
-                              <div className="font-semibold text-blue-600">{booking.bookingCode || 'N/A'}</div>
-                              <div className="text-sm text-gray-500 mt-1">
-                                <div className="flex items-center gap-1">
-                                  <User className="w-3 h-3" />
-                                  <span>Bệnh nhân: {patientInfo.name}</span>
-                                  {booking.isAnonymous && (
-                                    <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded">Ẩn danh</span>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-1 mt-1">
-                                  <Phone className="w-3 h-3" />
-                                  <span>SĐT: {patientInfo.phone}</span>
-                                </div>
-                                <div className="flex items-center gap-1 mt-1">
-                                  <Mail className="w-3 h-3" />
-                                  <span>Email: {patientInfo.email}</span>
-                                </div>
-                                <div className="mt-2">
-                                  <span>Bác sĩ: {patientInfo.doctorName}</span>
-                                </div>
-                                <div className="mt-1">
-                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                    booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
-                                    booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                    booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                    'bg-gray-100 text-gray-800'
-                                  }`}>
-                                    {booking.status === 'confirmed' && <CheckCircle className="w-3 h-3 mr-1" />}
-                                    {booking.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
-                                    {booking.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
-                                    {booking.status === 'confirmed' ? 'Đã xác nhận' :
-                                     booking.status === 'pending' ? 'Chờ xác nhận' :
-                                     booking.status === 'cancelled' ? 'Đã hủy' :
-                                     booking.status}
-                                  </span>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              <div className="font-semibold text-blue-600">
-                                {booking.serviceId?.serviceName || 'Không xác định'}
-                              </div>
-                              <div className="text-sm text-gray-500 mt-1">
-                                {booking.bookingDate ? 
-                                  new Date(booking.bookingDate).toLocaleDateString('vi-VN') : 'N/A'
-                                } - {booking.startTime || 'N/A'}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4">
-                              {booking.meetLink ? (
-                                <div className="flex items-center gap-2">
-                                  <a href={booking.meetLink} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline truncate max-w-xs">
-                                    {booking.meetLink}
-                                  </a>
-                                  <Copy className="w-4 h-4 text-gray-500 cursor-pointer hover:text-blue-600" onClick={() => { navigator.clipboard.writeText(booking.meetLink!); toast.info("Đã sao chép link!"); }} />
-                                </div>
-                              ) : (
-                                <span className="text-sm text-gray-400">Chưa có link</span>
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-blue-600">{booking.bookingCode || 'N/A'}</div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            <div className="flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              <span>Bệnh nhân: {patientInfo.name}</span>
+                              {booking.isAnonymous && (
+                                <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded">Ẩn danh</span>
                               )}
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              <button 
-                                onClick={() => openModal(booking)}
-                                className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-md text-sm font-medium"
-                              >
-                                Thêm/Sửa Link
-                              </button>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                            </div>
+                            <div className="flex items-center gap-1 mt-1">
+                              <Phone className="w-3 h-3" />
+                              <span>SĐT: {patientInfo.phone}</span>
+                            </div>
+                            <div className="flex items-center gap-1 mt-1">
+                              <Mail className="w-3 h-3" />
+                              <span>Email: {patientInfo.email}</span>
+                            </div>
+                            <div className="mt-2">
+                              <span>Bác sĩ: {patientInfo.doctorName}</span>
+                            </div>
+                            <div className="mt-1">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {booking.status === 'confirmed' && <CheckCircle className="w-3 h-3 mr-1" />}
+                                {booking.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
+                                {booking.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
+                                {booking.status === 'confirmed' ? 'Đã xác nhận' :
+                                 booking.status === 'pending' ? 'Chờ xác nhận' :
+                                 booking.status === 'cancelled' ? 'Đã hủy' :
+                                 booking.status}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="font-semibold text-blue-600">
+                            {booking.serviceId?.serviceName || 'Không xác định'}
+                          </div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            {booking.bookingDate ? 
+                              new Date(booking.bookingDate).toLocaleDateString('vi-VN') : 'N/A'
+                            } - {booking.startTime || 'N/A'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          {booking.meetLink ? (
+                            <div className="flex items-center gap-2">
+                              <a href={booking.meetLink} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline truncate max-w-xs">
+                                {booking.meetLink}
+                              </a>
+                              <Copy className="w-4 h-4 text-gray-500 cursor-pointer hover:text-blue-600" onClick={() => { navigator.clipboard.writeText(booking.meetLink!); toast.info("Đã sao chép link!"); }} />
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-400">Chưa có link</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <button 
+                            onClick={() => openModal(booking)}
+                            className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-3 py-1 rounded-md text-sm font-medium"
+                          >
+                            Thêm/Sửa Link
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
                 </div>
               ))}
             </div>
