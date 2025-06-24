@@ -11,6 +11,7 @@ import {
   Twitter,
   X,
   Youtube,
+  Bell,
 } from "react-feather";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
@@ -22,6 +23,7 @@ const Layout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [activeDropdown, setActiveDropdown] = React.useState<string | null>(null);
+  const [showBookingModal, setShowBookingModal] = React.useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
   const { categories } = useCategoryContext();
@@ -31,6 +33,33 @@ const Layout: React.FC = () => {
     location.pathname === "/login" ||
     location.pathname === "/register" ||
     location.pathname === "/forgot-password";
+
+  const bookingUsers = [
+    {
+      fullName: "Nguyễn Văn A",
+      email: "a@gmail.com",
+      phone: "0901234567",
+      bookingDate: "2025-07-01",
+      serviceName: "Xét nghiệm HIV",
+      status: "Đã xác nhận"
+    },
+    {
+      fullName: "Trần Thị B",
+      email: "b@gmail.com",
+      phone: "0912345678",
+      bookingDate: "2025-07-02",
+      serviceName: "Điều trị ARV",
+      status: "Chờ xác nhận"
+    },
+    {
+      fullName: "Lê Văn C",
+      email: "c@gmail.com",
+      phone: "0987654321",
+      bookingDate: "2025-07-03",
+      serviceName: "Tư vấn dinh dưỡng",
+      status: "Đã xác nhận"
+    },
+  ];
 
   // Đóng mobile menu khi route thay đổi
   useEffect(() => {
@@ -201,7 +230,67 @@ const Layout: React.FC = () => {
               </Link>
               <div className="h-6 w-px bg-teal-600"></div>
               {!isAuthPage && user ? (
-                <div className="relative group">
+                <div className="relative group flex items-center">
+                  {/* Bell icon with badge and dropdown */}
+                  <div className="relative">
+                    <button
+                      className="relative mr-3"
+                      onClick={() => toggleDropdown("notificationDesktop")}
+                      aria-label="Thông báo booking"
+                    >
+                      <span className="relative">
+                        <Bell className="w-6 h-6 text-teal-100" />
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5">{bookingUsers.length}</span>
+                      </span>
+                    </button>
+                    {/* Notification Dropdown */}
+                    <div
+                      className={`absolute left-1/2 top-full -translate-x-1/2 mt-2 w-96 bg-white rounded-lg shadow-xl py-2 z-10 transition-all duration-300 ${
+                        activeDropdown === "notificationDesktop"
+                          ? "opacity-100 visible translate-y-0"
+                          : "opacity-0 invisible -translate-y-2"
+                      }`}
+                    >
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <h3 className="text-lg font-semibold text-gray-800">Thông báo đặt lịch</h3>
+                      </div>
+                      <div className="max-h-96 overflow-y-auto">
+                        {bookingUsers.length === 0 ? (
+                          <p className="px-4 py-3 text-gray-500 text-center">Chưa có thông báo nào</p>
+                        ) : (
+                          bookingUsers.map((user, idx) => (
+                            <div key={user.email || idx} className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <p className="font-medium text-gray-800">{user.fullName}</p>
+                                  <p className="text-sm text-gray-600">{user.serviceName}</p>
+                                  <div className="flex items-center mt-1 text-sm text-gray-500">
+                                    <Clock className="w-4 h-4 mr-1" />
+                                    <span>{user.bookingDate}</span>
+                                  </div>
+                                </div>
+                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                  user.status === 'Đã xác nhận' 
+                                    ? 'bg-green-100 text-green-700' 
+                                    : 'bg-yellow-100 text-yellow-700'
+                                }`}>
+                                  {user.status}
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                      <div className="px-4 py-2 border-t border-gray-100">
+                        <button
+                          className="w-full text-center text-sm text-teal-600 hover:text-teal-700 font-medium"
+                          onClick={() => setActiveDropdown(null)}
+                        >
+                          Đóng
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium text-lg uppercase cursor-pointer"
                     onClick={() => toggleDropdown("userDesktop")}
@@ -209,27 +298,33 @@ const Layout: React.FC = () => {
                     {user?.email?.charAt(0) ?? ""}
                   </div>
                   <div
-                    className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-10 transition-all duration-300 ${
+                    className={`absolute left-1/2 top-full -translate-x-1/2 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-20 transition-all duration-300 ${
                       activeDropdown === "userDesktop"
                         ? "opacity-100 visible translate-y-0"
-                        : "opacity-0 invisible translate-y-2"
+                        : "opacity-0 invisible -translate-y-2"
                     }`}
                   >
                     <Link
                       to="/user/profile"
-                      className="block px-4 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-700"
+                      className="block px-5 py-3 text-gray-800 font-medium hover:bg-teal-50 hover:text-teal-700 rounded-lg transition-colors duration-200"
                       onClick={() => setActiveDropdown(null)}
                     >
-                      Hồ sơ
+                      <span className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        Hồ sơ
+                      </span>
                     </Link>
                     <button
                       onClick={() => {
                         logout();
                         setActiveDropdown(null);
                       }}
-                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-700"
+                      className="block w-full text-left px-5 py-3 text-gray-800 font-medium hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors duration-200"
                     >
-                      Đăng xuất
+                      <span className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                        Đăng xuất
+                      </span>
                     </button>
                   </div>
                 </div>

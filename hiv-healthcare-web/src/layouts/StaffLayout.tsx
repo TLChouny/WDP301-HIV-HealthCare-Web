@@ -11,7 +11,8 @@ import {
   ClipboardList,
   MessageSquare,
   Settings,
-  Home
+  Home,
+  Bell
 } from 'lucide-react';
 
 const StaffLayout: React.FC = () => {
@@ -155,6 +156,11 @@ const StaffLayout: React.FC = () => {
             </div>
 
             <div className="flex items-center space-x-4">
+              {/* Icon thông báo cố định */}
+              <div className="relative">
+                <Bell className="w-6 h-6 text-gray-500" />
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">3</span>
+              </div>
               <Link 
                 to="/staff/settings"
                 className="flex items-center space-x-2 text-gray-500 hover:text-gray-600"
