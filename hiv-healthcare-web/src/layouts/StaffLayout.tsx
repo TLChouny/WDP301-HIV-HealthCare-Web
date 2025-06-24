@@ -14,15 +14,44 @@ import {
   Home,
   Bell
 } from 'lucide-react';
+import { logout } from '../api/authApi';
+import { toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const StaffLayout: React.FC = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    // TODO: Add logout logic here (clear tokens, etc.)
-    navigate('/auth/login');
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Không tìm thấy token');
+      }
+      
+      await logout(token);
+      
+      // Xóa token và thông tin user khỏi localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Chuyển về trang chủ và reload lại trang
+      navigate('/');
+      window.location.reload();
+      
+      toast.success('Đăng xuất thành công');
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast.error(error.message || 'Đăng xuất thất bại');
+      
+      // Nếu có lỗi vẫn xóa token và chuyển về trang chủ
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/');
+      window.location.reload();
+    }
   };
 
   const navigation = [
@@ -184,6 +213,19 @@ const StaffLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 };
