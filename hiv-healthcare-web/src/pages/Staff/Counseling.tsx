@@ -73,16 +73,6 @@ const StaffCounseling: React.FC = () => {
            words[words.length - 1].charAt(0) + '*'.repeat(words[words.length - 1].length - 1);
   };
 
-  // Hàm ẩn danh tên bác sĩ
-  const anonymizeDoctorName = (name: string): string => {
-    if (!name) return 'BS. Không xác định';
-    const words = name.trim().split(' ');
-    if (words.length === 1) {
-      return 'BS. ' + words[0].charAt(0) + '*'.repeat(words[0].length - 1);
-    }
-    return 'BS. ' + words[0].charAt(0) + '*'.repeat(words[0].length - 1) + ' ' + 
-           words[words.length - 1].charAt(0) + '*'.repeat(words[words.length - 1].length - 1);
-  };
 
   // Hàm hiển thị thông tin bệnh nhân
   const getPatientDisplayInfo = (booking: Booking) => {
@@ -94,7 +84,7 @@ const StaffCounseling: React.FC = () => {
         name: anonymizeName(booking.customerName || ''),
         phone: '***-***-****',
         email: '***@***.***',
-        doctorName: anonymizeDoctorName(booking.doctorName || '')
+        doctorName: (booking.doctorName || '')
       };
     } else {
       // Nếu không phải ẩn danh, hiển thị theo toggle
@@ -110,7 +100,7 @@ const StaffCounseling: React.FC = () => {
           name: anonymizeName(booking.customerName || ''),
           phone: '***-***-****',
           email: '***@***.***',
-          doctorName: anonymizeDoctorName(booking.doctorName || '')
+          doctorName: (booking.doctorName || '')
         };
       }
     }
