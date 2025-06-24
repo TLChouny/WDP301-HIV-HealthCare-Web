@@ -18,15 +18,19 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../context/AuthContext";
 import { useCategoryContext } from "../context/CategoryContext";
+import { useNotification } from "../context/NotificationContext";
 
 const Layout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [activeDropdown, setActiveDropdown] = React.useState<string | null>(null);
   const [showBookingModal, setShowBookingModal] = React.useState(false);
+  const [selectedNotification, setSelectedNotification] = React.useState<any>(null);
+  const [showModal, setShowModal] = React.useState(false);
   const location = useLocation();
   const { user, logout } = useAuth();
   const { categories } = useCategoryContext();
+  const { notifications, getNotificationsByUserIdHandler, loading, error } = useNotification();
 
   const isAuthPage =
     location.pathname.startsWith("/auth") ||
@@ -34,32 +38,12 @@ const Layout: React.FC = () => {
     location.pathname === "/register" ||
     location.pathname === "/forgot-password";
 
-  const bookingUsers = [
-    {
-      fullName: "Nguyễn Văn A",
-      email: "a@gmail.com",
-      phone: "0901234567",
-      bookingDate: "2025-07-01",
-      serviceName: "Xét nghiệm HIV",
-      status: "Đã xác nhận"
-    },
-    {
-      fullName: "Trần Thị B",
-      email: "b@gmail.com",
-      phone: "0912345678",
-      bookingDate: "2025-07-02",
-      serviceName: "Điều trị ARV",
-      status: "Chờ xác nhận"
-    },
-    {
-      fullName: "Lê Văn C",
-      email: "c@gmail.com",
-      phone: "0987654321",
-      bookingDate: "2025-07-03",
-      serviceName: "Tư vấn dinh dưỡng",
-      status: "Đã xác nhận"
-    },
-  ];
+  // Lấy notification theo userId khi user thay đổi
+  useEffect(() => {
+    if (user) {
+      getNotificationsByUserIdHandler(user._id);
+    }
+  }, [user, getNotificationsByUserIdHandler]);
 
   // Đóng mobile menu khi route thay đổi
   useEffect(() => {
@@ -174,7 +158,8 @@ const Layout: React.FC = () => {
                         {cat.categoryName}
                       </Link>
                     ))
-                  )}
+                  )
+                }
                 </div>
               </div>
 
@@ -240,7 +225,9 @@ const Layout: React.FC = () => {
                     >
                       <span className="relative">
                         <Bell className="w-6 h-6 text-teal-100" />
-                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5">{bookingUsers.length}</span>
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5">
+                          {loading ? "..." : notifications.length}
+                        </span>
                       </span>
                     </button>
                     {/* Notification Dropdown */}
@@ -255,27 +242,44 @@ const Layout: React.FC = () => {
                         <h3 className="text-lg font-semibold text-gray-800">Thông báo đặt lịch</h3>
                       </div>
                       <div className="max-h-96 overflow-y-auto">
-                        {bookingUsers.length === 0 ? (
+                        {loading ? (
+                          <p className="px-4 py-3 text-gray-500 text-center">Đang tải...</p>
+                        ) : error ? (
+                          <p className="px-4 py-3 text-red-500 text-center">{error}</p>
+                        ) : notifications.length === 0 ? (
                           <p className="px-4 py-3 text-gray-500 text-center">Chưa có thông báo nào</p>
                         ) : (
-                          bookingUsers.map((user, idx) => (
-                            <div key={user.email || idx} className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                          notifications.map((notification, idx) => (
+                            <div key={notification._id || idx} className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
                               <div className="flex justify-between items-start">
                                 <div>
-                                  <p className="font-medium text-gray-800">{user.fullName}</p>
-                                  <p className="text-sm text-gray-600">{user.serviceName}</p>
+                                  <p className="font-medium text-gray-800">{notification.notiName || "Thông báo"}</p>
+                                  <p className="text-sm text-gray-600">{notification.notiDescription || "Chi tiết không có"}</p>
                                   <div className="flex items-center mt-1 text-sm text-gray-500">
                                     <Clock className="w-4 h-4 mr-1" />
-                                    <span>{user.bookingDate}</span>
+                                    <span>{new Date(notification.createdAt).toLocaleDateString()}</span>
                                   </div>
                                 </div>
                                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                  user.status === 'Đã xác nhận' 
-                                    ? 'bg-green-100 text-green-700' 
-                                    : 'bg-yellow-100 text-yellow-700'
+                                  notification.bookingId.status === "checked-in"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-yellow-100 text-yellow-700"
                                 }`}>
-                                  {user.status}
+                                  {notification.bookingId.status || "Chờ xác nhận"}
                                 </span>
+                              </div>
+                              <div className="mt-2 flex justify-end">
+                                <Link
+                                  to="#"
+                                  className="text-teal-600 hover:text-teal-800 text-sm font-medium underline"
+                                  onClick={() => {
+                                    setSelectedNotification(notification);
+                                    setShowModal(true);
+                                    setActiveDropdown(null);
+                                  }}
+                                >
+                                  Xem chi tiết
+                                </Link>
                               </div>
                             </div>
                           ))
@@ -412,7 +416,8 @@ const Layout: React.FC = () => {
                         {cat.categoryName}
                       </Link>
                     ))
-                  )}
+                  )
+                }
                 </div>
               </div>
 
@@ -724,6 +729,32 @@ const Layout: React.FC = () => {
           </svg>
         </button>
       </footer>
+
+      {showModal && selectedNotification && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative">
+            <button
+              className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xl"
+              onClick={() => setShowModal(false)}
+              aria-label="Đóng"
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-bold mb-4 text-teal-700">Chi tiết thông báo</h2>
+            <div className="space-y-2">
+              <div><b>Tên thông báo:</b> {selectedNotification.notiName}</div>
+              <div><b>Mô tả:</b> {selectedNotification.notiDescription}</div>
+              <div><b>Ngày tạo:</b> {new Date(selectedNotification.createdAt).toLocaleString()}</div>
+              <div><b>Ngày cập nhật:</b> {new Date(selectedNotification.updatedAt).toLocaleString()}</div>
+              <div><b>Trạng thái booking:</b> {selectedNotification.bookingId?.status}</div>
+              <div><b>Dịch vụ:</b> {selectedNotification.bookingId?.serviceId?.serviceName}</div>
+              <div><b>Bác sĩ:</b> {selectedNotification.bookingId?.doctorName}</div>
+              <div><b>Người đặt:</b> {selectedNotification.bookingId?.userId?.userName}</div>
+              {/* Thêm các field khác nếu cần */}
+            </div>
+          </div>
+        </div>
+      )}
 
       <ToastContainer
         position="top-right"

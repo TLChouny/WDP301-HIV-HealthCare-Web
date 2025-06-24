@@ -68,6 +68,7 @@ import { jwtDecode } from 'jwt-decode';
 import { CategoryProvider } from './context/CategoryContext';
 import { ServiceProvider } from './context/ServiceContext';
 import { BookingProvider } from './context/BookingContext';
+import { NotificationProvider } from './context/NotificationContext';
 
 // Fallback component
 const FallbackComponent: React.FC = () => (
@@ -134,6 +135,7 @@ const App: React.FC = () => {
       <CategoryProvider>
         <ServiceProvider>
           <BookingProvider>
+            <NotificationProvider>
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Layout />}>
@@ -221,6 +223,7 @@ const App: React.FC = () => {
               <Route path="*" element={<FallbackComponent />} />
             </Routes>
             <ToastContainer position="top-right" autoClose={2000} />
+            </NotificationProvider>
           </BookingProvider>
         </ServiceProvider>
       </CategoryProvider>

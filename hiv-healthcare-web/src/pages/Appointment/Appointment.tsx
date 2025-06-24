@@ -93,7 +93,10 @@ const Appointment: React.FC = () => {
       await create(bookingData);
 
       toast.success('Đặt lịch khám thành công!');
-      setTimeout(() => navigate('/'), 2000);
+      setTimeout(() => {
+        navigate('/'); // Chuyển hướng về trang chủ
+        window.location.reload(); // Reload lại trang để cập nhật notification ở layout
+      }, 2000);
     } catch (err) {
       toast.error('Đặt lịch thất bại!');
       console.error(err);

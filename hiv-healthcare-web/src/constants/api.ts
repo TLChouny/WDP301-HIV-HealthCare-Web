@@ -1,3 +1,5 @@
+// api.ts
+
 // export const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 export const BASE_URL = `http://localhost:5000/api`;
 
@@ -45,9 +47,9 @@ export const API_ENDPOINTS = {
   RESULT_BY_ID: (id: string) => `/results/${id}`,
 
   // Notification
-  NOTIFICATIONS: "/notifications",
-  NOTIFICATION_BY_ID: (id: string) => `/notifications/${id}`,
-
+  NOTIFICATIONS: "/notifications", // Lấy tất cả hoặc tạo mới (POST)
+  NOTIFICATION_BY_ID: (id: string) => `/notifications/${id}`, // Lấy, cập nhật, xóa theo ID
+  NOTIFICATIONS_BY_USER_ID: (userId: string) => `/notifications/user/${userId}`, // Lấy theo User ID
   // Review
   REVIEWS: "/reviews",
   REVIEW_BY_ID: (id: string) => `/reviews/${id}`,
