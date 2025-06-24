@@ -14,6 +14,7 @@ import {
   IconButton,
   useTheme,
   useMediaQuery,
+  Button,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -23,8 +24,12 @@ import {
   History as HistoryIcon,
   MedicalServices as MedicalIcon,
   Logout as LogoutIcon,
+  Home as HomeIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { logout } from '../api/authApi';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const drawerWidth = 240;
 
@@ -33,6 +38,36 @@ const UserLayout: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Không tìm thấy token');
+      }
+      
+      await logout(token);
+      
+      // Xóa token và thông tin user khỏi localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Chuyển về trang chủ và reload lại trang
+      navigate('/');
+      window.location.reload();
+      
+      toast.success('Đăng xuất thành công');
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast.error(error.message || 'Đăng xuất thất bại');
+      
+      // Nếu có lỗi vẫn xóa token và chuyển về trang chủ
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/');
+      window.location.reload();
+    }
+  };
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -88,19 +123,35 @@ const UserLayout: React.FC = () => {
           ml: { md: `${drawerWidth}px` },
         }}
       >
-        <Toolbar>
-          <IconButton
+        <Toolbar sx={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { md: 'none' } }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Button
+              color="inherit"
+              startIcon={<HomeIcon />}
+              onClick={() => navigate('/')}
+              sx={{ textTransform: 'none' }}
+            >
+              Trang chủ
+            </Button>
+          </Box>
+
+          <Button
             color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
+            startIcon={<LogoutIcon />}
+            onClick={handleLogout}
+            sx={{ textTransform: 'none' }}
           >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            HIV Healthcare
-          </Typography>
+            Đăng xuất
+          </Button>
         </Toolbar>
       </AppBar>
 
@@ -137,6 +188,18 @@ const UserLayout: React.FC = () => {
       >
         <Outlet />
       </Box>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </Box>
   );
 };

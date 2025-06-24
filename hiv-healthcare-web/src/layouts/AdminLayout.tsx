@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Users,
   Calendar,
@@ -11,12 +11,47 @@ import {
   User,
   Bell,
   Shield,
-  BarChart
+  BarChart,
+  Home
 } from 'lucide-react';
+import { logout } from '../api/authApi';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AdminLayout: React.FC = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('Không tìm thấy token');
+      }
+      
+      await logout(token);
+      
+      // Xóa token và thông tin user khỏi localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Chuyển về trang chủ và reload lại trang
+      navigate('/');
+      window.location.reload();
+      
+      toast.success('Đăng xuất thành công');
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast.error(error.message || 'Đăng xuất thất bại');
+      
+      // Nếu có lỗi vẫn xóa token và chuyển về trang chủ
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/');
+      window.location.reload();
+    }
+  };
 
   const navigation = [
     {
@@ -121,18 +156,29 @@ const AdminLayout: React.FC = () => {
         {/* Top Navigation */}
         <header className="bg-white shadow-sm">
           <div className="flex items-center justify-between h-16 px-4">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-gray-500 hover:text-gray-600"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden text-gray-500 hover:text-gray-600"
+              >
+                <Menu className="w-6 h-6" />
+              </button>
+              
+              {/* Nút quay về trang chủ */}
+              <Link 
+                to="/"
+                className="flex items-center space-x-2 text-gray-500 hover:text-gray-600"
+              >
+                <Home className="w-6 h-6" />
+                <span className="hidden md:inline">Trang chủ</span>
+              </Link>
+            </div>
 
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-500 hover:text-gray-600">
-                <Bell className="w-6 h-6" />
-              </button>
-              <button className="flex items-center space-x-2 text-gray-500 hover:text-gray-600">
+              <button 
+                onClick={handleLogout}
+                className="flex items-center space-x-2 text-gray-500 hover:text-gray-600 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors"
+              >
                 <LogOut className="w-6 h-6" />
                 <span className="hidden md:inline">Đăng xuất</span>
               </button>
@@ -145,6 +191,18 @@ const AdminLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </div>
   );
 };
