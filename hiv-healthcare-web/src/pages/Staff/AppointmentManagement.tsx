@@ -210,11 +210,9 @@ const StaffAppointmentManagement: React.FC = () => {
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="all">Tất cả trạng thái</option>
-                    <option value="confirmed">Đã xác nhận</option>
                     <option value="pending">Chờ xác nhận</option>
-                    <option value="cancelled">Đã hủy</option>
                     <option value="checked-in">Đã check-in</option>
-                    <option value="completed">Hoàn thành</option>
+                    
                   </select>
                 </div>
               </div>
