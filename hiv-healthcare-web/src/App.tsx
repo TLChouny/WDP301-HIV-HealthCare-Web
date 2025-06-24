@@ -220,7 +220,7 @@ const App: React.FC = () => {
               {/* 404 route */}
               <Route path="*" element={<FallbackComponent />} />
             </Routes>
-            <ToastContainer />
+            <ToastContainer position="top-right" autoClose={2000} />
           </BookingProvider>
         </ServiceProvider>
       </CategoryProvider>

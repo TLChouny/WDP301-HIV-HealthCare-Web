@@ -46,7 +46,16 @@ export const updateBooking = async (
   id: string,
   data: Partial<Booking>
 ): Promise<Booking> => {
-  const res = await apiClient.put(API_ENDPOINTS.BOOKING_BY_ID(id), data);
+  const token = localStorage.getItem('token');
+  const res = await apiClient.put(
+    API_ENDPOINTS.BOOKING_BY_ID(id),
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
   return res.data;
 };
 

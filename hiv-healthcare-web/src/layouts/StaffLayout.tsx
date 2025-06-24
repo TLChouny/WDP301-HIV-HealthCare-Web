@@ -119,17 +119,30 @@ const StaffLayout: React.FC = () => {
         </div>
       </div>
 
+      {/* Sidebar Toggle Button (always visible at left edge when sidebar is closed) */}
+      {!isSidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="fixed top-4 left-4 z-60 bg-white shadow-lg rounded-full p-2 border border-gray-200 hover:bg-blue-50 transition-colors lg:hidden"
+          aria-label="Mở menu"
+        >
+          <Menu className="w-6 h-6 text-blue-600" />
+        </button>
+      )}
+
       {/* Main Content */}
-      <div className={`lg:pl-64 flex flex-col min-h-screen`}>
+      <div className={`lg:pl-64 flex flex-col min-h-screen transition-all duration-300 ${isSidebarOpen ? '' : 'pl-0'}`}>
         {/* Top Navigation */}
         <header className="bg-white shadow-sm">
           <div className="flex items-center justify-between h-16 px-4">
             <div className="flex items-center space-x-4">
+              {/* Sidebar Toggle Button (always visible on mobile, hidden on desktop) */}
               <button
-                onClick={() => setSidebarOpen(true)}
+                onClick={() => setSidebarOpen(!isSidebarOpen)}
                 className="lg:hidden text-gray-500 hover:text-gray-600"
+                aria-label="Toggle menu"
               >
-                <Menu className="w-6 h-6" />
+                {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
               
               <Link 

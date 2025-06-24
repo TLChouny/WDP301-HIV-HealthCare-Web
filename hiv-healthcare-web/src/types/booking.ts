@@ -14,7 +14,7 @@ export interface Booking {
   doctorName: string;
   notes?: string;
   currency: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'checked-in';
   isAnonymous: boolean;
   userId: string | null;
   serviceId: Service; // BE muốn full object

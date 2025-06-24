@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Calendar, AlertCircle, Shield } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import { getServiceById } from '../../api/serviceApi';
 import { getAllUsers } from '../../api/authApi';
 import { useBooking } from '../../context/BookingContext';
@@ -323,6 +323,7 @@ const Appointment: React.FC = () => {
           </div>
         </form>
       </div>
+      <ToastContainer />
     </div>
   );
 };
