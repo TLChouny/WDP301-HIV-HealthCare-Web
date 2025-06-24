@@ -41,6 +41,7 @@ export const API_ENDPOINTS = {
   // Booking
   BOOKINGS: "/bookings",
   BOOKING_BY_ID: (id: string) => `/bookings/${id}`,
+  BOOKINGS_BY_DOCTOR_NAME: (doctorName: string) => `/bookings/doctor/${doctorName}`,
 
   // Result
   RESULTS: "/results",

@@ -67,3 +67,7 @@ export const deleteBooking = async (id: string): Promise<void> => {
     },
   });
 };
+export const getBookingsByDoctorName = async (doctorName: string): Promise<Booking[]> => {
+  const res = await apiClient.get(API_ENDPOINTS.BOOKINGS_BY_DOCTOR_NAME(doctorName));
+  return res.data;
+};

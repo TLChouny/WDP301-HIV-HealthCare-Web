@@ -253,12 +253,16 @@ const Layout: React.FC = () => {
                             <div key={notification._id || idx} className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
                               <div className="flex justify-between items-start">
                                 <div>
-                                  <p className="font-medium text-gray-800">{notification.notiName || "Thông báo"}</p>
-                                  <p className="text-sm text-gray-600">{notification.notiDescription || "Chi tiết không có"}</p>
-                                  <div className="flex items-center mt-1 text-sm text-gray-500">
+                                  <p className="font-medium text-gray-800">Thông báo: {notification.notiName || "Thông báo"}</p>
+                                  <p className="text-sm text-gray-600">Dịch vụ: {notification.bookingId.serviceId.serviceName || "Chi tiết không có"}</p>
+                                  <p className="text-sm text-gray-600">Time: {notification.bookingId.startTime || "Chi tiết không có"} 
+                                    - {notification.bookingId.endTime || "Chi tiết không có"}</p>
+                                  <p className="text-sm text-gray-600">Gía tiền: {notification.bookingId.serviceId.price || "Chi tiết không có"}</p>
+
+                                  {/* <div className="flex items-center mt-1 text-sm text-gray-500">
                                     <Clock className="w-4 h-4 mr-1" />
                                     <span>{new Date(notification.createdAt).toLocaleDateString()}</span>
-                                  </div>
+                                  </div> */}
                                 </div>
                                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                                   notification.bookingId.status === "checked-in"
