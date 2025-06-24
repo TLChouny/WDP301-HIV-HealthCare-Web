@@ -211,7 +211,7 @@ const StaffAppointmentManagement: React.FC = () => {
                   >
                     <option value="all">Tất cả trạng thái</option>
                     <option value="pending">Chờ xác nhận</option>
-                    <option value="checked-in">Đã check-in</option>
+                    <option value="checked-in">Đã xác nhận</option>
                     
                   </select>
                 </div>
