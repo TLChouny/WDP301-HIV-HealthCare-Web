@@ -212,7 +212,6 @@ const StaffAppointmentManagement: React.FC = () => {
                     <option value="all">Tất cả trạng thái</option>
                     <option value="pending">Chờ xác nhận</option>
                     <option value="checked-in">Đã xác nhận</option>
-                    
                   </select>
                 </div>
               </div>
@@ -294,23 +293,14 @@ const StaffAppointmentManagement: React.FC = () => {
                                 </div>
                                 <div className="mt-1">
                                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                    booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                    booking.status === 'checked-in' ? 'bg-green-100 text-green-800' :
                                     booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                    booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                    booking.status === 'checked-in' ? 'bg-blue-100 text-blue-800' :
-                                    booking.status === 'completed' ? 'bg-purple-100 text-purple-800' :
                                     'bg-gray-100 text-gray-800'
                                   }`}>
-                                    {booking.status === 'confirmed' && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                                    {booking.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
-                                    {booking.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
                                     {booking.status === 'checked-in' && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                                    {booking.status === 'completed' && <CheckCircle2 className="w-3 h-3 mr-1" />}
-                                    {booking.status === 'confirmed' ? 'Đã xác nhận' :
+                                    {booking.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
+                                    {booking.status === 'checked-in' ? 'Đã xác nhận' :
                                      booking.status === 'pending' ? 'Chờ xác nhận' :
-                                     booking.status === 'cancelled' ? 'Đã hủy' :
-                                     booking.status === 'checked-in' ? 'Đã check-in' :
-                                     booking.status === 'completed' ? 'Hoàn thành' :
                                      booking.status}
                                   </span>
                                 </div>
@@ -347,17 +337,9 @@ const StaffAppointmentManagement: React.FC = () => {
                                 >
                                   Chờ xác nhận
                                 </button>
-                              ) : booking.status === 'confirmed' ? (
+                              ) : booking.status === 'checked-in' ? (
                                 <span className="w-full inline-block px-5 py-2 rounded-full shadow font-bold bg-green-100 text-green-800 border-2 border-green-300 text-center cursor-default" style={{ minWidth: 150 }}>
                                   Đã xác nhận
-                                </span>
-                              ) : booking.status === 'checked-in' ? (
-                                <span className="w-full inline-block px-5 py-2 rounded-full shadow font-bold bg-blue-100 text-blue-800 border-2 border-blue-300 text-center cursor-default" style={{ minWidth: 150 }}>
-                                  Đã check-in
-                                </span>
-                              ) : booking.status === 'completed' ? (
-                                <span className="w-full inline-block px-5 py-2 rounded-full shadow font-bold bg-purple-100 text-purple-800 border-2 border-purple-300 text-center cursor-default" style={{ minWidth: 150 }}>
-                                  Hoàn thành
                                 </span>
                               ) : null}
                             </td>
