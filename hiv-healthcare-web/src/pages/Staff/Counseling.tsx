@@ -34,7 +34,7 @@ interface Booking {
   bookingDate: string;
   startTime: string;
   doctorName: string;
-  status: 'confirmed' | 'pending' | 'cancelled';
+  status: 'pending' | 'checked-in';
   meetLink?: string;
   isAnonymous?: boolean;
 }
@@ -422,17 +422,14 @@ const StaffCounseling: React.FC = () => {
                             </div>
                             <div className="mt-1">
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                booking.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                                booking.status === 'checked-in' ? 'bg-green-100 text-green-800' :
                                 booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                booking.status === 'cancelled' ? 'bg-red-100 text-red-800' :
                                 'bg-gray-100 text-gray-800'
                               }`}>
-                                {booking.status === 'confirmed' && <CheckCircle className="w-3 h-3 mr-1" />}
+                                {booking.status === 'checked-in' && <CheckCircle className="w-3 h-3 mr-1" />}
                                 {booking.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
-                                {booking.status === 'cancelled' && <XCircle className="w-3 h-3 mr-1" />}
-                                {booking.status === 'confirmed' ? 'Đã xác nhận' :
+                                {booking.status === 'checked-in' ? 'Đã xác nhận' :
                                  booking.status === 'pending' ? 'Chờ xác nhận' :
-                                 booking.status === 'cancelled' ? 'Đã hủy' :
                                  booking.status}
                               </span>
                             </div>
