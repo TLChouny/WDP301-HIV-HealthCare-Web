@@ -20,24 +20,8 @@ import {
 import { toast } from 'react-toastify';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
-
-// Interface cho dữ liệu booking từ API
-interface Booking {
-  _id: string;
-  bookingCode: string;
-  customerName: string;
-  customerPhone?: string;
-  customerEmail?: string;
-  serviceId: {
-    serviceName: string;
-  };
-  bookingDate: string;
-  startTime: string;
-  doctorName: string;
-  status: 'pending' | 'checked-in';
-  meetLink?: string;
-  isAnonymous?: boolean;
-}
+import type { Booking } from '../../types/booking';
+import { useBooking } from '../../context/BookingContext';
 
 // Định nghĩa interface cho tham số của tileContent
 interface TileContentParams {
@@ -61,6 +45,8 @@ const StaffCounseling: React.FC = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [meetLinkInput, setMeetLinkInput] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  const bookingContext = useBooking();
 
   // Hàm ẩn danh tên bệnh nhân
   const anonymizeName = (name: string): string => {
@@ -170,38 +156,15 @@ const StaffCounseling: React.FC = () => {
     }
     setIsSubmitting(true);
     try {
-      console.log('Updating meetLink for booking:', selectedBooking._id);
-      console.log('New meetLink:', meetLinkInput);
-      
-      const response = await fetch(`http://localhost:5000/api/bookings/${selectedBooking._id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ meetLink: meetLinkInput }),
-      });
-
-      console.log('Update response status:', response.status);
-
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error('Update error:', errorData);
-        throw new Error(`Cập nhật link thất bại: ${response.status} ${response.statusText}`);
-      }
-
-      const updatedBooking = await response.json();
-      console.log('Updated booking:', updatedBooking);
-
+      const updatedBooking = await bookingContext.update(selectedBooking._id!, { meetLink: meetLinkInput });
       setBookings(prev =>
-        prev.map(b => (b._id === selectedBooking._id ? { ...b, meetLink: meetLinkInput } : b))
+        prev.map(b => (b._id === selectedBooking._id ? { ...b, meetLink: updatedBooking.meetLink } : b))
       );
       toast.success('Đã cập nhật link Google Meet thành công!');
       setShowMeetLinkModal(false);
       setSelectedBooking(null);
       setMeetLinkInput('');
-
     } catch (err: any) {
-      console.error('Error updating meetLink:', err);
       toast.error(err.message);
     } finally {
       setIsSubmitting(false);
