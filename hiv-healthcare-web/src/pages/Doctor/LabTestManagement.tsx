@@ -1,21 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Search, RotateCw } from 'lucide-react';
+import { useBooking } from '../../context/BookingContext';
+import { useAuth } from '../../context/AuthContext';
+import { Booking } from '../../types/booking';
 
-enum LabTestStatus {
-  Pending = 'pending',
-  Completed = 'completed',
-  Cancelled = 'cancelled'
-}
-
-interface LabTest {
-  id: string;
-  patientName: string;
-  testType: string;
-  testDate: string;
-  status: LabTestStatus;
-}
-
-const statuses = ['all', ...Object.values(LabTestStatus)];
+const STATUS_LIST: (Booking['status'] | 'all')[] = [
+  'all',
+  'pending',
+  'confirmed',
+  'checked-in',
+  'completed',
+  'cancelled',
+];
 
 const formatDate = (dateStr: string) =>
   new Intl.DateTimeFormat('vi-VN', {
@@ -24,25 +20,17 @@ const formatDate = (dateStr: string) =>
     year: 'numeric',
   }).format(new Date(dateStr));
 
-const formatLabTests = (data: any[]): LabTest[] => {
-  return data.map((item, index): LabTest => ({
-    id: item._id || String(index),
-    patientName: item.customerName || 'Ẩn danh',
-    testType: item.serviceId?.serviceName || 'Không rõ',
-    testDate: formatDate(item.bookingDate),
-    status: ['pending', 'completed', 'cancelled'].includes(item.status)
-      ? item.status
-      : LabTestStatus.Pending,
-  }));
-};
-
 const getStatusColor = (status: string) => {
   switch (status) {
-    case LabTestStatus.Pending:
+    case 'pending':
       return 'bg-yellow-100 text-yellow-800';
-    case LabTestStatus.Completed:
+    case 'confirmed':
+      return 'bg-blue-100 text-blue-800';
+    case 'checked-in':
+      return 'bg-purple-100 text-purple-800';
+    case 'completed':
       return 'bg-green-100 text-green-800';
-    case LabTestStatus.Cancelled:
+    case 'cancelled':
       return 'bg-red-100 text-red-800';
     default:
       return 'bg-gray-100 text-gray-800';
@@ -51,11 +39,15 @@ const getStatusColor = (status: string) => {
 
 const getStatusText = (status: string) => {
   switch (status) {
-    case LabTestStatus.Pending:
-      return 'Đang chờ kết quả';
-    case LabTestStatus.Completed:
-      return 'Đã có kết quả';
-    case LabTestStatus.Cancelled:
+    case 'pending':
+      return 'Đang chờ';
+    case 'confirmed':
+      return 'Đã xác nhận';
+    case 'checked-in':
+      return 'Đã đến';
+    case 'completed':
+      return 'Hoàn thành';
+    case 'cancelled':
       return 'Đã hủy';
     default:
       return status;
@@ -63,17 +55,21 @@ const getStatusText = (status: string) => {
 };
 
 const LabTestManagement: React.FC = () => {
-  const [labTests, setLabTests] = useState<LabTest[]>([]);
+  const { getByDoctorName, update } = useBooking();
+  const { user } = useAuth();
+  const doctorName = user?.userName || '';
+
+  const [labTests, setLabTests] = useState<Booking[]>([]);
   const [search, setSearch] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState<'all' | Booking['status']>('all');
   const [loading, setLoading] = useState(false);
 
   const fetchLabTests = async () => {
+    if (!doctorName) return;
+    setLoading(true);
     try {
-      setLoading(true);
-      const res = await fetch('http://localhost:5000/api/bookings');
-      const data = await res.json();
-      setLabTests(formatLabTests(data));
+      const data = await getByDoctorName(doctorName);
+      setLabTests(data);
     } catch (error) {
       console.error('Lỗi khi lấy danh sách xét nghiệm:', error);
     } finally {
@@ -82,17 +78,8 @@ const LabTestManagement: React.FC = () => {
   };
 
   const completeTest = async (id: string) => {
-    const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:5000/api/bookings/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status: 'completed' })
-      });
-      if (!res.ok) throw new Error('Lỗi khi cập nhật trạng thái');
+      await update(id, { status: 'completed' });
       fetchLabTests();
     } catch (error) {
       console.error('Lỗi cập nhật:', error);
@@ -101,12 +88,12 @@ const LabTestManagement: React.FC = () => {
 
   useEffect(() => {
     fetchLabTests();
-  }, []);
+  }, [doctorName]);
 
   const filteredTests = labTests.filter((test) => {
     const matchesSearch =
-      test.patientName.toLowerCase().includes(search.toLowerCase()) ||
-      test.testType.toLowerCase().includes(search.toLowerCase());
+      test.customerName.toLowerCase().includes(search.toLowerCase()) ||
+      test.serviceId?.serviceName.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = selectedStatus === 'all' || test.status === selectedStatus;
     return matchesSearch && matchesStatus;
   });
@@ -131,10 +118,10 @@ const LabTestManagement: React.FC = () => {
 
           <select
             value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
+            onChange={(e) => setSelectedStatus(e.target.value as any)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
           >
-            {statuses.map((status) => (
+            {STATUS_LIST.map((status) => (
               <option key={status} value={status}>
                 {status === 'all' ? 'Tất cả trạng thái' : getStatusText(status)}
               </option>
@@ -177,10 +164,10 @@ const LabTestManagement: React.FC = () => {
                 </tr>
               ) : (
                 filteredTests.map((test) => (
-                  <tr key={test.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">{test.patientName}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{test.testType}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">{test.testDate}</td>
+                  <tr key={test._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">{test.customerName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{test.serviceId?.serviceName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{formatDate(test.bookingDate)}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(test.status)}`}>
                         {getStatusText(test.status)}
@@ -189,14 +176,14 @@ const LabTestManagement: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         className="text-blue-600 hover:underline mr-3"
-                        onClick={() => alert(`Xem chi tiết xét nghiệm của ${test.patientName}`)}
+                        onClick={() => alert(`Xem chi tiết xét nghiệm của ${test.customerName}`)}
                       >
                         Xem chi tiết
                       </button>
-                      {test.status !== LabTestStatus.Completed && (
+                      {test.status !== 'completed' && test.status !== 'cancelled' && (
                         <button
                           className="text-green-600 hover:underline"
-                          onClick={() => completeTest(test.id)}
+                          onClick={() => completeTest(test._id!)}
                         >
                           Hoàn thành
                         </button>
