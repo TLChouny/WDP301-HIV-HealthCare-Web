@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       const userData = decoded.user || {
         _id: decoded.id || decoded._id || "unknown",
-        userName: decoded.userName || "Unknown User",
+        userName: decoded.userName || "Unknown User", // ✅ đã sửa
         email: decoded.email || "no-email@example.com",
         role: decoded.role || "user",
         isVerified: decoded.isVerified ?? false,
