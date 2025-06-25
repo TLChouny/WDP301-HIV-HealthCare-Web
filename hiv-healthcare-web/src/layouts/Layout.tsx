@@ -282,6 +282,11 @@ const Layout: React.FC = () => {
                     >
                       <div className="px-4 py-2 border-b border-gray-100">
                         <h3 className="text-lg font-semibold text-gray-800">Thông báo đặt lịch</h3>
+                        {/* Lời nhắc nhở cho user */}
+                        <div className="flex items-center mt-2 bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded-md">
+                          <svg className="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" /></svg>
+                          <span className="text-yellow-800 text-sm font-medium">Bạn nên kiểm tra lịch hẹn trong hồ sơ cá nhân để không bỏ lỡ dịch vụ đã đặt.</span>
+                        </div>
                       </div>
                       <div className="max-h-96 overflow-y-auto">
                         {loading ? (
@@ -803,39 +808,55 @@ const Layout: React.FC = () => {
 
       {showModal && selectedNotification && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl p-8 relative flex flex-col items-center animate-fade-in">
             <button
-              className="absolute top-2 right-2 text-gray-400 hover:text-red-500 text-xl"
+              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold focus:outline-none transition-colors duration-200"
               onClick={() => setShowModal(false)}
               aria-label="Đóng"
+              style={{ lineHeight: 1 }}
             >
               ×
             </button>
-            <h2 className="text-xl font-bold mb-4 text-teal-700">Chi tiết thông báo</h2>
-            <div className="space-y-2">
-              <div>
-                <b>Tên thông báo:</b> {selectedNotification.notiName}
+
+            <div className="flex flex-col items-center mb-4">
+              <div className="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center mb-2 shadow">
+                <Bell className="w-8 h-8 text-teal-600" />
               </div>
-              <div>
-                <b>Mô tả:</b> {selectedNotification.notiDescription}
+              <h2 className="text-2xl font-bold mb-1 text-teal-700 text-center">Chi tiết thông báo</h2>
+              <div className="text-gray-500 text-sm mb-2">{new Date(selectedNotification.createdAt).toLocaleString()}</div>
+            </div>
+            <div className="w-full space-y-3">
+              <div className="flex items-center">
+                <span className="w-40 font-semibold text-gray-700">Tên thông báo:</span>
+                <span className="text-teal-700 font-medium">{selectedNotification.notiName}</span>
               </div>
-              <div>
-                <b>Ngày tạo:</b> {new Date(selectedNotification.createdAt).toLocaleString()}
+              <div className="flex items-center">
+                <span className="w-40 font-semibold text-gray-700">Mô tả:</span>
+                <span className="text-gray-800">{selectedNotification.notiDescription}</span>
               </div>
-              <div>
-                <b>Ngày cập nhật:</b> {new Date(selectedNotification.updatedAt).toLocaleString()}
+              <div className="flex items-center">
+                <span className="w-40 font-semibold text-gray-700">Trạng thái booking:</span>
+                <span className={`font-semibold px-2 py-1 rounded-lg ${selectedNotification.bookingId?.status === 'checked-in' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{selectedNotification.bookingId?.status}</span>
               </div>
-              <div>
-                <b>Trạng thái booking:</b> {selectedNotification.bookingId?.status}
+              <div className="flex items-center">
+                <span className="w-40 font-semibold text-gray-700">Dịch vụ:</span>
+                <span className="text-blue-700 font-medium">{selectedNotification.bookingId?.serviceId?.serviceName}</span>
               </div>
-              <div>
-                <b>Dịch vụ:</b> {selectedNotification.bookingId?.serviceId?.serviceName}
+              <div className="flex items-center">
+                <span className="w-40 font-semibold text-gray-700">Bác sĩ:</span>
+                <span className="text-gray-800">{selectedNotification.bookingId?.doctorName}</span>
               </div>
-              <div>
-                <b>Bác sĩ:</b> {selectedNotification.bookingId?.doctorName}
+              <div className="flex items-center">
+                <span className="w-40 font-semibold text-gray-700">Người đặt:</span>
+                <span className="text-gray-800">{selectedNotification.bookingId?.userId?.userName}</span>
               </div>
-              <div>
-                <b>Người đặt:</b> {selectedNotification.bookingId?.userId?.userName}
+              <div className="flex items-center">
+                <span className="w-40 font-semibold text-gray-700">Thời gian:</span>
+                <span className="text-gray-800">{selectedNotification.bookingId?.startTime} - {selectedNotification.bookingId?.endTime}</span>
+              </div>
+              <div className="flex items-center">
+                <span className="w-40 font-semibold text-gray-700">Giá tiền:</span>
+                <span className="text-rose-600 font-semibold">{selectedNotification.bookingId?.serviceId?.price ? Number(selectedNotification.bookingId?.serviceId?.price).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : ''}</span>
               </div>
             </div>
           </div>
