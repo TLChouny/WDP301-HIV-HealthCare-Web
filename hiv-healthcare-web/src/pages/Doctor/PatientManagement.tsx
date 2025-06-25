@@ -42,10 +42,7 @@ const PatientManagement: React.FC = () => {
       <div className="w-full">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Lịch hẹn của tôi</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Quản lý danh sách lịch hẹn khám theo tên bác sĩ
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý bệnh nhân</h1>
         </div>
 
         {/* Search */}
@@ -84,7 +81,7 @@ const PatientManagement: React.FC = () => {
                 {filteredBookings.map((booking) => (
                   <tr key={booking._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{booking.serviceId.serviceName}</div>
+                      <div className="text-sm font-medium text-gray-900">{booking.userId.userName}</div>
                       <div className="text-sm text-gray-500">{booking.serviceId.serviceDescription}</div>
                       <div className="text-sm text-gray-400">Mã đặt: {booking.bookingCode}</div>
                     </td>

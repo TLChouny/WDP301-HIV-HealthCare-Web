@@ -88,9 +88,7 @@ const ARVProtocolManagement: React.FC = () => {
       <div className="w-full">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Quản lý Phác đồ ARV</h1>
-          <p className="mt-2 text-sm text-gray-600">Quản lý và tùy chỉnh các phác đồ điều trị ARV</p>
-        </div>
-
+           </div>
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">

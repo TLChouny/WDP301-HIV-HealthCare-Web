@@ -1,5 +1,7 @@
 // types/booking.ts
+import { U } from 'framer-motion/dist/types.d-CtuPurYT';
 import type { Service } from './service';
+import { User } from './user';
 
 export interface Booking {
   _id?: string;
@@ -17,7 +19,7 @@ export interface Booking {
   currency: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'checked-in';
   isAnonymous: boolean;
-  userId: string | null;
+  userId: User; // BE muốn full object
   serviceId: Service; // BE muốn full object
   createdAt?: string;
   updatedAt?: string;
