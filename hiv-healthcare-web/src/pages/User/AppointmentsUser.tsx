@@ -107,35 +107,68 @@ const UserAppointments: React.FC = () => {
   };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">Lịch hẹn</Typography>
+    <Box sx={{
+      background: '#fff',
+      minHeight: '100vh',
+      py: 4,
+    }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#3b82f6', letterSpacing: 1 }}>
+          Lịch hẹn của bạn
+        </Typography>
       </Box>
 
-      <TableContainer component={Paper}>
+      <TableContainer component={Paper} sx={{ borderRadius: 4, boxShadow: 3, background: '#fff' }}>
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell>Ngày</TableCell>
-              <TableCell>Giờ</TableCell>
-              <TableCell>Loại</TableCell>
-              <TableCell>Bác sĩ</TableCell>
-              <TableCell>Trạng thái</TableCell>
-              <TableCell align="right">Thao tác</TableCell>
+            <TableRow sx={{ background: 'linear-gradient(90deg, #6366f1 0%, #3b82f6 100%)' }}>
+              <TableCell sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Ngày</TableCell>
+              <TableCell sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Giờ</TableCell>
+              <TableCell sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Loại</TableCell>
+              <TableCell sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Bác sĩ</TableCell>
+              <TableCell sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Trạng thái</TableCell>
+              <TableCell align="right" sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Thao tác</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {appointments.map((appointment) => (
-              <TableRow key={appointment._id}>
+              <TableRow
+                key={appointment._id}
+                sx={{
+                  '&:hover': { background: '#f1f5f9' },
+                  transition: 'background 0.2s',
+                }}
+              >
                 <TableCell>{new Date(appointment.bookingDate).toLocaleDateString('vi-VN')}</TableCell>
                 <TableCell>{appointment.startTime}</TableCell>
-                <TableCell>{appointment.serviceId?.serviceName || 'Không xác định'}</TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <img
+                      src={appointment.serviceId?.serviceImage || '/default-service.png'}
+                      alt="service"
+                      style={{ width: 28, height: 28, objectFit: 'cover', borderRadius: '50%' }}
+                    />
+                    <span style={{ fontWeight: 500 }}>{appointment.serviceId?.serviceName || 'Không xác định'}</span>
+                  </Box>
+                </TableCell>
                 <TableCell>{appointment.doctorName}</TableCell>
-                <TableCell>{appointment.status}</TableCell>
+                <TableCell>
+                  <span style={{
+                    padding: '4px 12px',
+                    borderRadius: 12,
+                    fontWeight: 600,
+                    color: appointment.status === 'pending' ? '#f59e42' : '#22c55e',
+                    background: appointment.status === 'pending' ? '#fef3c7' : '#dcfce7',
+                    fontSize: 14,
+                  }}>
+                    {appointment.status === 'pending' ? 'Chờ xác nhận' : 'Đã xác nhận'}
+                  </span>
+                </TableCell>
                 <TableCell align="right">
                   <IconButton
                     size="small"
                     onClick={() => handleViewAppointment(appointment)}
+                    sx={{ color: '#3b82f6', borderRadius: 2, mx: 0.5, background: '#e0e7ff', '&:hover': { background: '#c7d2fe' } }}
                   >
                     <VisibilityIcon />
                   </IconButton>
@@ -144,6 +177,7 @@ const UserAppointments: React.FC = () => {
                       size="small"
                       color="error"
                       onClick={() => handleCancelAppointment(appointment._id!)}
+                      sx={{ borderRadius: 2, mx: 0.5, background: '#fee2e2', '&:hover': { background: '#fecaca' } }}
                     >
                       <CancelIcon />
                     </IconButton>
@@ -151,9 +185,9 @@ const UserAppointments: React.FC = () => {
                   {appointment.status === 'pending' && (
                     <Button
                       size="small"
-                      variant="outlined"
+                      variant="contained"
                       color="primary"
-                      sx={{ ml: 1 }}
+                      sx={{ ml: 1, borderRadius: 2, fontWeight: 600, background: 'linear-gradient(90deg, #6366f1 0%, #3b82f6 100%)', boxShadow: 2 }}
                       onClick={() => handleOpenPayment(appointment)}
                     >
                       Thanh toán
@@ -169,39 +203,58 @@ const UserAppointments: React.FC = () => {
       <Dialog
         open={openViewDialog}
         onClose={() => setOpenViewDialog(false)}
-        maxWidth="md"
+        maxWidth="xs"
         fullWidth
+        PaperProps={{
+          sx: { borderRadius: 4, p: 3, background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)' }
+        }}
       >
-        <DialogTitle>Chi tiết lịch hẹn</DialogTitle>
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: 24, color: '#3b82f6', pb: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box sx={{ width: 48, height: 48, borderRadius: '50%', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+            <span role="img" aria-label="calendar" style={{ fontSize: 28 }}>📅</span>
+          </Box>
+          Chi tiết lịch hẹn
+        </DialogTitle>
         <DialogContent>
           {selectedAppointment && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Ngày: {new Date(selectedAppointment.bookingDate).toLocaleDateString('vi-VN')}
+            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#1e293b', textAlign: 'center' }}>
+                {selectedAppointment.serviceId?.serviceName || 'Không xác định'}
               </Typography>
-              <Typography variant="subtitle1" gutterBottom>
-                Giờ: {selectedAppointment.startTime}
-              </Typography>
-              <Typography variant="subtitle1" gutterBottom>
-                Loại: {selectedAppointment.serviceId?.serviceName || 'Không xác định'}
-              </Typography>
-              <Typography variant="subtitle1" gutterBottom>
-                Bác sĩ: {selectedAppointment.doctorName}
-              </Typography>
-              <Typography variant="subtitle1" gutterBottom>
-                Trạng thái: {selectedAppointment.status}
-              </Typography>
-              <Typography variant="subtitle1" gutterBottom>
-                Ghi chú: {selectedAppointment.notes || 'Không có'}
-              </Typography>
+              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
+                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                  Ngày: <b>{new Date(selectedAppointment.bookingDate).toLocaleDateString('vi-VN')}</b>
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                  Giờ: <b>{selectedAppointment.startTime}</b>
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                  Bác sĩ: <b>{selectedAppointment.doctorName}</b>
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                  Trạng thái: <b style={{ color: selectedAppointment.status === 'pending' ? '#f59e42' : '#22c55e' }}>{selectedAppointment.status}</b>
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                  Ghi chú: <b>{selectedAppointment.notes || 'Không có'}</b>
+                </Typography>
+              </Box>
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenViewDialog(false)}>Đóng</Button>
+        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+          <Button
+            onClick={() => setOpenViewDialog(false)}
+            variant="outlined"
+            color="secondary"
+            sx={{ borderRadius: 2, px: 4, fontWeight: 600 }}
+          >
+            Đóng
+          </Button>
           {selectedAppointment?.status === 'pending' && (
             <Button
               color="error"
+              variant="contained"
+              sx={{ borderRadius: 2, px: 4, fontWeight: 700, ml: 2 }}
               onClick={() => handleCancelAppointment(selectedAppointment._id!)}
             >
               Hủy lịch
