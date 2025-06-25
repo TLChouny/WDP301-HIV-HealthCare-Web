@@ -13,6 +13,7 @@ export interface Booking {
   duration?: number;
   doctorName: string;
   notes?: string;
+  meetLink?: string;
   currency: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'checked-in';
   isAnonymous: boolean;
