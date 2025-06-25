@@ -8,8 +8,32 @@ import {
 } from "@mui/material";
 import { Person as PersonIcon } from "@mui/icons-material";
 import { useAuth } from "../../context/AuthContext";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { User, Gender } from "../../types/user";
+
+// Cấu hình toast chung
+const TOAST_CONFIG = {
+  position: "top-right" as const,
+  autoClose: 3000,
+  hideProgressBar: false,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
+  progress: undefined,
+  theme: "colored" as const,
+};
+
+// Hàm tiện ích để hiển thị toast
+const showToast = (message: string, type: "error" | "success" = "error") => {
+  if (!toast.isActive(message)) {
+    const config = { ...TOAST_CONFIG, toastId: message };
+    if (type === "success") {
+      toast.success(message, config);
+    } else {
+      toast.error(message, config);
+    }
+  }
+};
 
 const UserProfile: React.FC = () => {
   const { user, getUserById, updateUser, logout, loading } = useAuth();
@@ -45,12 +69,13 @@ const UserProfile: React.FC = () => {
         setError(null);
       } catch (error: any) {
         console.error("Lỗi khi lấy dữ liệu người dùng:", error.message);
-        if (error.message.includes("authenticate")) {
-          setError("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+        let errorMessage = "Không thể tải thông tin người dùng!";
+        if (error.message?.toLowerCase().includes("authenticate")) {
+          errorMessage = "Phiên đăng nhập hết hạn!";
           logout();
-        } else {
-          setError(error.message || "Lỗi khi lấy thông tin người dùng.");
         }
+        setError(errorMessage);
+        showToast(errorMessage);
       }
     };
     fetchUserData();
@@ -65,61 +90,63 @@ const UserProfile: React.FC = () => {
   // Xác thực dữ liệu trước khi gửi
   const validateForm = () => {
     if (!formData.userName.trim()) {
-      return "Tên người dùng không được để trống.";
+      return "Vui lòng nhập tên người dùng!";
     }
     if (formData.gender && !["male", "female", "other"].includes(formData.gender)) {
-      return "Giới tính phải là 'male', 'female', hoặc 'other'.";
+      return "Giới tính phải là 'male', 'female', hoặc 'other'!";
     }
-    // Kiểm tra định dạng số điện thoại (tùy chọn, ví dụ: 10 chữ số)
     if (formData.phone_number && !/^\d{10}$/.test(formData.phone_number)) {
-      return "Số điện thoại phải là 10 chữ số.";
+      return "Số điện thoại phải là 10 chữ số!";
     }
     return null;
   };
 
   // Xử lý submit form cập nhật
-  const handleUpdate = async () => {
-    if (!user?._id) {
-      setError("Vui lòng đăng nhập để cập nhật thông tin.");
-      return;
-    }
+const handleUpdate = async () => {
+  if (!user?._id) {
+    const errorMessage = "Vui lòng đăng nhập để cập nhật!";
+    setError(errorMessage);
+    showToast(errorMessage);
+    return;
+  }
 
-    // Xác thực dữ liệu
-    const validationError = validateForm();
-    if (validationError) {
-      setError(validationError);
-      toast.error(validationError, { position: "top-right", autoClose: 3000 });
-      return;
-    }
+  // Xác thực dữ liệu
+  const validationError = validateForm();
+  if (validationError) {
+    setError(validationError);
+    showToast(validationError);
+    return;
+  }
 
-    try {
-      const updatePayload = {
-        userName: formData.userName.trim(),
-        phone_number: formData.phone_number || undefined, // Gửi undefined nếu rỗng
-        gender: formData.gender as Gender || undefined,
-        address: formData.address || undefined,
-        userDescription: formData.userDescription || undefined,
-      };
-      console.log("Payload gửi đi:", updatePayload); // Debug payload
-      await updateUser(user._id, updatePayload);
-      // Sau khi cập nhật, lấy lại dữ liệu người dùng mới nhất
-      const refreshedUser: User = await getUserById(user._id);
-      setUserData(refreshedUser);
-      setIsEditing(false);
-      toast.success("Cập nhật thông tin thành công!", { position: "top-right", autoClose: 3000 });
-    } catch (error: any) {
-      console.error("Lỗi khi cập nhật thông tin:", error);
-      let errorMessage = "Cập nhật thông tin thất bại.";
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message.includes("authenticate")) {
-        errorMessage = "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.";
-        logout();
-      }
-      setError(errorMessage);
-      toast.error(errorMessage, { position: "top-right", autoClose: 3000 });
-    }
-  };
+  try {
+    const updatePayload = {
+      userName: formData.userName.trim(),
+      phone_number: formData.phone_number || undefined,
+      gender: formData.gender as Gender || undefined,
+      address: formData.address || undefined,
+      userDescription: formData.userDescription || undefined,
+    };
+    console.log("Payload gửi đi:", updatePayload);
+    // Gọi API cập nhật
+    await updateUser(user._id, updatePayload);
+    // Lấy lại dữ liệu người dùng mới nhất
+    const refreshedUser: User = await getUserById(user._id);
+    console.log("Dữ liệu người dùng sau cập nhật:", refreshedUser);
+    // Cập nhật trạng thái
+    setUserData(refreshedUser);
+    setIsEditing(false);
+    setError(null);
+    // Gọi toast ngay lập tức
+    showToast("Cập nhật thông tin thành công!", "success");
+    // Đồng bộ AuthContext nếu cần
+  }
+  catch (error: any) {
+    console.error("Lỗi khi cập nhật thông tin người dùng:", error.message);
+    const errorMessage = error.message || "Cập nhật thông tin thất bại!";
+    setError(errorMessage);
+    showToast(errorMessage);
+  }
+};
 
   // Chuyển sang chế độ chỉnh sửa
   const handleEdit = () => {
@@ -131,7 +158,6 @@ const UserProfile: React.FC = () => {
   const handleCancel = () => {
     setIsEditing(false);
     setError(null);
-    // Khôi phục formData từ userData
     setFormData({
       userName: userData?.userName || "",
       phone_number: userData?.phone_number || "",
@@ -149,7 +175,7 @@ const UserProfile: React.FC = () => {
     return (
       <Box>
         <Typography variant="h6" color="error">
-          Vui lòng đăng nhập để xem thông tin.
+          Vui lòng đăng nhập để xem thông tin!
         </Typography>
         <Button variant="contained" color="primary" onClick={() => (window.location.href = "/auth/login")}>
           Đăng nhập
@@ -158,7 +184,7 @@ const UserProfile: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error && !isEditing) {
     return (
       <Box>
         <Typography variant="h6" color="error">
@@ -227,7 +253,7 @@ const UserProfile: React.FC = () => {
                 label="Email"
                 name="email"
                 value={userData.email || "Chưa cập nhật"}
-                InputProps={{ readOnly: true }} // Email không cho chỉnh sửa
+                InputProps={{ readOnly: true }}
               />
             </Box>
             <Box sx={{ gridColumn: { xs: "1", sm: "1 / span 2" } }}>

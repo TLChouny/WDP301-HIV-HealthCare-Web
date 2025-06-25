@@ -68,6 +68,20 @@ export const deleteBooking = async (id: string): Promise<void> => {
   });
 };
 export const getBookingsByDoctorName = async (doctorName: string): Promise<Booking[]> => {
-  const res = await apiClient.get(API_ENDPOINTS.BOOKINGS_BY_DOCTOR_NAME(doctorName));
-  return res.data;
+  console.log('Doctor Name:', doctorName);
+  const encodedName = encodeURIComponent(doctorName);
+  console.log('Request URL:', `${BASE_URL}${API_ENDPOINTS.BOOKINGS_BY_DOCTOR_NAME(encodedName)}`);
+  try {
+    const res = await apiClient.get(API_ENDPOINTS.BOOKINGS_BY_DOCTOR_NAME(encodedName));
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error('Error:', error.response?.data || error.message);
+    } else if (error instanceof Error) {
+      console.error('Error:', error.message);
+    } else {
+      console.error('An unknown error occurred');
+    }
+    throw error;
+  }
 };

@@ -3,22 +3,45 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Calendar, AlertCircle, Shield } from 'lucide-react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { getServiceById } from '../../api/serviceApi';
 import { getAllUsers } from '../../api/authApi';
 import { useBooking } from '../../context/BookingContext';
 import type { Service } from '../../types/service';
 import type { User } from '../../types/user';
-import { Booking } from '../../types/booking';
 import { useAuth } from '../../context/AuthContext';
-import { u } from 'framer-motion/dist/types.d-CtuPurYT';
 import { format } from 'date-fns';
+
+// Cấu hình toast chung
+const TOAST_CONFIG = {
+  position: 'top-right' as const,
+  autoClose: 3000,
+  hideProgressBar: false,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
+  progress: undefined,
+  theme: 'colored' as const,
+};
+
+// Hàm tiện ích để hiển thị toast
+const showToast = (message: string, type: 'error' | 'success' = 'error') => {
+  if (!toast.isActive(message)) {
+    const config = { ...TOAST_CONFIG, toastId: message };
+    if (type === 'success') {
+      toast.success(message, config);
+    } else {
+      toast.error(message, config);
+    }
+  }
+};
+
 const Appointment: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { create } = useBooking();
   const { user } = useAuth();
-// Chuyển sang chuỗi trước khi gửi lên server:
+
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const formattedDate = selectedDate ? format(selectedDate, 'yyyy-MM-dd') : '';
 
@@ -31,7 +54,7 @@ const Appointment: React.FC = () => {
     customerName: '',
     customerPhone: '',
     customerEmail: '',
-    notes: ''
+    notes: '',
   });
 
   const [service, setService] = useState<Service | null>(null);
@@ -39,11 +62,11 @@ const Appointment: React.FC = () => {
 
   const timeSlots = [
     '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
-    '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'
+    '13:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00',
   ];
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -53,12 +76,12 @@ const Appointment: React.FC = () => {
     e.preventDefault();
 
     if (!formattedDate || !selectedTime || !selectedDoctor) {
-      toast.error('Vui lòng điền đầy đủ thông tin bắt buộc!');
+      showToast('Vui lòng chọn ngày, giờ và bác sĩ!');
       return;
     }
 
     if (!isAnonymous && (!formData.customerName || !formData.customerPhone)) {
-      toast.error('Vui lòng điền đầy đủ thông tin liên hệ!');
+      showToast('Vui lòng điền họ tên và số điện thoại!');
       return;
     }
 
@@ -66,7 +89,7 @@ const Appointment: React.FC = () => {
       const params = new URLSearchParams(location.search);
       const serviceId = params.get('serviceId') || '';
 
-      const selectedDoctorObj = doctors.find(doc => doc._id === selectedDoctor);
+      const selectedDoctorObj = doctors.find((doc) => doc._id === selectedDoctor);
 
       const bookingData = {
         bookingDate: formattedDate.split('T')[0],
@@ -74,32 +97,41 @@ const Appointment: React.FC = () => {
         fullName: isAnonymous ? undefined : formData.customerName,
         phone: isAnonymous ? undefined : formData.customerPhone,
         email: isAnonymous ? undefined : formData.customerEmail,
-        doctorName: selectedDoctorObj?.userName ?? undefined, // ✅ fix kiểu
+        doctorName: selectedDoctorObj?.userName ?? undefined,
         notes: formData.notes,
         serviceId: service ?? undefined,
         currency: 'VND',
         status: 'pending' as 'pending',
         isAnonymous,
-        userId: user?._id ?? undefined
+        userId: user?._id ?? undefined,
       };
 
-
       if (!user || !user._id) {
-        toast.error('Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.');
+        showToast('Vui lòng đăng nhập để đặt lịch!');
         return;
       }
+
       console.log('Booking data sending to BE:', bookingData);
 
       await create(bookingData);
 
-      toast.success('Đặt lịch khám thành công!');
+      showToast('Đặt lịch khám thành công!', 'success');
       setTimeout(() => {
-        navigate('/'); // Chuyển hướng về trang chủ
-        window.location.reload(); // Reload lại trang để cập nhật notification ở layout
+        navigate('/');
+        window.location.reload();
       }, 2000);
-    } catch (err) {
-      toast.error('Đặt lịch thất bại!');
-      console.error(err);
+    } catch (err: any) {
+      console.error('Booking error:', err);
+      // Xử lý lỗi cụ thể từ create
+      if (err.message?.toLowerCase().includes('service')) {
+        showToast('Dịch vụ không tồn tại!');
+      } else if (err.message?.toLowerCase().includes('doctor')) {
+        showToast('Bác sĩ không hợp lệ!');
+      } else if (err.message?.toLowerCase().includes('time')) {
+        showToast('Thời gian đặt lịch không khả dụng!');
+      } else {
+        showToast(err.message || 'Đặt lịch thất bại.');
+      }
     }
   };
 
@@ -110,6 +142,10 @@ const Appointment: React.FC = () => {
       setServiceLoading(true);
       getServiceById(serviceId)
         .then((data) => setService(data))
+        .catch((err) => {
+          console.error('Service error:', err);
+          showToast('Không thể tải thông tin dịch vụ!');
+        })
         .finally(() => setServiceLoading(false));
     }
   }, [location.search]);
@@ -119,6 +155,10 @@ const Appointment: React.FC = () => {
     getAllUsers()
       .then((users) => {
         setDoctors(users.filter((u: User) => u.role === 'doctor'));
+      })
+      .catch((err) => {
+        console.error('Doctors error:', err);
+        showToast('Không thể tải danh sách bác sĩ!');
       })
       .finally(() => setLoadingDoctors(false));
   }, []);
@@ -259,7 +299,7 @@ const Appointment: React.FC = () => {
               </label>
               <DatePicker
                 selected={selectedDate}
-                onChange={(date) => setSelectedDate(date)}
+                onChange={(date: Date | null) => setSelectedDate(date)}
                 className="w-full rounded-lg border border-gray-300 py-2 px-4"
                 dateFormat="dd/MM/yyyy"
                 minDate={new Date()}
@@ -304,7 +344,7 @@ const Appointment: React.FC = () => {
             <Shield className="h-5 w-5 text-blue-500 mt-1" />
             <p className="text-sm text-blue-600">
               Mọi thông tin của bạn sẽ được bảo mật tuyệt đối.
-              {isAnonymous && " Khi đặt lịch ẩn danh, chúng tôi chỉ sử dụng số điện thoại để liên hệ xác nhận lịch hẹn."}
+              {isAnonymous && ' Khi đặt lịch ẩn danh, chúng tôi chỉ sử dụng số điện thoại để liên hệ xác nhận lịch hẹn.'}
             </p>
           </div>
 
@@ -326,7 +366,6 @@ const Appointment: React.FC = () => {
           </div>
         </form>
       </div>
-      <ToastContainer />
     </div>
   );
 };

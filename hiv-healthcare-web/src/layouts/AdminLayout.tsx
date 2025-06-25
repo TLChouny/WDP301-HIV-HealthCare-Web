@@ -15,7 +15,7 @@ import {
   Home
 } from 'lucide-react';
 import { logout } from '../api/authApi';
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const AdminLayout: React.FC = () => {
@@ -191,18 +191,6 @@ const AdminLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </div>
   );
 };

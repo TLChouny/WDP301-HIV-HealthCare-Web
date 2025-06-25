@@ -135,7 +135,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userData = decodeAndValidateToken(token);
       localStorage.setItem("token", token);
       setUser(userData);
-      toast.success("Đăng nhập thành công!", { position: "top-right", autoClose: 3000 });
       if (userData.role === "admin") {
         navigate("/admin/dashboard");
       } else if (userData.role === "doctor") {
@@ -147,7 +146,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error: any) {
       console.error("Lỗi đăng nhập:", error.message);
-      toast.error(error.message || "Đăng nhập thất bại.", { position: "top-right", autoClose: 3000 });
       throw error;
     }
   };
@@ -163,8 +161,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       localStorage.removeItem("token");
       setUser(null);
-      toast.success("Đã đăng xuất.", { position: "top-right", autoClose: 3000 });
-      navigate("/auth/login");
+      navigate("/");
     }
   };
 
@@ -224,7 +221,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const forgotPassword = async (data: { email: string }) => {
     try {
       await apiForgotPassword(data);
-      toast.success("Yêu cầu đặt lại mật khẩu đã được gửi!", { position: "top-right", autoClose: 3000 });
     } catch (error: any) {
       console.error("Lỗi yêu cầu đặt lại mật khẩu:", error.message);
       let errorMessage = "Yêu cầu đặt lại mật khẩu thất bại.";
@@ -232,7 +228,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         errorMessage = error.response.data.message;
         if (errorMessage.includes("not found")) errorMessage = "Email không tồn tại!";
       }
-      toast.error(errorMessage, { position: "top-right", autoClose: 3000 });
       throw error;
     }
   };
@@ -240,7 +235,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const verifyResetOTP = async (data: { email: string; otp: string }) => {
     try {
       const response = await apiVerifyResetOTP(data);
-      toast.success("Xác minh OTP thành công!", { position: "top-right", autoClose: 3000 });
       return response;
     } catch (error: any) {
       console.error("Lỗi xác minh OTP đặt lại mật khẩu:", error.message);
@@ -250,7 +244,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (errorMessage.includes("expired")) errorMessage = "Mã OTP đã hết hạn!";
         else if (errorMessage.includes("otp")) errorMessage = "Mã OTP không đúng!";
       }
-      toast.error(errorMessage, { position: "top-right", autoClose: 3000 });
       throw error;
     }
   };
@@ -263,7 +256,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const userData = decodeAndValidateToken(response.token);
         setUser(userData);
       }
-      toast.success("Đặt lại mật khẩu thành công!", { position: "top-right", autoClose: 3000 });
     } catch (error: any) {
       let errorMessage = "Đặt lại mật khẩu thất bại!";
       if (error.response?.data?.message) {
@@ -273,7 +265,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
       console.error("Lỗi đặt lại mật khẩu:", error.message);
-      toast.error(errorMessage, { position: "top-right", autoClose: 3000 });
       throw error;
     }
   };
@@ -293,10 +284,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await apiUpdateUser(id, data);
       if (user && user._id === id) setUser(res);
-      toast.success("Cập nhật người dùng thành công!", { position: "top-right", autoClose: 3000 });
+      // toast.success("Cập nhật người dùng thành công!", { position: "top-right", autoClose: 3000 });
     } catch (error: any) {
       console.error("Lỗi cập nhật người dùng:", error.message);
-      toast.error(error.message || "Cập nhật người dùng thất bại.", { position: "top-right", autoClose: 3000 });
+      // toast.error(error.message || "Cập nhật người dùng thất bại.", { position: "top-right", autoClose: 3000 });
       throw error;
     }
   };

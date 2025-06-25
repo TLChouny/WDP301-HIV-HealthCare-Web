@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, ArrowRight } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/animation.css";
 
+// Cấu hình toast chung
 const TOAST_CONFIG = {
   position: "top-right" as const,
   autoClose: 3000,
@@ -13,6 +14,19 @@ const TOAST_CONFIG = {
   pauseOnHover: true,
   draggable: true,
   progress: undefined,
+  theme: "colored" as const,
+};
+
+// Hàm tiện ích để hiển thị toast
+const showToast = (message: string, type: "error" | "success" = "error") => {
+  if (!toast.isActive(message)) {
+    const config = { ...TOAST_CONFIG, toastId: message };
+    if (type === "success") {
+      toast.success(message, config);
+    } else {
+      toast.error(message, config);
+    }
+  }
 };
 
 const Login: React.FC = () => {
@@ -21,57 +35,73 @@ const Login: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  const { login: authLogin, user } = useAuth();
+  const { login: authLogin } = useAuth();
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
-  console.log("Login payload:", { email, password });
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isLoading) return;
+    setIsLoading(true);
+    console.log("Login payload:", { email, password });
 
-  if (!email) {
-    toast.error("Vui lòng nhập email!", TOAST_CONFIG);
-    setIsLoading(false);
-    return;
-  }
+    // Kiểm tra email rỗng
+    if (!email) {
+      showToast("Vui lòng nhập email!");
+      setIsLoading(false);
+      return;
+    }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    toast.error("Email phải chứa @ và đúng định dạng!", TOAST_CONFIG);
-    setIsLoading(false);
-    return;
-  }
+    // Kiểm tra định dạng email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showToast("Email không đúng định dạng!");
+      setIsLoading(false);
+      return;
+    }
 
-  if (!password) {
-    toast.error("Vui lòng nhập mật khẩu!", TOAST_CONFIG);
-    setIsLoading(false);
-    return;
-  }
+    // Kiểm tra mật khẩu rỗng
+    if (!password) {
+      showToast("Vui lòng nhập mật khẩu!");
+      setIsLoading(false);
+      return;
+    }
 
-  if (password.length < 6) {
-    toast.error("Mật khẩu phải có ít nhất 6 ký tự!", TOAST_CONFIG);
-    setIsLoading(false);
-    return;
-  }
+    // Kiểm tra độ dài mật khẩu
+    if (password.length < 6) {
+      showToast("Mật khẩu phải có ít nhất 6 ký tự!");
+      setIsLoading(false);
+      return;
+    }
 
-  try {
-    await authLogin({ email, password });
-    const token = localStorage.getItem("token");
-    console.log("Token after login:", token);
-    navigate("/");
-  } catch (error: any) {
-    console.error("Login error:", error.message);
-    toast.error(error.message || "Đăng nhập thất bại.", TOAST_CONFIG);
-  } finally {
-    setIsLoading(false);
-  }
-};
+    try {
+      await authLogin({ email, password });
+      const token = localStorage.getItem("token");
+      console.log("Token after login:", token);
+      navigate("/");
+      showToast("Đăng nhập thành công!", "success");
+    } catch (error: any) {
+      console.error("Login error:", error);
+
+      // Kiểm tra lỗi sai mật khẩu
+      if (
+        error.message?.toLowerCase().includes("password") ||
+        error.code === "auth/invalid-password" ||
+        error.message?.toLowerCase().includes("invalid credential")
+      ) {
+        showToast("Sai mật khẩu!");
+      } else {
+        showToast(error.message || "Đăng nhập thất bại.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <section className="min-h-screen bg-gray-50 py-16 relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500 rounded-full opacity-10 blur-3xl animate-pulse"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500 rounded-full opacity-25 blur-3xl animate-pulse"></div>
         <div
-          className="absolute bottom-0 left-0 w-64 h-64 bg-teal-400 rounded-full opacity-10 blur-3xl animate-pulse"
+          className="absolute bottom-0 left-0 w-64 h-64 bg-teal-400 rounded-full opacity-25 blur-3xl animate-pulse"
           style={{ animationDelay: "1s" }}
         ></div>
       </div>
@@ -99,7 +129,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     disabled={isLoading}
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    <Mail className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" />
+                    <Mail className="h-5 w-5 text-gray-400 transition-transform duration-300" />
                   </div>
                 </div>
               </div>
@@ -119,7 +149,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     disabled={isLoading}
                   />
                   <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    <Lock className="h-5 w-5 text-gray-400 transition-transform duration-300 group-hover:scale-110" />
+                    <Lock className="h-5 w-5 text-gray-400 transition-transform duration-300" />
                   </div>
                 </div>
               </div>

@@ -16,7 +16,6 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { Booking } from '../../types/booking';
 import { useBooking } from '../../context/BookingContext';
-import { ToastContainer } from 'react-toastify';
 
 // Định nghĩa type cho value của Calendar
 type CalendarValue = Date | Date[] | null;

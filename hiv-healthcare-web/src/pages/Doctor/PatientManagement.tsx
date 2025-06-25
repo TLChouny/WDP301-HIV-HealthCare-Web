@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   User, 
   Phone, 
@@ -14,91 +14,34 @@ import {
   AlertCircle,
   Pill
 } from 'lucide-react';
-
-interface Patient {
-  id: string;
-  name: string;
-  age: number;
-  gender: 'male' | 'female' | 'other';
-  phone: string;
-  email: string;
-  address: string;
-  diagnosisDate: string;
-  lastVisit: string;
-  nextAppointment?: string;
-  status: 'active' | 'inactive' | 'critical';
-  treatmentStage: string;
-  arvProtocol?: {
-    name: string;
-    medications: string[];
-    startDate: string;
-    notes?: string;
-  };
-  notes?: string;
-}
+import { BookingProvider, useBooking } from '../../context/BookingContext';
+import { useAuth } from '../../context/AuthContext';
 
 const PatientManagement: React.FC = () => {
+  const { getByDoctorName } = useBooking();
+  const { user } = useAuth(); // user là doctor đang đăng nhập
+  const [patients, setPatients] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedTreatmentStage, setSelectedTreatmentStage] = useState<string>('all');
 
-  const patients: Patient[] = [
-    {
-      id: '1',
-      name: 'Nguyễn Văn A',
-      age: 35,
-      gender: 'male',
-      phone: '0123 456 789',
-      email: 'nguyenvana@example.com',
-      address: '123 Đường ABC, Quận 1, TP.HCM',
-      diagnosisDate: '2023-01-15',
-      lastVisit: '2024-02-20',
-      nextAppointment: '2024-04-15',
-      status: 'active',
-      treatmentStage: 'Đang điều trị ARV',
-      arvProtocol: {
-        name: 'TDF + 3TC + DTG',
-        medications: ['Tenofovir (TDF)', 'Lamivudine (3TC)', 'Dolutegravir (DTG)'],
-        startDate: '2023-02-01',
-        notes: 'Bệnh nhân đáp ứng tốt với phác đồ điều trị'
-      },
-      notes: 'Bệnh nhân đáp ứng tốt với phác đồ điều trị'
-    },
-    {
-      id: '2',
-      name: 'Trần Thị B',
-      age: 28,
-      gender: 'female',
-      phone: '0987 654 321',
-      email: 'tranthib@example.com',
-      address: '456 Đường XYZ, Quận 2, TP.HCM',
-      diagnosisDate: '2023-06-20',
-      lastVisit: '2024-03-01',
-      status: 'critical',
-      treatmentStage: 'Cần theo dõi đặc biệt',
-      arvProtocol: {
-        name: 'TDF + 3TC + EFV',
-        medications: ['Tenofovir (TDF)', 'Lamivudine (3TC)', 'Efavirenz (EFV)'],
-        startDate: '2023-07-01',
-        notes: 'Cần tăng cường tư vấn dinh dưỡng'
-      },
-      notes: 'Cần tăng cường tư vấn dinh dưỡng'
-    },
-    {
-      id: '3',
-      name: 'Lê Văn C',
-      age: 42,
-      gender: 'male',
-      phone: '0988 777 666',
-      email: 'levanc@example.com',
-      address: '789 Đường DEF, Quận 3, TP.HCM',
-      diagnosisDate: '2022-11-10',
-      lastVisit: '2024-01-15',
-      status: 'inactive',
-      treatmentStage: 'Đã ngừng điều trị',
-      notes: 'Bệnh nhân không liên lạc được'
-    }
-  ];
+  useEffect(() => {
+    const fetchPatients = async () => {
+      if (user && user.userName) {
+        setLoading(true);
+        try {
+          // Lấy booking theo doctorName = userName của bác sĩ đăng nhập
+          const bookings = await getByDoctorName(user.userName);
+          setPatients(bookings);
+        } catch (error) {
+          setPatients([]);
+        }
+        setLoading(false);
+      }
+    };
+    fetchPatients();
+  }, [user, getByDoctorName]);
 
   const statuses = ['all', 'active', 'inactive', 'critical'];
   const treatmentStages = [

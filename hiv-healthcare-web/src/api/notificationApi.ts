@@ -31,23 +31,24 @@ export const createNotification = async (notificationData: Partial<Notification>
 };
 
 // Hàm lấy tất cả Notification
-export const getAllNotifications = async (): Promise<ApiResponse<Notification[]>> => {
-  try {
-    const response = await fetch(`${BASE_URL}${API_ENDPOINTS.NOTIFICATIONS}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+// export const getAllNotifications = async (): Promise<ApiResponse<Notification[]>> => {
+//   try {
+//     const response = await fetch(`${BASE_URL}${API_ENDPOINTS.NOTIFICATIONS}`, {
+//       method: 'GET',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//     });
 
-    if (!response.ok) throw new Error('Failed to fetch notifications');
+//     if (!response.ok) throw new Error('Failed to fetch notifications');
 
-    const data = await response.json();
-    return { data };
-  } catch (error) {
-    return { message: error instanceof Error ? error.message : 'Unknown error' };
-  }
-};
+//     const data = await response.json();
+//     return { data };
+//   } catch (error) {
+//     return { message: error instanceof Error ? error.message : 'Unknown error' };
+//   }
+// };
+
 // Hàm lấy Notification theo User ID
 export const getNotificationsByUserId = async (userId: string): Promise<ApiResponse<Notification[]>> => {
   try {

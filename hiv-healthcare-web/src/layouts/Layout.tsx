@@ -14,11 +14,37 @@ import {
   Bell,
 } from "react-feather";
 import { Link, useLocation, Outlet } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../context/AuthContext";
 import { useCategoryContext } from "../context/CategoryContext";
 import { useNotification } from "../context/NotificationContext";
+
+// Cấu hình toast chung
+const TOAST_CONFIG = {
+  position: "top-right" as const,
+  autoClose: 3000,
+  hideProgressBar: false,
+  closeOnClick: true,
+  pauseOnHover: true,
+  draggable: true,
+  progress: undefined,
+  theme: "colored" as const,
+};
+
+// Hàm tiện ích để hiển thị toast
+const showToast = (message: string, type: "error" | "success" | "info" = "error") => {
+  if (!toast.isActive(message)) {
+    const config = { ...TOAST_CONFIG, toastId: message };
+    if (type === "success") {
+      toast.success(message, config);
+    } else if (type === "info") {
+      toast.info(message, config);
+    } else {
+      toast.error(message, config);
+    }
+  }
+};
 
 const Layout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
@@ -41,7 +67,17 @@ const Layout: React.FC = () => {
   // Lấy notification theo userId khi user thay đổi
   useEffect(() => {
     if (user) {
-      getNotificationsByUserIdHandler(user._id);
+      getNotificationsByUserIdHandler(user._id).catch((err) => {
+        console.error("Notification error:", err);
+        // Xử lý lỗi cụ thể từ getNotificationsByUserIdHandler
+        if (err.message?.toLowerCase().includes("unauthorized")) {
+          showToast("Không có quyền truy cập thông báo!");
+        } else if (err.message?.toLowerCase().includes("network")) {
+          showToast("Lỗi mạng, vui lòng kiểm tra kết nối!");
+        } else {
+          showToast(err.message || "Không thể tải thông báo.");
+        }
+      });
     }
   }, [user, getNotificationsByUserIdHandler]);
 
@@ -71,14 +107,21 @@ const Layout: React.FC = () => {
     if (activeDropdown === "userDesktop" || activeDropdown === "userMobile") {
       const timer = setTimeout(() => {
         setActiveDropdown(null);
-      }, 3000); // 3 seconds
+      }, 3000);
 
-      return () => clearTimeout(timer); // Cleanup timer on unmount or state change
+      return () => clearTimeout(timer);
     }
   }, [activeDropdown]);
 
   const toggleDropdown = (name: string) => {
     setActiveDropdown((prev) => (prev === name ? null : name));
+  };
+
+  // Xử lý đăng xuất với toast
+  const handleLogout = () => {
+    logout();
+    setActiveDropdown(null);
+    showToast("Đăng xuất thành công!", "success");
   };
 
   return (
@@ -158,8 +201,7 @@ const Layout: React.FC = () => {
                         {cat.categoryName}
                       </Link>
                     ))
-                  )
-                }
+                  )}
                 </div>
               </div>
 
@@ -250,25 +292,33 @@ const Layout: React.FC = () => {
                           <p className="px-4 py-3 text-gray-500 text-center">Chưa có thông báo nào</p>
                         ) : (
                           notifications.map((notification, idx) => (
-                            <div key={notification._id || idx} className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0">
+                            <div
+                              key={notification._id || idx}
+                              className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                            >
                               <div className="flex justify-between items-start">
                                 <div>
-                                  <p className="font-medium text-gray-800">Thông báo: {notification.notiName || "Thông báo"}</p>
-                                  <p className="text-sm text-gray-600">Dịch vụ: {notification.bookingId.serviceId.serviceName || "Chi tiết không có"}</p>
-                                  <p className="text-sm text-gray-600">Time: {notification.bookingId.startTime || "Chi tiết không có"} 
-                                    - {notification.bookingId.endTime || "Chi tiết không có"}</p>
-                                  <p className="text-sm text-gray-600">Gía tiền: {notification.bookingId.serviceId.price || "Chi tiết không có"}</p>
-
-                                  {/* <div className="flex items-center mt-1 text-sm text-gray-500">
-                                    <Clock className="w-4 h-4 mr-1" />
-                                    <span>{new Date(notification.createdAt).toLocaleDateString()}</span>
-                                  </div> */}
+                                  <p className="font-medium text-gray-800">
+                                    Thông báo: {notification.notiName || "Thông báo"}
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    Dịch vụ: {notification.bookingId.serviceId.serviceName || "Chi tiết không có"}
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    Time: {notification.bookingId.startTime || "Chi tiết không có"} -{" "}
+                                    {notification.bookingId.endTime || "Chi tiết không có"}
+                                  </p>
+                                  <p className="text-sm text-gray-600">
+                                    Giá tiền: {notification.bookingId.serviceId.price || "Chi tiết không có"}
+                                  </p>
                                 </div>
-                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                  notification.bookingId.status === "checked-in"
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-yellow-100 text-yellow-700"
-                                }`}>
+                                <span
+                                  className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                    notification.bookingId.status === "checked-in"
+                                      ? "bg-green-100 text-green-700"
+                                      : "bg-yellow-100 text-yellow-700"
+                                  }`}
+                                >
                                   {notification.bookingId.status || "Chờ xác nhận"}
                                 </span>
                               </div>
@@ -318,19 +368,40 @@ const Layout: React.FC = () => {
                       onClick={() => setActiveDropdown(null)}
                     >
                       <span className="flex items-center gap-2">
-                        <svg className="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                        <svg
+                          className="w-5 h-5 text-teal-600"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                        </svg>
                         Hồ sơ
                       </span>
                     </Link>
                     <button
-                      onClick={() => {
-                        logout();
-                        setActiveDropdown(null);
-                      }}
+                      onClick={handleLogout}
                       className="block w-full text-left px-5 py-3 text-gray-800 font-medium hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors duration-200"
                     >
                       <span className="flex items-center gap-2">
-                        <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                        <svg
+                          className="w-5 h-5 text-red-500"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                          />
+                        </svg>
                         Đăng xuất
                       </span>
                     </button>
@@ -420,8 +491,7 @@ const Layout: React.FC = () => {
                         {cat.categoryName}
                       </Link>
                     ))
-                  )
-                }
+                  )}
                 </div>
               </div>
 
@@ -507,10 +577,7 @@ const Layout: React.FC = () => {
                         Hồ sơ
                       </Link>
                       <button
-                        onClick={() => {
-                          logout();
-                          setActiveDropdown(null);
-                        }}
+                        onClick={handleLogout}
                         className="block w-full text-left py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
                       >
                         Đăng xuất
@@ -577,8 +644,8 @@ const Layout: React.FC = () => {
                 <span className="text-2xl font-bold tracking-tight">HIV Care</span>
               </div>
               <p className="text-teal-100 mb-8 leading-relaxed">
-                Chúng tôi cung cấp dịch vụ chăm sóc sức khỏe toàn diện cho người sống chung với HIV, với đội ngũ y bác
-                sĩ chuyên nghiệp và tận tâm.
+                Chúng tôi cung cấp dịch vụ chăm sóc sức khỏe toàn diện cho người sống chung với HIV, với đội ngũ y bác sĩ
+                chuyên nghiệp và tận tâm.
               </p>
               <div className="flex space-x-4">
                 {[
@@ -742,37 +809,39 @@ const Layout: React.FC = () => {
               onClick={() => setShowModal(false)}
               aria-label="Đóng"
             >
-              &times;
+              ×
             </button>
             <h2 className="text-xl font-bold mb-4 text-teal-700">Chi tiết thông báo</h2>
             <div className="space-y-2">
-              <div><b>Tên thông báo:</b> {selectedNotification.notiName}</div>
-              <div><b>Mô tả:</b> {selectedNotification.notiDescription}</div>
-              <div><b>Ngày tạo:</b> {new Date(selectedNotification.createdAt).toLocaleString()}</div>
-              <div><b>Ngày cập nhật:</b> {new Date(selectedNotification.updatedAt).toLocaleString()}</div>
-              <div><b>Trạng thái booking:</b> {selectedNotification.bookingId?.status}</div>
-              <div><b>Dịch vụ:</b> {selectedNotification.bookingId?.serviceId?.serviceName}</div>
-              <div><b>Bác sĩ:</b> {selectedNotification.bookingId?.doctorName}</div>
-              <div><b>Người đặt:</b> {selectedNotification.bookingId?.userId?.userName}</div>
-              {/* Thêm các field khác nếu cần */}
+              <div>
+                <b>Tên thông báo:</b> {selectedNotification.notiName}
+              </div>
+              <div>
+                <b>Mô tả:</b> {selectedNotification.notiDescription}
+              </div>
+              <div>
+                <b>Ngày tạo:</b> {new Date(selectedNotification.createdAt).toLocaleString()}
+              </div>
+              <div>
+                <b>Ngày cập nhật:</b> {new Date(selectedNotification.updatedAt).toLocaleString()}
+              </div>
+              <div>
+                <b>Trạng thái booking:</b> {selectedNotification.bookingId?.status}
+              </div>
+              <div>
+                <b>Dịch vụ:</b> {selectedNotification.bookingId?.serviceId?.serviceName}
+              </div>
+              <div>
+                <b>Bác sĩ:</b> {selectedNotification.bookingId?.doctorName}
+              </div>
+              <div>
+                <b>Người đặt:</b> {selectedNotification.bookingId?.userId?.userName}
+              </div>
             </div>
           </div>
         </div>
       )}
-
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        toastClassName="bg-white text-gray-800 rounded-lg shadow-lg border-l-4 border-teal-500 transform transition-all duration-300"
-      />
+      <ToastContainer />
     </div>
   );
 };

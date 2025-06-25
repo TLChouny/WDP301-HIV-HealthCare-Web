@@ -54,9 +54,8 @@ const UserLayout: React.FC = () => {
       
       // Chuyển về trang chủ và reload lại trang
       navigate('/');
-      window.location.reload();
-      
-      toast.success('Đăng xuất thành công');
+      window.location.reload(),2000;
+      // toast.success('Đăng xuất thành công');
     } catch (error: any) {
       console.error('Logout error:', error);
       toast.error(error.message || 'Đăng xuất thất bại');

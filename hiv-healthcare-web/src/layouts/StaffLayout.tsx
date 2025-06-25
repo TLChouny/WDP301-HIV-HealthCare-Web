@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { logout } from '../api/authApi';
 import { toast } from 'react-toastify';
-import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 const StaffLayout: React.FC = () => {
@@ -213,19 +212,6 @@ const StaffLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </div>
   );
 };

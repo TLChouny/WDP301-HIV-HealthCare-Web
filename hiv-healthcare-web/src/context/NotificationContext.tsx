@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
   createNotification,
-  getAllNotifications,
+  // getAllNotifications,
   getNotificationById,
   getNotificationsByUserId,
   updateNotificationById,
@@ -16,7 +16,6 @@ interface NotificationContextType {
   loading: boolean;
   error: string | null;
   createNotificationHandler: (notificationData: Partial<Notification>) => Promise<void>;
-  getAllNotificationsHandler: () => Promise<void>;
   getNotificationByIdHandler: (id: string) => Promise<void>;
   getNotificationsByUserIdHandler: (userId: string) => Promise<void>;
   updateNotificationByIdHandler: (id: string, notificationData: Partial<Notification>) => Promise<void>;
@@ -46,21 +45,21 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
-  const getAllNotificationsHandler = async () => {
-    setLoading(true);
-    try {
-      const response = await getAllNotifications();
-      if (response.data) {
-        setNotifications(response.data);
-      } else if (response.message) {
-        setError(response.message);
-      }
-    } catch (err) {
-      setError('Failed to fetch notifications');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const getAllNotificationsHandler = async () => {
+  //   setLoading(true);
+  //   try {
+  //     const response = await getAllNotifications();
+  //     if (response.data) {
+  //       setNotifications(response.data);
+  //     } else if (response.message) {
+  //       setError(response.message);
+  //     }
+  //   } catch (err) {
+  //     setError('Failed to fetch notifications');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const getNotificationByIdHandler = async (id: string) => {
     setLoading(true);
@@ -131,22 +130,21 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      if (window.localStorage.getItem("user")) {
-        // Nếu đã có user trong localStorage, không gọi getAllNotificationsHandler
-        return;
-      }
-    }
-    getAllNotificationsHandler();
-  }, []);
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     if (window.localStorage.getItem("user")) {
+  //       // Nếu đã có user trong localStorage, không gọi getAllNotificationsHandler
+  //       return;
+  //     }
+  //   }
+  //   getAllNotificationsHandler();
+  // }, []);
 
   const value = {
     notifications,
     loading,
     error,
     createNotificationHandler,
-    getAllNotificationsHandler,
     getNotificationByIdHandler,
     getNotificationsByUserIdHandler,
     updateNotificationByIdHandler,
