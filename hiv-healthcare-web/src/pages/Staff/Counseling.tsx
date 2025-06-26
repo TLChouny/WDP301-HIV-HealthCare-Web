@@ -357,21 +357,21 @@ const StaffCounseling: React.FC = () => {
                           <div className="text-sm text-gray-500 mt-1">
                             <div className="flex items-center gap-1">
                               <User className="w-3 h-3" />
-                              <span>Bệnh nhân: {patientInfo.name}</span>
+                              <span>{patientInfo.name}</span>
                               {booking.isAnonymous && (
                                 <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded">Ẩn danh</span>
                               )}
                             </div>
                             <div className="flex items-center gap-1 mt-1">
                               <Phone className="w-3 h-3" />
-                              <span>SĐT: {patientInfo.phone}</span>
+                              <span>{patientInfo.phone}</span>
                             </div>
                             <div className="flex items-center gap-1 mt-1">
                               <Mail className="w-3 h-3" />
-                              <span>Email: {patientInfo.email}</span>
+                              <span> {patientInfo.email}</span>
                             </div>
                             <div className="mt-2">
-                              <span>Bác sĩ: {patientInfo.doctorName}</span>
+                              <span> {patientInfo.doctorName}</span>
                             </div>
                             <div className="mt-1">
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
