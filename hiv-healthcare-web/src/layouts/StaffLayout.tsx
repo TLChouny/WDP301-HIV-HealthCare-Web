@@ -66,7 +66,7 @@ const StaffLayout: React.FC = () => {
     },
     {
       name: 'Quản lý gói dịch vụ',
-      path: '/staff/medications',
+      path: '/staff/services',
       icon: <ClipboardList className="w-5 h-5" />
     },
     {
@@ -74,11 +74,6 @@ const StaffLayout: React.FC = () => {
       path: '/staff/appointments',
       icon: <Calendar className="w-5 h-5" />
     },
-    // {
-    //   name: 'Lập lịch hẹn',
-    //   path: '/staff/appointment-scheduler',
-    //   icon: <Calendar className="w-5 h-5" />
-    // },
     {
       name: 'Tư vấn',
       path: '/staff/counseling',
