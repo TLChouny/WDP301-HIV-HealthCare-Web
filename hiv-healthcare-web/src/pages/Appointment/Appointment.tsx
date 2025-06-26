@@ -103,7 +103,7 @@ const Appointment: React.FC = () => {
         currency: 'VND',
         status: 'pending' as 'pending',
         isAnonymous,
-        userId: user?._id ?? undefined,
+        userId: user as User, // hoặc ép kiểu như trên nếu chỉ có _id
       };
 
       if (!user || !user._id) {
