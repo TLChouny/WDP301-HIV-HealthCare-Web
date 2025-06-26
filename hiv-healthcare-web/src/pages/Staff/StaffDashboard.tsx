@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Users, 
   Calendar, 
@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   XCircle
 } from 'lucide-react';
+import { useBooking } from '../../context/BookingContext';
+import { useServiceContext } from '../../context/ServiceContext';
 
 const StaffDashboard: React.FC = () => {
   const stats = [
@@ -126,6 +128,44 @@ const StaffDashboard: React.FC = () => {
     }
   };
 
+  const { getAll } = useBooking();
+  const { services } = useServiceContext();
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [serviceStats, setServiceStats] = useState<{serviceName: string, count: number}[]>([]);
+
+  useEffect(() => {
+    // Lấy bookings từ API
+    const fetchBookings = async () => {
+      try {
+        const data = await getAll();
+        setBookings(data);
+      } catch (err) {
+        setBookings([]);
+      }
+    };
+    fetchBookings();
+  }, [getAll]);
+
+  useEffect(() => {
+    // Đếm số lượng user đã booking từng dịch vụ
+    const stats: { [serviceId: string]: Set<string> } = {};
+    bookings.forEach(b => {
+      if (b.serviceId && b.userId && b.userId._id) {
+        const id = typeof b.serviceId === 'object' ? b.serviceId._id : b.serviceId;
+        if (!stats[id]) stats[id] = new Set();
+        stats[id].add(b.userId._id);
+      }
+    });
+    const result = Object.entries(stats).map(([serviceId, userSet]) => {
+      const service = services.find(s => s._id === serviceId);
+      return {
+        serviceName: service ? service.serviceName : serviceId,
+        count: userSet.size
+      };
+    });
+    setServiceStats(result);
+  }, [bookings, services]);
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -160,6 +200,35 @@ const StaffDashboard: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Thống kê booking dịch vụ */}
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Thống kê số lượng user đã booking từng gói dịch vụ</h2>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên dịch vụ</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số lượng user đã booking</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {serviceStats.length === 0 ? (
+                  <tr>
+                    <td colSpan={2} className="text-center py-8 text-gray-400">Chưa có dữ liệu booking.</td>
+                  </tr>
+                ) : (
+                  serviceStats.map(stat => (
+                    <tr key={stat.serviceName}>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{stat.serviceName}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{stat.count}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

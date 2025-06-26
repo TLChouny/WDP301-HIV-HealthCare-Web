@@ -250,6 +250,9 @@ const StaffAppointmentManagement: React.FC = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Trạng thái
                         </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Thanh toán
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -330,6 +333,20 @@ const StaffAppointmentManagement: React.FC = () => {
                                   Đã xác nhận
                                 </span>
                               ) : null}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">
+                              {booking.serviceId && booking.serviceId.price ? (
+                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                  Đã thanh toán
+                                </span>
+                              ) : (
+                                <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                  Chưa cập nhật
+                                </span>
+                              )}
+                              <div className="text-xs text-gray-500 mt-1">
+                                {booking.serviceId && booking.serviceId.price ? `Tổng: ${Number(booking.serviceId.price).toLocaleString('vi-VN')} ₫` : ''}
+                              </div>
                             </td>
                           </tr>
                         );
