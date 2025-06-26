@@ -105,7 +105,7 @@ const UserLayout: React.FC = () => {
                 transition: 'background 0.2s',
               }}
             >
-              <ListItemIcon sx={{ color: '#3b82f6', minWidth: 36 }}>{item.icon}</ListItemIcon>
+              <ListItemIcon sx={{ color: '#11706A', minWidth: 36 }}>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} sx={{ fontWeight: 600 }} />
             </ListItemButton>
           </ListItem>
@@ -117,12 +117,12 @@ const UserLayout: React.FC = () => {
               borderRadius: 2,
               mx: 1,
               my: 0.5,
-              color: '#ef4444',
-              '&:hover': { background: '#fee2e2', color: '#b91c1c' },
+              color: '#11706A',
+              '&:hover': { background: '#e0f2f1', color: '#11706A' },
               transition: 'background 0.2s',
             }}
           >
-            <ListItemIcon sx={{ color: '#ef4444', minWidth: 36 }}><LogoutIcon /></ListItemIcon>
+            <ListItemIcon sx={{ color: '#11706A', minWidth: 36 }}><LogoutIcon /></ListItemIcon>
             <ListItemText primary="Đăng xuất" sx={{ fontWeight: 600 }} />
           </ListItemButton>
         </ListItem>
@@ -137,7 +137,7 @@ const UserLayout: React.FC = () => {
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
-          background: 'linear-gradient(90deg, #6366f1 0%, #3b82f6 100%)',
+          background: '#11706A',
           boxShadow: 3,
           borderBottomLeftRadius: { md: 32 },
           borderBottomRightRadius: 0,
@@ -159,7 +159,7 @@ const UserLayout: React.FC = () => {
               color="inherit"
               startIcon={<HomeIcon />}
               onClick={() => navigate('/')}
-              sx={{ textTransform: 'none', fontWeight: 600, fontSize: 18 }}
+              sx={{ textTransform: 'none', fontWeight: 600, fontSize: 18, color: '#11706A' }}
             >
               Trang chủ
             </Button>
@@ -168,7 +168,7 @@ const UserLayout: React.FC = () => {
             color="inherit"
             startIcon={<LogoutIcon />}
             onClick={handleLogout}
-            sx={{ textTransform: 'none', fontWeight: 600, fontSize: 16, background: '#fff', color: '#3b82f6', borderRadius: 2, px: 3, boxShadow: 1, '&:hover': { background: '#f1f5f9' } }}
+            sx={{ textTransform: 'none', fontWeight: 600, fontSize: 16, background: '#fff', color: '#11706A', borderRadius: 2, px: 3, boxShadow: 1, '&:hover': { background: '#e0f2f1', color: '#11706A' } }}
           >
             Đăng xuất
           </Button>
