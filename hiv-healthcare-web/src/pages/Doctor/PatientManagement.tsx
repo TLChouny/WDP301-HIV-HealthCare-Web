@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Search, Plus, Edit, Trash2, Calendar, Clock, FileText
+  Search, Plus, Edit, Trash2, Calendar, Clock
 } from 'lucide-react';
 import { useBooking } from '../../context/BookingContext';
 import { useAuth } from '../../context/AuthContext';
@@ -8,7 +8,7 @@ import { Booking } from '../../types/booking';
 
 const PatientManagement: React.FC = () => {
   const { getByDoctorName } = useBooking();
-  const { user } = useAuth(); // user là bác sĩ đăng nhập
+  const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
@@ -71,19 +71,26 @@ const PatientManagement: React.FC = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bệnh nhân</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dịch vụ</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Liên hệ</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thời gian</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chi phí</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredBookings.map((booking) => (
                   <tr key={booking._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{booking.userId.userName}</div>
-                      <div className="text-sm text-gray-500">{booking.serviceId.serviceDescription}</div>
-                      <div className="text-sm text-gray-400">Mã đặt: {booking.bookingCode}</div>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                      {booking.userId.userName}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      {booking.serviceId.serviceDescription}
+                      <div className="text-xs text-gray-400">Mã đặt: {booking.bookingCode}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <div>Email: {booking.customerEmail}</div>
+                      <div>SĐT: {booking.customerPhone}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       <div className="flex items-center gap-1">
@@ -94,12 +101,6 @@ const PatientManagement: React.FC = () => {
                         <Clock className="w-4 h-4 text-green-600" />
                         {booking.startTime} - {booking.endTime}
                       </div>
-                      <div className="text-xs text-gray-500">
-                        Thời lượng: {booking.duration} phút
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                      {booking.serviceId.price} {booking.currency || 'VND'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
@@ -115,7 +116,7 @@ const PatientManagement: React.FC = () => {
                 ))}
                 {filteredBookings.length === 0 && !loading && (
                   <tr>
-                    <td colSpan={4} className="text-center py-6 text-gray-500">
+                    <td colSpan={5} className="text-center py-6 text-gray-500">
                       Không có lịch hẹn nào.
                     </td>
                   </tr>

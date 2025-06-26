@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, RotateCw } from 'lucide-react';
+import { Search, RotateCw, FileSearch, CheckCircle2 } from 'lucide-react';
 import { useBooking } from '../../context/BookingContext';
 import { useAuth } from '../../context/AuthContext';
 import { Booking } from '../../types/booking';
@@ -44,7 +44,7 @@ const getStatusText = (status: string) => {
     case 'confirmed':
       return 'Đã xác nhận';
     case 'checked-in':
-      return 'Đã đến';
+      return 'Đã xác nhận';
     case 'completed':
       return 'Hoàn thành';
     case 'cancelled':
@@ -174,20 +174,29 @@ const LabTestManagement: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        className="text-blue-600 hover:underline mr-3"
-                        onClick={() => alert(`Xem chi tiết xét nghiệm của ${test.customerName}`)}
-                      >
-                        Xem chi tiết
-                      </button>
-                      {test.status !== 'completed' && test.status !== 'cancelled' && (
+                      <div className="flex gap-4 items-center">
                         <button
-                          className="text-green-600 hover:underline"
-                          onClick={() => completeTest(test._id!)}
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 transition"
+                          onClick={() => alert(`Xem chi tiết xét nghiệm của ${test.customerName}`)}
                         >
-                          Hoàn thành
+                          <FileSearch className="w-6 h-6" />
                         </button>
-                      )}
+                        <button
+                          className={`flex items-center gap-1 ${
+                            test.status === 'completed' || test.status === 'cancelled'
+                              ? 'text-gray-400 cursor-not-allowed'
+                              : 'text-green-600 hover:text-green-800 transition'
+                          }`}
+                          onClick={() => {
+                            if (test.status !== 'completed' && test.status !== 'cancelled') {
+                              completeTest(test._id!);
+                            }
+                          }}
+                          disabled={test.status === 'completed' || test.status === 'cancelled'}
+                        >
+                          <CheckCircle2 className="w-6 h-6" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
