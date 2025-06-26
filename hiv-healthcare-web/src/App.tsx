@@ -47,7 +47,7 @@ import Counselors from './pages/Doctor/Counselors';
 import StaffDashboard from './pages/Staff/StaffDashboard';
 import StaffPatientAndRecordManagement from './pages/Staff/PatientAndRecordManagement';
 import StaffAppointmentManagement from './pages/Staff/AppointmentManagement';
-import StaffMedicationManagement from './pages/Staff/MedicationManagement';
+import StaffServiceManagement from './pages/Staff/ServiceManagement';
 import StaffCounseling from './pages/Staff/Counseling';
 import StaffSettings from './pages/Staff/StaffSettings';
 
@@ -193,8 +193,7 @@ const App: React.FC = () => {
                   <Route path="dashboard" element={<StaffDashboard />} />
                   <Route path="patients" element={<StaffPatientAndRecordManagement />} />
                   <Route path="appointments" element={<StaffAppointmentManagement />} />
-          
-                  <Route path="medications" element={<StaffMedicationManagement />} />
+                  <Route path="medications" element={<StaffServiceManagement />} />
                   <Route path="counseling" element={<StaffCounseling />} />
                   <Route path="settings" element={<StaffSettings />} />
                 </Route>
