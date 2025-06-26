@@ -110,22 +110,7 @@ const UserLayout: React.FC = () => {
             </ListItemButton>
           </ListItem>
         ))}
-        <ListItem disablePadding>
-          <ListItemButton
-            onClick={() => navigate('/auth/login')}
-            sx={{
-              borderRadius: 2,
-              mx: 1,
-              my: 0.5,
-              color: '#11706A',
-              '&:hover': { background: '#e0f2f1', color: '#11706A' },
-              transition: 'background 0.2s',
-            }}
-          >
-            <ListItemIcon sx={{ color: '#11706A', minWidth: 36 }}><LogoutIcon /></ListItemIcon>
-            <ListItemText primary="Đăng xuất" sx={{ fontWeight: 600 }} />
-          </ListItemButton>
-        </ListItem>
+        
       </List>
     </Box>
   );
