@@ -2,21 +2,13 @@ import React, { useState } from 'react';
 import { useServiceContext } from '../../context/ServiceContext';
 
 const StaffServicePackageManagement: React.FC = () => {
-  const { services, refreshServices } = useServiceContext();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { services } = useServiceContext();
+  const [search, setSearch] = useState('');
 
-  const handleRefresh = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      await refreshServices();
-    } catch (err: any) {
-      setError('Lỗi khi làm mới danh sách dịch vụ');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Lọc dịch vụ theo tên
+  const filteredServices = services.filter(service =>
+    service.serviceName.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -29,18 +21,16 @@ const StaffServicePackageManagement: React.FC = () => {
               Xem danh sách tất cả các gói dịch vụ hiện có trong hệ thống
             </p>
           </div>
-          <button
-            onClick={handleRefresh}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold shadow"
-            disabled={loading}
-          >
-            {loading ? 'Đang làm mới...' : 'Làm mới danh sách'}
-          </button>
+          <div>
+            <input
+              type="text"
+              placeholder="Tìm kiếm tên dịch vụ..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-w-[220px]"
+            />
+          </div>
         </div>
-        {/* Error */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>
-        )}
         {/* Service Packages List */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="overflow-x-auto">
@@ -55,16 +45,12 @@ const StaffServicePackageManagement: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {loading ? (
-                  <tr>
-                    <td colSpan={5} className="text-center py-8 text-gray-400">Đang tải dữ liệu...</td>
-                  </tr>
-                ) : services.length === 0 ? (
+                {filteredServices.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="text-center py-8 text-gray-400">Không có gói dịch vụ nào.</td>
                   </tr>
                 ) : (
-                  services.map((service) => (
+                  filteredServices.map((service) => (
                     <tr key={service._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 text-sm font-medium text-gray-900">{service.serviceName}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{service.serviceDescription || '-'}</td>
