@@ -144,7 +144,20 @@ const UserLayout: React.FC = () => {
               color="inherit"
               startIcon={<HomeIcon />}
               onClick={() => navigate('/')}
-              sx={{ textTransform: 'none', fontWeight: 600, fontSize: 18, color: '#11706A' }}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 700,
+                fontSize: 18,
+                color: '#fff',
+                background: 'rgba(255,255,255,0.12)',
+                borderRadius: 2,
+                px: 2.5,
+                boxShadow: 1,
+                '&:hover': {
+                  background: 'rgba(255,255,255,0.24)',
+                  color: '#fff',
+                },
+              }}
             >
               Trang chủ
             </Button>
