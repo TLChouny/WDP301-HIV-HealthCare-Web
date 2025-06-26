@@ -272,18 +272,18 @@ const StaffAppointmentManagement: React.FC = () => {
                               <div className="text-sm text-gray-500 mt-1">
                                 <div className="flex items-center gap-1">
                                   <User className="w-3 h-3" />
-                                  <span>Bệnh nhân: {patientInfo.name}</span>
+                                  <span> {patientInfo.name}</span>
                                   {booking.isAnonymous && (
                                     <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded">Ẩn danh</span>
                                   )}
                                 </div>
                                 <div className="flex items-center gap-1 mt-1">
                                   <Phone className="w-3 h-3" />
-                                  <span>SĐT: {patientInfo.phone}</span>
+                                  <span> {patientInfo.phone}</span>
                                 </div>
                                 <div className="flex items-center gap-1 mt-1">
                                   <Mail className="w-3 h-3" />
-                                  <span>Email: {patientInfo.email}</span>
+                                  <span> {patientInfo.email}</span>
                                 </div>
                                 <div className="mt-2">
                                   <span>Bác sĩ: {patientInfo.doctorName}</span>
@@ -380,8 +380,8 @@ const StaffAppointmentManagement: React.FC = () => {
           </div>
 
           {/* Right: Calendar */}
-          <div className="w-full md:w-80 order-1 md:order-2 mb-8 md:mb-0 flex justify-center">
-            <div className="bg-white rounded-lg shadow p-4 w-full">
+          <div className="order-1 md:order-2 mb-8 md:mb-0 flex justify-center">
+            <div>
               <Calendar
                 onChange={(value) => {
                   if (value instanceof Date) {
