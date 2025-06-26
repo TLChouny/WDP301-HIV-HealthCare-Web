@@ -34,9 +34,9 @@ function isSameDayLocal(date1: string | Date, date2: string | Date) {
 const StaffAppointmentManagement: React.FC = () => {
   const { getAll, update } = useBooking();
   const [search, setSearch] = useState<string>('');
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [calendarDate, setCalendarDate] = useState<Date>(new Date());
+  const [calendarDate, setCalendarDate] = useState<Date | null>(new Date());
 
   // State cho danh sách bookings
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -130,7 +130,7 @@ const StaffAppointmentManagement: React.FC = () => {
       (booking.customerPhone && booking.customerPhone.includes(search)) ||
       (booking.customerEmail && booking.customerEmail.toLowerCase().includes(search.toLowerCase())) ||
       (booking.bookingCode && booking.bookingCode.toLowerCase().includes(search.toLowerCase()));
-    const matchesDate = booking.bookingDate && isSameDayLocal(booking.bookingDate, selectedDate);
+    const matchesDate = !selectedDate || (booking.bookingDate && isSameDayLocal(booking.bookingDate, selectedDate));
     const matchesStatus = selectedStatus === 'all' || booking.status === selectedStatus;
     return matchesSearch && matchesDate && matchesStatus;
   });
@@ -184,11 +184,17 @@ const StaffAppointmentManagement: React.FC = () => {
                 <div className="flex gap-4">
                   <input
                     type="date"
-                    value={selectedDate.toISOString().split('T')[0]}
+                    value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
                     onChange={(e) => {
-                      const [year, month, day] = e.target.value.split('-').map(Number);
-                      setSelectedDate(new Date(year, month - 1, day));
-                      setCalendarDate(new Date(year, month - 1, day));
+                      if (!e.target.value) {
+                        setSelectedDate(null);
+                        setCalendarDate(null);
+                      } else {
+                        const [year, month, day] = e.target.value.split('-').map(Number);
+                        const date = new Date(year, month - 1, day);
+                        setSelectedDate(date);
+                        setCalendarDate(date);
+                      }
                     }}
                     className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -381,6 +387,9 @@ const StaffAppointmentManagement: React.FC = () => {
                   if (value instanceof Date) {
                     setCalendarDate(value);
                     setSelectedDate(value);
+                  } else if (value === null) {
+                    setCalendarDate(null);
+                    setSelectedDate(null);
                   }
                 }}
                 value={calendarDate}
