@@ -88,6 +88,11 @@ const AdminLayout: React.FC = () => {
       name: 'Quản lý tài khoản',
       path: '/admin/roles',
       icon: <Shield className="w-5 h-5" />
+    },
+    {
+      name: 'Quản lý Tin tức',
+      path: '/admin/categories',
+      icon: <FileText className="w-5 h-5" />
     }
   ];
 

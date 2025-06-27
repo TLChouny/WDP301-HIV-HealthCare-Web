@@ -47,3 +47,34 @@ export const createCategory = async (data: Partial<Category>): Promise<Category>
     throw new Error("An unexpected error occurred while creating category");
   }
 };
+
+export const updateCategory = async (id: string, data: Partial<Category>): Promise<Category> => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Không tìm thấy token xác thực");
+    const res = await apiClient.put(API_ENDPOINTS.CATEGORY_BY_ID(id), data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Failed to update category");
+    }
+    throw new Error("An unexpected error occurred while updating category");
+  }
+};
+
+export const deleteCategory = async (id: string): Promise<void> => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Không tìm thấy token xác thực");
+    await apiClient.delete(API_ENDPOINTS.CATEGORY_BY_ID(id), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Failed to delete category");
+    }
+    throw new Error("An unexpected error occurred while deleting category");
+  }
+};
