@@ -186,8 +186,8 @@ const AppointmentManagement: React.FC = () => {
         </div>
 
         {/* RIGHT - CALENDAR */}
-        <div className="w-full md:w-72 order-1 md:order-2">
-          <div className="bg-white rounded-lg shadow p-2 scale-90">
+        <div className="w-full md:w-80 order-1 md:order-2">
+          <div className="bg-white rounded-lg shadow p-4">
             <Calendar
               onChange={(value) => {
                 if (value instanceof Date) {
@@ -199,10 +199,14 @@ const AppointmentManagement: React.FC = () => {
                 }
               }}
               value={calendarDate}
-              className="text-xs [&_.react-calendar__tile]:py-1 [&_.react-calendar__tile]:text-[11px] [&_.react-calendar__month-view__weekdays]:text-[10px]"
+              className="[&_.react-calendar__tile]:py-2 [&_.react-calendar__tile]:text-[14px] [&_.react-calendar__month-view__weekdays]:text-[12px] text-sm"
               tileContent={({ date, view }) => {
                 if (view === 'month' && bookingDates.some(d => isSameDayLocal(d, date))) {
-                  return <div className="flex justify-center"><span className="block w-2 h-2 bg-blue-500 rounded-full mt-1"></span></div>;
+                  return (
+                    <div className="flex justify-center">
+                      <span className="block w-2 h-2 bg-blue-500 rounded-full mt-1"></span>
+                    </div>
+                  );
                 }
                 return null;
               }}
