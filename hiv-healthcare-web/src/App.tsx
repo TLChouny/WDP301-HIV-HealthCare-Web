@@ -32,6 +32,7 @@ import AppointmentManagement from './pages/Admin/AppointmentManagement';
 import Statistics from './pages/Admin/Statistics';
 import RoleManagement from './pages/Admin/RoleManagement';
 import CategoryManagement from './pages/Admin/CategoryManagement';
+import BlogManagement from './pages/Admin/BlogManagement';
 
 // Doctor Pages
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
@@ -174,6 +175,7 @@ const App: React.FC = () => {
                   <Route path="appointments" element={<AppointmentManagement />} />
                   <Route path="statistics" element={<Statistics />} />
                   <Route path="categories" element={<CategoryManagement />} />
+                  <Route path="blogs" element={<BlogManagement />} />
                   <Route path="roles" element={<RoleManagement />} />
                 </Route>
               </Route>
