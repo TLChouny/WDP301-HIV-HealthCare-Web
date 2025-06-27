@@ -14,37 +14,6 @@ import { useBooking } from '../../context/BookingContext';
 import { useServiceContext } from '../../context/ServiceContext';
 
 const StaffDashboard: React.FC = () => {
-  const stats = [
-    {
-      name: 'Tổng số bệnh nhân',
-      value: '150',
-      icon: <Users className="w-6 h-6 text-blue-600" />,
-      change: '+12%',
-      changeType: 'increase'
-    },
-    {
-      name: 'Lịch hẹn hôm nay',
-      value: '25',
-      icon: <Calendar className="w-6 h-6 text-green-600" />,
-      change: '+5%',
-      changeType: 'increase'
-    },
-    {
-      name: 'Hồ sơ bệnh án mới',
-      value: '8',
-      icon: <FileText className="w-6 h-6 text-purple-600" />,
-      change: '-2%',
-      changeType: 'decrease'
-    },
-    {
-      name: 'Tư vấn đang chờ',
-      value: '12',
-      icon: <MessageSquare className="w-6 h-6 text-yellow-600" />,
-      change: '+3%',
-      changeType: 'increase'
-    }
-  ];
-
   const todayAppointments = [
     {
       id: 1,
@@ -166,6 +135,56 @@ const StaffDashboard: React.FC = () => {
     setServiceStats(result);
   }, [bookings, services]);
 
+  // Lấy danh sách booking hôm nay
+  const today = new Date();
+  const todayBookings = bookings.filter(b => {
+    const bookingDate = new Date(b.bookingDate);
+    return (
+      bookingDate.getFullYear() === today.getFullYear() &&
+      bookingDate.getMonth() === today.getMonth() &&
+      bookingDate.getDate() === today.getDate()
+    );
+  });
+  const todayUsers = Array.from(
+    new Map(
+      todayBookings
+        .filter(b => b.userId && b.userId._id)
+        .map(b => [b.userId._id, b.userId])
+    ).values()
+  );
+  const todayUserCount = todayUsers.length;
+
+  const stats = [
+    {
+      name: 'Tổng số bệnh nhân',
+      value: '150',
+      icon: <Users className="w-6 h-6 text-blue-600" />,
+      change: '+12%',
+      changeType: 'increase'
+    },
+    {
+      name: 'Lịch hẹn hôm nay',
+      value: todayUserCount,
+      icon: <Calendar className="w-6 h-6 text-green-600" />,
+      change: '+5%',
+      changeType: 'increase'
+    },
+    {
+      name: 'Hồ sơ bệnh án mới',
+      value: '8',
+      icon: <FileText className="w-6 h-6 text-purple-600" />,
+      change: '-2%',
+      changeType: 'decrease'
+    },
+    {
+      name: 'Tư vấn đang chờ',
+      value: '12',
+      icon: <MessageSquare className="w-6 h-6 text-yellow-600" />,
+      change: '+3%',
+      changeType: 'increase'
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -232,37 +251,44 @@ const StaffDashboard: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Today's Appointments */}
+          {/* Lịch hẹn hôm nay */}
           <div className="bg-white rounded-lg shadow">
             <div className="p-6 border-b">
               <h2 className="text-lg font-medium text-gray-900">Lịch hẹn hôm nay</h2>
             </div>
             <div className="divide-y divide-gray-200">
-              {todayAppointments.map((appointment) => {
-                const status = getAppointmentStatus(appointment.status);
-                return (
-                  <div key={appointment.id} className="p-6">
+              {todayBookings.length === 0 ? (
+                <div className="p-6 text-gray-500">Không có lịch hẹn nào hôm nay.</div>
+              ) : (
+                todayBookings.map((booking) => (
+                  <div key={booking._id} className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{appointment.patientName}</p>
-                        <p className="text-sm text-gray-500 mt-1">{appointment.type}</p>
-                        <p className="text-sm text-gray-500">Bác sĩ: {appointment.doctor}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {booking.isAnonymous
+                            ? 'Ẩn danh'
+                            : (booking.userId?.userName || booking.customerName || 'Không xác định')}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Bác sĩ: {booking.doctorName || 'Chưa phân công'}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Giờ: {booking.startTime || 'N/A'} - {booking.endTime || 'N/A'}
+                        </p>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {appointment.time}
-                        </div>
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${status.color}`}>
-                          <div className="flex items-center space-x-1">
+                      {(() => {
+                        const status = getAppointmentStatus(booking.status);
+                        return (
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${status.color}`}>
                             {status.icon}
-                            <span>{status.text}</span>
-                          </div>
-                        </span>
-                      </div>
+                            <span className="ml-1">{status.text}</span>
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
-                );
-              })}
+                ))
+              )}
             </div>
           </div>
 
