@@ -12,7 +12,9 @@ import {
   Bell,
   Shield,
   BarChart,
-  Home
+  Home,
+  Folder,
+  Book
 } from 'lucide-react';
 import { logout } from '../api/authApi';
 import { toast } from 'react-toastify';
@@ -90,8 +92,13 @@ const AdminLayout: React.FC = () => {
       icon: <Shield className="w-5 h-5" />
     },
     {
-      name: 'Quản lý Tin tức',
+      name: 'Quản lý danh mục',
       path: '/admin/categories',
+      icon: <Folder className="w-5 h-5" />
+    },
+    {
+      name: 'Quản lý bài viết',
+      path: '/admin/blogs',
       icon: <FileText className="w-5 h-5" />
     }
   ];
