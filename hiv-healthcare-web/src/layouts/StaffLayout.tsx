@@ -70,7 +70,7 @@ const StaffLayout: React.FC = () => {
       icon: <ClipboardList className="w-5 h-5" />
     },
     {
-      name: 'Lịch hẹn',
+      name: 'Xác nhận Lịch hẹn',
       path: '/staff/appointments',
       icon: <Calendar className="w-5 h-5" />
     },
