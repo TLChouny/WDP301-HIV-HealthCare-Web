@@ -225,7 +225,7 @@ const Appointment: React.FC = () => {
               </label>
               <input
                 type="text"
-                name="customerName"
+                name="customerName" 
                 value={formData.customerName}
                 onChange={handleInputChange}
                 className="w-full rounded-lg border border-gray-300 py-2 px-4"

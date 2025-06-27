@@ -15,61 +15,31 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  MenuItem,
 } from '@mui/material';
 import {
-  Add as AddIcon,
   Visibility as VisibilityIcon,
   Cancel as CancelIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useBooking } from '../../context/BookingContext';
 import { useAuth } from '../../context/AuthContext';
+import { useServiceContext } from '../../context/ServiceContext';
+import { usePaymentContext } from '../../context/PaymentContext';
 import type { Booking } from '../../types/booking';
-import axios from 'axios';
-
-interface ServiceResponse {
-  _id: string;
-  serviceName: string;
-  serviceDescription: string;
-  categoryId: string;
-  serviceImage: string;
-  duration: number;
-  price: number;
-  createdAt: string;
-  updatedAt: string;
-}
 
 const UserAppointments: React.FC = () => {
   const navigate = useNavigate();
-  const { getByUserId, create, remove } = useBooking();
+  const { getByUserId, remove } = useBooking();
   const { user } = useAuth();
+  const { services } = useServiceContext();
+  const { createPayment } = usePaymentContext();
+
   const [appointments, setAppointments] = useState<Booking[]>([]);
   const [openViewDialog, setOpenViewDialog] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Booking | null>(null);
-  const [services, setServices] = useState<ServiceResponse[]>([]);
-  const [doctors, setDoctors] = useState<string[]>([]);
   const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
   const [selectedPaymentBooking, setSelectedPaymentBooking] = useState<Booking | null>(null);
 
-  // Lấy danh sách dịch vụ và bác sĩ
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const response = await axios.get('https://your-api-endpoint/services');
-        setServices(response.data);
-      } catch (error) {
-        console.error('Error fetching services:', error);
-      }
-    };
-    fetchServices();
-
-    // Mock danh sách bác sĩ (thay bằng API nếu có)
-    setDoctors(['BS. Trần Thị B', 'BS. Lê Văn C', 'BS. Nguyễn Văn D']);
-  }, []);
-
-  // Lấy danh sách bookings theo userId
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
@@ -81,9 +51,7 @@ const UserAppointments: React.FC = () => {
         console.error('Error fetching appointments:', error);
       }
     };
-    if (user?._id) {
-      fetchAppointments();
-    }
+    if (user?._id) fetchAppointments();
   }, [getByUserId, user]);
 
   const handleViewAppointment = (appointment: Booking) => {
@@ -91,10 +59,11 @@ const UserAppointments: React.FC = () => {
     setOpenViewDialog(true);
   };
 
+  //,,,,
   const handleCancelAppointment = async (id: string) => {
     try {
       await remove(id);
-      setAppointments(appointments.filter((appt) => appt._id !== id));
+      setAppointments((prev) => prev.filter((appt) => appt._id !== id));
       setOpenViewDialog(false);
     } catch (error) {
       console.error('Error cancelling appointment:', error);
@@ -106,12 +75,37 @@ const UserAppointments: React.FC = () => {
     setOpenPaymentDialog(true);
   };
 
+  const handleConfirmPayment = async () => {
+    if (!selectedPaymentBooking || !selectedPaymentBooking.serviceId) return;
+
+    try {
+      const payment = await createPayment({
+        paymentID: `PAY-${Date.now()}`,
+        orderCode: Number(selectedPaymentBooking.bookingCode || Date.now()),
+        orderName: selectedPaymentBooking.serviceId.serviceName,
+        amount: Number(selectedPaymentBooking.serviceId.price),
+        description: `Thanh toán cho lịch hẹn #${selectedPaymentBooking.bookingCode}`,
+        status: 'pending',
+        returnUrl: `${window.location.origin}/payment-success`,
+        cancelUrl: `${window.location.origin}/payment-cancel`,
+        bookingIds: [selectedPaymentBooking._id!],
+      });
+
+      if (payment.checkoutUrl) {
+        window.open(payment.checkoutUrl, '_blank');
+      } else {
+        alert('Không thể tạo liên kết thanh toán.');
+      }
+
+      setOpenPaymentDialog(false);
+    } catch (error) {
+      console.error('Lỗi khi tạo thanh toán:', error);
+      alert('Tạo thanh toán thất bại.');
+    }
+  };
+
   return (
-    <Box sx={{
-      background: '#fff',
-      minHeight: '100vh',
-      py: 4,
-    }}>
+    <Box sx={{ background: '#fff', minHeight: '100vh', py: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#3b82f6', letterSpacing: 1 }}>
           Lịch hẹn của bạn
@@ -126,19 +120,14 @@ const UserAppointments: React.FC = () => {
               <TableCell sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Giờ</TableCell>
               <TableCell sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Loại</TableCell>
               <TableCell sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Bác sĩ</TableCell>
+              <TableCell sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Meeting Link</TableCell>
               <TableCell sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Trạng thái</TableCell>
               <TableCell align="right" sx={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Thao tác</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {appointments.map((appointment) => (
-              <TableRow
-                key={appointment._id}
-                sx={{
-                  '&:hover': { background: '#f1f5f9' },
-                  transition: 'background 0.2s',
-                }}
-              >
+              <TableRow key={appointment._id} sx={{ '&:hover': { background: '#f1f5f9' } }}>
                 <TableCell>{new Date(appointment.bookingDate).toLocaleDateString('vi-VN')}</TableCell>
                 <TableCell>{appointment.startTime}</TableCell>
                 <TableCell>
@@ -152,6 +141,11 @@ const UserAppointments: React.FC = () => {
                   </Box>
                 </TableCell>
                 <TableCell>{appointment.doctorName}</TableCell>
+                <TableCell>
+                  <Typography variant="body2" sx={{ color: '#64748b' }}>
+                  <b>{appointment.meetLink || 'Không có'}</b>
+                  </Typography>
+                </TableCell>
                 <TableCell>
                   <span style={{
                     padding: '4px 12px',
@@ -173,25 +167,31 @@ const UserAppointments: React.FC = () => {
                     <VisibilityIcon />
                   </IconButton>
                   {appointment.status === 'pending' && (
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => handleCancelAppointment(appointment._id!)}
-                      sx={{ borderRadius: 2, mx: 0.5, background: '#fee2e2', '&:hover': { background: '#fecaca' } }}
-                    >
-                      <CancelIcon />
-                    </IconButton>
-                  )}
-                  {appointment.status === 'pending' && (
-                    <Button
-                      size="small"
-                      variant="contained"
-                      color="primary"
-                      sx={{ ml: 1, borderRadius: 2, fontWeight: 600, background: 'linear-gradient(90deg, #6366f1 0%, #3b82f6 100%)', boxShadow: 2 }}
-                      onClick={() => handleOpenPayment(appointment)}
-                    >
-                      Thanh toán
-                    </Button>
+                    <>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleCancelAppointment(appointment._id!)}
+                        sx={{ borderRadius: 2, mx: 0.5, background: '#fee2e2', '&:hover': { background: '#fecaca' } }}
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="primary"
+                        sx={{
+                          ml: 1,
+                          borderRadius: 2,
+                          fontWeight: 600,
+                          background: 'linear-gradient(90deg, #6366f1 0%, #3b82f6 100%)',
+                          boxShadow: 2,
+                        }}
+                        onClick={() => handleOpenPayment(appointment)}
+                      >
+                        Thanh toán
+                      </Button>
+                    </>
                   )}
                 </TableCell>
               </TableRow>
@@ -200,16 +200,26 @@ const UserAppointments: React.FC = () => {
         </Table>
       </TableContainer>
 
+      {/* View Dialog */}
       <Dialog
         open={openViewDialog}
         onClose={() => setOpenViewDialog(false)}
         maxWidth="xs"
         fullWidth
-        PaperProps={{
-          sx: { borderRadius: 4, p: 3, background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)' }
-        }}
+        PaperProps={{ sx: { borderRadius: 4, p: 3, background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)' } }}
       >
-        <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: 24, color: '#3b82f6', pb: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <DialogTitle
+          sx={{
+            textAlign: 'center',
+            fontWeight: 'bold',
+            fontSize: 24,
+            color: '#3b82f6',
+            pb: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}
+        >
           <Box sx={{ width: 48, height: 48, borderRadius: '50%', background: '#e0e7ff', display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
             <span role="img" aria-label="calendar" style={{ fontSize: 28 }}>📅</span>
           </Box>
@@ -230,6 +240,9 @@ const UserAppointments: React.FC = () => {
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#64748b' }}>
                   Bác sĩ: <b>{selectedAppointment.doctorName}</b>
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748b' }}>
+                  Meeting Link: <b>{selectedAppointment.meetLink}</b>
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#64748b' }}>
                   Trạng thái: <b style={{ color: selectedAppointment.status === 'pending' ? '#f59e42' : '#22c55e' }}>{selectedAppointment.status}</b>
@@ -263,14 +276,13 @@ const UserAppointments: React.FC = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Payment Dialog */}
       <Dialog
         open={openPaymentDialog}
         onClose={() => setOpenPaymentDialog(false)}
         maxWidth="xs"
         fullWidth
-        PaperProps={{
-          sx: { borderRadius: 4, p: 2, background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)' }
-        }}
+        PaperProps={{ sx: { borderRadius: 4, p: 2, background: 'linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%)' } }}
       >
         <DialogTitle sx={{ textAlign: 'center', fontWeight: 'bold', fontSize: 24, color: '#3b82f6', pb: 0 }}>
           Thanh toán dịch vụ
@@ -309,16 +321,10 @@ const UserAppointments: React.FC = () => {
                   Bác sĩ: <b>{selectedPaymentBooking.doctorName}</b>
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#64748b' }}>
+                  Meeting Link: <b>{selectedPaymentBooking.meetLink || 'Không có'}</b>
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748b' }}>
                   Trạng thái: <b style={{ color: '#f59e42' }}>{selectedPaymentBooking.status}</b>
-                </Typography>
-              </Box>
-              <Box sx={{ mt: 2, width: '100%', background: '#fff', borderRadius: 2, p: 2, boxShadow: 1 }}>
-                <Typography variant="subtitle2" sx={{ color: '#3b82f6', fontWeight: 600, mb: 1 }}>
-                  Hướng dẫn thanh toán
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#334155' }}>
-                  Vui lòng chuyển khoản đến số tài khoản <b>0123456789</b> tại ngân hàng <b>ABC Bank</b> với nội dung: <br />
-                  <b>"Thanh toan {selectedPaymentBooking.serviceId?.serviceName || ''} - {selectedPaymentBooking.bookingCode || ''}"</b>
                 </Typography>
               </Box>
             </Box>
@@ -337,7 +343,7 @@ const UserAppointments: React.FC = () => {
             variant="contained"
             color="primary"
             sx={{ borderRadius: 2, px: 4, fontWeight: 700, boxShadow: 2, ml: 2, background: 'linear-gradient(90deg, #6366f1 0%, #3b82f6 100%)' }}
-            onClick={() => {/* Xử lý thanh toán thực tế ở đây nếu muốn */}}
+            onClick={handleConfirmPayment}
           >
             Xác nhận thanh toán
           </Button>
