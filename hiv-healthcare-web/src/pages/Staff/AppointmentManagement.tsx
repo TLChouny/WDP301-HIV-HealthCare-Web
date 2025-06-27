@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   Search,
   Clock,
   User,
@@ -31,6 +31,22 @@ function isSameDayLocal(date1: string | Date, date2: string | Date) {
   );
 }
 
+// Thêm hàm này ở đầu file
+function parseBookingDateLocal(dateStr: string): Date {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+  if (/^\d{4}-\d{2}-\d{2}T/.test(dateStr)) {
+    // Force parse only date part to avoid timezone shift
+    const [datePart] = dateStr.split('T');
+    const [y, m, d] = datePart.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  }
+  return new Date(dateStr);
+}
+
+
 const StaffAppointmentManagement: React.FC = () => {
   const { getAll, update } = useBooking();
   const [search, setSearch] = useState<string>('');
@@ -44,7 +60,7 @@ const StaffAppointmentManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   // Lấy danh sách các ngày có lịch hẹn (dạng Date)
-  const bookingDates = bookings.map(b => new Date(b.bookingDate));
+  const bookingDates = bookings.map(b => parseBookingDateLocal(b.bookingDate));
 
   // Hàm ẩn danh tên bệnh nhân
   const anonymizeName = (name: string): string => {
@@ -53,8 +69,8 @@ const StaffAppointmentManagement: React.FC = () => {
     if (words.length === 1) {
       return words[0].charAt(0) + '*'.repeat(words[0].length - 1);
     }
-    return words[0].charAt(0) + '*'.repeat(words[0].length - 1) + ' ' + 
-           words[words.length - 1].charAt(0) + '*'.repeat(words[words.length - 1].length - 1);
+    return words[0].charAt(0) + '*'.repeat(words[0].length - 1) + ' ' +
+      words[words.length - 1].charAt(0) + '*'.repeat(words[words.length - 1].length - 1);
   };
 
   // Hàm hiển thị thông tin bệnh nhân
@@ -84,10 +100,10 @@ const StaffAppointmentManagement: React.FC = () => {
         setLoading(true);
         setError(null);
         console.log('Fetching bookings from API...');
-        
+
         const data = await getAll();
         console.log('API Data received:', data);
-        
+
         setBookings(data);
       } catch (err: any) {
         console.error('Error loading bookings:', err);
@@ -105,7 +121,7 @@ const StaffAppointmentManagement: React.FC = () => {
     try {
       console.log('Updating status for booking:', bookingId);
       console.log('New status:', newStatus);
-      
+
       const updatedBooking = await update(bookingId, { status: newStatus });
       console.log('Updated booking:', updatedBooking);
 
@@ -130,7 +146,10 @@ const StaffAppointmentManagement: React.FC = () => {
       (booking.customerPhone && booking.customerPhone.includes(search)) ||
       (booking.customerEmail && booking.customerEmail.toLowerCase().includes(search.toLowerCase())) ||
       (booking.bookingCode && booking.bookingCode.toLowerCase().includes(search.toLowerCase()));
-    const matchesDate = !selectedDate || (booking.bookingDate && isSameDayLocal(booking.bookingDate, selectedDate));
+    const matchesDate = !selectedDate || (
+      booking.bookingDate &&
+      isSameDayLocal(parseBookingDateLocal(booking.bookingDate), selectedDate)
+    );
     const matchesStatus = selectedStatus === 'all' || booking.status === selectedStatus;
     return matchesSearch && matchesDate && matchesStatus;
   });
@@ -142,7 +161,7 @@ const StaffAppointmentManagement: React.FC = () => {
     if (dateA.getTime() !== dateB.getTime()) {
       return dateA.getTime() - dateB.getTime();
     }
-    
+
     const timeA = a.startTime || '';
     const timeB = b.startTime || '';
     return timeA.localeCompare(timeB);
@@ -184,14 +203,18 @@ const StaffAppointmentManagement: React.FC = () => {
                 <div className="flex gap-4">
                   <input
                     type="date"
-                    value={selectedDate ? selectedDate.toISOString().split('T')[0] : ''}
+                    value={selectedDate
+                      ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+                      : ''
+                    }
+
                     onChange={(e) => {
                       if (!e.target.value) {
                         setSelectedDate(null);
                         setCalendarDate(null);
                       } else {
                         const [year, month, day] = e.target.value.split('-').map(Number);
-                        const date = new Date(year, month - 1, day);
+                        const date = new Date(year, month - 1, day); // KHÔNG cộng thêm 1 vào day
                         setSelectedDate(date);
                         setCalendarDate(date);
                       }
@@ -224,8 +247,8 @@ const StaffAppointmentManagement: React.FC = () => {
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <p className="text-red-600 font-medium">Lỗi tải dữ liệu</p>
                   <p className="text-red-500 text-sm mt-1">{error}</p>
-                  <button 
-                    onClick={() => window.location.reload()} 
+                  <button
+                    onClick={() => window.location.reload()}
                     className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
                   >
                     Thử lại
@@ -248,7 +271,7 @@ const StaffAppointmentManagement: React.FC = () => {
                           Thời gian
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Loại khám/ xét nghiệm/ tư vấn 
+                          Loại khám
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Bác sĩ
@@ -289,23 +312,24 @@ const StaffAppointmentManagement: React.FC = () => {
                                   <span>Bác sĩ: {patientInfo.doctorName}</span>
                                 </div>
                                 <div className="mt-1">
-                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                    booking.status === 'checked-in' ? 'bg-green-100 text-green-800' :
-                                    booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                    'bg-gray-100 text-gray-800'
-                                  }`}>
+                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${booking.status === 'checked-in' ? 'bg-green-100 text-green-800' :
+                                      booking.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                        'bg-gray-100 text-gray-800'
+                                    }`}>
                                     {booking.status === 'checked-in' && <CheckCircle2 className="w-3 h-3 mr-1" />}
                                     {booking.status === 'pending' && <Clock className="w-3 h-3 mr-1" />}
                                     {booking.status === 'checked-in' ? 'Đã xác nhận' :
-                                     booking.status === 'pending' ? 'Chờ xác nhận' :
-                                     booking.status}
+                                      booking.status === 'pending' ? 'Chờ xác nhận' :
+                                        booking.status}
                                   </span>
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4">
                               <div className="text-sm text-gray-900">
-                                {booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString('vi-VN') : 'N/A'}
+                                {booking.bookingDate
+                                  ? parseBookingDateLocal(booking.bookingDate).toLocaleDateString('vi-VN')
+                                  : 'N/A'}
                               </div>
                               <div className="text-sm text-gray-500">
                                 {booking.startTime || 'N/A'} - {booking.endTime || 'N/A'}
