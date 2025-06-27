@@ -192,3 +192,23 @@ export const deleteUser = async (id: string) => {
     throw new Error("Đã xảy ra lỗi không mong muốn khi xóa người dùng");
   }
 };
+
+export const createUser = async (data: Partial<User>) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Không tìm thấy token xác thực");
+    }
+    const res = await apiClient.post(API_ENDPOINTS.SIGNUP, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Thêm người dùng thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi thêm người dùng");
+  }
+};

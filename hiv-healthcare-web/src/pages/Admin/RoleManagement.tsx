@@ -6,7 +6,7 @@ import {
   Trash2,
   User as UserIcon,
 } from 'lucide-react';
-import { getAllUsers, updateUser, deleteUser } from '../../api/authApi';
+import { getAllUsers, updateUser, deleteUser, createUser } from '../../api/authApi';
 import type { User } from '../../types/user';
 import { Modal, message, Select, Input, Button, Form } from 'antd';
 
@@ -22,6 +22,9 @@ const RoleManagement: React.FC = () => {
   const [editForm, setEditForm] = useState<{ userName: string; role: string; phone_number: string }>({ userName: '', role: 'user', phone_number: '' });
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
+  const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [addForm] = Form.useForm();
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -134,6 +137,9 @@ const RoleManagement: React.FC = () => {
           <p className="mt-2 text-sm text-gray-600">
             Quản lý và phân quyền cho các tài khoản trong hệ thống
           </p>
+          <Button type="primary" icon={<Plus />} className="mt-4" onClick={() => setIsAddModalOpen(true)}>
+            Thêm người dùng
+          </Button>
         </div>
 
         {/* Filters and Search */}
@@ -355,6 +361,83 @@ const RoleManagement: React.FC = () => {
             </Button>
             <Button type="primary" htmlType="submit" loading={saving}>
               Lưu thay đổi
+            </Button>
+          </div>
+        </Form>
+      </Modal>
+      {/* Modal for Add User */}
+      <Modal
+        title="Thêm người dùng mới"
+        open={isAddModalOpen}
+        onCancel={() => setIsAddModalOpen(false)}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+          form={addForm}
+          layout="vertical"
+          onFinish={async (values) => {
+            setAdding(true);
+            try {
+              await createUser(values);
+              const data = await getAllUsers();
+              setUsers(data);
+              setIsAddModalOpen(false);
+              addForm.resetFields();
+              message.success('Thêm người dùng thành công!');
+            } catch (err: any) {
+              message.error(err.message || 'Thêm người dùng thất bại');
+            } finally {
+              setAdding(false);
+            }
+          }}
+        >
+          <Form.Item
+            label="Tên người dùng *"
+            name="userName"
+            rules={[{ required: true, message: 'Vui lòng nhập tên người dùng' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Email *"
+            name="email"
+            rules={[{ required: true, message: 'Vui lòng nhập email' }, { type: 'email', message: 'Email không hợp lệ' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Mật khẩu *"
+            name="password"
+            rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}
+          >
+            <Input.Password />
+          </Form.Item>
+          <Form.Item
+            label="Số điện thoại"
+            name="phone_number"
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Vai trò *"
+            name="role"
+            initialValue="user"
+            rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
+          >
+            <Select>
+              <Select.Option value="admin">Quản trị viên</Select.Option>
+              <Select.Option value="doctor">Bác sĩ</Select.Option>
+              <Select.Option value="staff">Nhân viên</Select.Option>
+              <Select.Option value="user">Người dùng</Select.Option>
+            </Select>
+          </Form.Item>
+          <div className="flex justify-end space-x-2 mt-6">
+            <Button onClick={() => setIsAddModalOpen(false)} disabled={adding}>
+              Hủy
+            </Button>
+            <Button type="primary" htmlType="submit" loading={adding}>
+              Thêm
             </Button>
           </div>
         </Form>
