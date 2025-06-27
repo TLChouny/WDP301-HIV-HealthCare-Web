@@ -17,7 +17,7 @@ export interface Booking {
   notes?: string;
   meetLink?: string;
   currency: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'checked-in';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'checked-in' | 'checked-out';
   isAnonymous: boolean;
   userId: User; // BE muốn full object
   serviceId: Service; // BE muốn full object

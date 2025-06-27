@@ -76,7 +76,7 @@ export const getServicesByCategoryId = async (categoryId: string): Promise<Servi
 export const getServiceDetail = async (id: string): Promise<Service> => {
   try {
     // API_ENDPOINTS.SERVICE_DETAIL là một function, cần truyền id vào
-    const res = await apiClient.get(API_ENDPOINTS.SERVICE_DETAIL(id));
+    const res = await apiClient.get(API_ENDPOINTS.SERVICE_BY_ID(id));
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

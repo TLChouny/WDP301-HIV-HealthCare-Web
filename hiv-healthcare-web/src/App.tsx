@@ -68,6 +68,8 @@ import { CategoryProvider } from './context/CategoryContext';
 import { ServiceProvider } from './context/ServiceContext';
 import { BookingProvider } from './context/BookingContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { PaymentProvider } from './context/PaymentContext';
+import PaymentSuccess from './pages/Appointment/PaymentSuccess';
 
 // Fallback component
 const FallbackComponent: React.FC = () => (
@@ -135,16 +137,17 @@ const App: React.FC = () => {
         <ServiceProvider>
           <BookingProvider>
             <NotificationProvider>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Layout />}>
-                <Route index element={<Home />} />
-                <Route path="about" element={<About />} />
-                <Route path="blog" element={<Blog />} />
-                <Route path="contact" element={<Contact />} />
-                <Route path="services/category/:id" element={<ServiceByCategoryId />} />
-                <Route path="services/detail/:id" element={<ServiceDetail />} />
-                <Route path="appointment" element={<Appointment />} />
+              <PaymentProvider>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/" element={<Layout />}>
+                    <Route index element={<Home />} />
+                    <Route path="about" element={<About />} />
+                    <Route path="blog" element={<Blog />} />
+                    <Route path="contact" element={<Contact />} />
+                    <Route path="services/category/:id" element={<ServiceByCategoryId />} />
+                    <Route path="services/detail/:id" element={<ServiceDetail />} />
+                    <Route path="appointment" element={<Appointment />} />
 
                 {/* Doctor routes */}
                 <Route path="doctors" element={<Doctors />} />
@@ -216,11 +219,12 @@ const App: React.FC = () => {
               <Route path="/login" element={<Navigate to="/auth/login" replace />} />
               <Route path="/register" element={<Navigate to="/auth/register" replace />} />
               <Route path="/forgot-password" element={<Navigate to="/auth/forgot-password" replace />} />
-
+              <Route path="/payment-success" element={<PaymentSuccess />} />
               {/* 404 route */}
               <Route path="*" element={<FallbackComponent />} />
             </Routes>
             <ToastContainer position="top-right" autoClose={2000} />
+            </PaymentProvider>
             </NotificationProvider>
           </BookingProvider>
         </ServiceProvider>
