@@ -1,26 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Plus,
   Edit,
   Trash2,
-  User,
-  Shield,
-  CheckCircle2,
-  XCircle,
-  AlertCircle
+  User as UserIcon,
 } from 'lucide-react';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  currentRole: 'admin' | 'doctor' | 'staff' | 'patient';
-  status: 'active' | 'inactive';
-  department?: string;
-  specialization?: string;
-  lastLogin?: string;
-}
+import { getAllUsers, updateUser, deleteUser } from '../../api/authApi';
+import type { User } from '../../types/user';
+import { Modal, message, Select, Input, Button, Form } from 'antd';
 
 const RoleManagement: React.FC = () => {
   const [search, setSearch] = useState<string>('');
@@ -28,50 +16,44 @@ const RoleManagement: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<{ userName: string; role: string; phone_number: string }>({ userName: '', role: 'user', phone_number: '' });
+  const [saving, setSaving] = useState(false);
+  const [form] = Form.useForm();
 
-  const users: User[] = [
-    {
-      id: 'D001',
-      name: 'BS. Trần Văn A',
-      email: 'doctor.a@example.com',
-      currentRole: 'doctor',
-      status: 'active',
-      department: 'Khoa Nội',
-      specialization: 'Bác sĩ điều trị HIV',
-      lastLogin: '2024-03-15 14:30'
-    },
-    {
-      id: 'S001',
-      name: 'NV. Nguyễn Thị B',
-      email: 'staff.b@example.com',
-      currentRole: 'staff',
-      status: 'active',
-      department: 'Phòng Tư vấn',
-      lastLogin: '2024-03-16 09:15'
-    },
-    {
-      id: 'D002',
-      name: 'BS. Lê Văn C',
-      email: 'doctor.c@example.com',
-      currentRole: 'doctor',
-      status: 'inactive',
-      department: 'Khoa Nội',
-      specialization: 'Bác sĩ điều trị HIV',
-      lastLogin: '2024-03-10 16:45'
-    }
-  ];
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await getAllUsers();
+        setUsers(data);
+      } catch (err: any) {
+        setError(err.message || 'Lỗi khi lấy danh sách người dùng');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
 
-  const roles = ['all', 'admin', 'doctor', 'staff', 'patient'];
-  const statuses = ['all', 'active', 'inactive'];
+  // Map trạng thái từ isVerified
+  const getStatus = (user: User) => (user.isVerified ? 'active' : 'inactive');
 
+  // Filter
   const filteredUsers = users.filter((user) => {
-    const matchesSearch = 
-      user.name.toLowerCase().includes(search.toLowerCase()) ||
-      user.email.toLowerCase().includes(search.toLowerCase());
-    const matchesRole = selectedRole === 'all' || user.currentRole === selectedRole;
-    const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
+    const matchesSearch =
+      user.userName?.toLowerCase().includes(search.toLowerCase()) ||
+      user.email?.toLowerCase().includes(search.toLowerCase());
+    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
+    const matchesStatus = selectedStatus === 'all' || getStatus(user) === selectedStatus;
     return matchesSearch && matchesRole && matchesStatus;
   });
+
+  const roles = ['all', 'admin', 'doctor', 'staff', 'user'];
+  const statuses = ['all', 'active', 'inactive'];
 
   const getRoleColor = (role: string) => {
     switch (role) {
@@ -81,7 +63,7 @@ const RoleManagement: React.FC = () => {
         return 'bg-blue-100 text-blue-800';
       case 'staff':
         return 'bg-green-100 text-green-800';
-      case 'patient':
+      case 'user':
         return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -96,8 +78,8 @@ const RoleManagement: React.FC = () => {
         return 'Bác sĩ';
       case 'staff':
         return 'Nhân viên';
-      case 'patient':
-        return 'Bệnh nhân';
+      case 'user':
+        return 'Người dùng';
       default:
         return role;
     }
@@ -125,12 +107,30 @@ const RoleManagement: React.FC = () => {
     }
   };
 
+  // Khi mở modal chỉnh sửa, set giá trị form
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setEditForm({
+      userName: user.userName || '',
+      role: user.role,
+      phone_number: user.phone_number || '',
+    });
+    setIsModalOpen(true);
+    setTimeout(() => {
+      form.setFieldsValue({
+        userName: user.userName || '',
+        role: user.role,
+        phone_number: user.phone_number || '',
+      });
+    }, 0);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý Phân quyền</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý tài khoản</h1>
           <p className="mt-2 text-sm text-gray-600">
             Quản lý và phân quyền cho các tài khoản trong hệ thống
           </p>
@@ -180,200 +180,185 @@ const RoleManagement: React.FC = () => {
 
         {/* Users List */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Người dùng
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Vai trò hiện tại
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Phòng ban/Chuyên môn
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Trạng thái
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Đăng nhập gần nhất
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Thao tác
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                          <User className="w-6 h-6 text-blue-600" />
+          {loading ? (
+            <div className="p-8 text-center text-gray-500">Đang tải dữ liệu...</div>
+          ) : error ? (
+            <div className="p-8 text-center text-red-500">{error}</div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Người dùng
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Vai trò hiện tại
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Số điện thoại
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Trạng thái
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Ngày tạo
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Thao tác
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredUsers.map((user) => (
+                  <tr key={user._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <UserIcon className="w-6 h-6 text-blue-600" />
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{user.userName}</div>
+                          <div className="text-sm text-gray-500">{user.email}</div>
                         </div>
                       </div>
-                      <div className="ml-4">
-                        <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                        <div className="text-sm text-gray-500">{user.email}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs rounded-full ${getRoleColor(user.role)}`}>
+                        {getRoleText(user.role)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {user.phone_number || ''}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(getStatus(user))}`}>
+                        {getStatusText(getStatus(user))}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {user.createdAt ? new Date(user.createdAt).toLocaleString('vi-VN') : ''}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <Button 
+                          type="link"
+                          className="text-blue-600"
+                          icon={<Edit className="w-5 h-5" />}
+                          onClick={() => handleEditUser(user)}
+                        />
+                        <Button
+                          type="link"
+                          className="text-red-600"
+                          icon={<Trash2 className="w-5 h-5" style={{ color: 'red' }} />}
+                          onClick={() => {
+                            if (user.role === 'admin') {
+                              message.error('Không thể xóa tài khoản admin!');
+                              return;
+                            }
+                            Modal.confirm({
+                              title: 'Xác nhận xóa',
+                              content: 'Bạn có chắc chắn muốn xóa người dùng này?',
+                              okText: 'Xóa',
+                              okType: 'danger',
+                              cancelText: 'Hủy',
+                              onOk: async () => {
+                                try {
+                                  await deleteUser(user._id);
+                                  const data = await getAllUsers();
+                                  setUsers(data);
+                                  message.success('Xóa người dùng thành công!');
+                                } catch (err: any) {
+                                  message.error(err.message || 'Xóa người dùng thất bại');
+                                }
+                              },
+                            });
+                          }}
+                        />
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getRoleColor(user.currentRole)}`}>
-                      {getRoleText(user.currentRole)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{user.department}</div>
-                    {user.specialization && (
-                      <div className="text-sm text-gray-500">{user.specialization}</div>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(user.status)}`}>
-                      {getStatusText(user.status)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.lastLogin}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-2">
-                      <button 
-                        className="text-blue-600 hover:text-blue-900"
-                        onClick={() => {
-                          setEditingUser(user);
-                          setIsModalOpen(true);
-                        }}
-                      >
-                        <Edit className="w-5 h-5" />
-                      </button>
-                      <button 
-                        className="text-red-600 hover:text-red-900"
-                        onClick={() => {
-                          if (window.confirm('Bạn có chắc chắn muốn xóa người dùng này?')) {
-                            console.log('Delete user:', user.id);
-                          }
-                        }}
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
-
-      {/* Modal for Edit Role */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">
-              Phân quyền người dùng
-            </h2>
-            
-            <form className="space-y-4">
-              {/* Thông tin người dùng */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Người dùng
-                </label>
-                <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <User className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">{editingUser?.name}</div>
-                    <div className="text-sm text-gray-500">{editingUser?.email}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Vai trò */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Vai trò *
-                </label>
-                <select
-                  defaultValue={editingUser?.currentRole}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="admin">Quản trị viên</option>
-                  <option value="doctor">Bác sĩ</option>
-                  <option value="staff">Nhân viên</option>
-                  <option value="patient">Bệnh nhân</option>
-                </select>
-              </div>
-
-              {/* Phòng ban */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phòng ban
-                </label>
-                <input
-                  type="text"
-                  defaultValue={editingUser?.department}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Nhập phòng ban"
-                />
-              </div>
-
-              {/* Chuyên môn (chỉ hiển thị cho bác sĩ) */}
-              {editingUser?.currentRole === 'doctor' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Chuyên môn
-                  </label>
-                  <input
-                    type="text"
-                    defaultValue={editingUser?.specialization}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Nhập chuyên môn"
-                  />
-                </div>
-              )}
-
-              {/* Trạng thái */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Trạng thái *
-                </label>
-                <select
-                  defaultValue={editingUser?.status}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                >
-                  <option value="active">Đang hoạt động</option>
-                  <option value="inactive">Không hoạt động</option>
-                </select>
-              </div>
-            </form>
-
-            <div className="flex justify-end space-x-2 mt-6">
-              <button
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
-                onClick={() => setIsModalOpen(false)}
-              >
-                Hủy
-              </button>
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                onClick={() => {
-                  // TODO: Implement save functionality
-                  setIsModalOpen(false);
-                }}
-              >
-                Lưu thay đổi
-              </button>
-            </div>
+      {/* Modal for Edit User */}
+      <Modal
+        title="Chỉnh sửa người dùng"
+        open={isModalOpen}
+        onCancel={() => setIsModalOpen(false)}
+        footer={null}
+        destroyOnClose
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          initialValues={editForm}
+          onFinish={async (values) => {
+            if (!editingUser) return;
+            if (editingUser.role === 'admin' && values.role !== 'admin') {
+              message.error('Không thể thay đổi quyền của tài khoản admin!');
+              return;
+            }
+            setSaving(true);
+            try {
+              await updateUser(editingUser._id, {
+                userName: values.userName,
+                role: values.role,
+                phone_number: values.phone_number,
+              });
+              const data = await getAllUsers();
+              setUsers(data);
+              setIsModalOpen(false);
+              message.success('Cập nhật người dùng thành công!');
+            } catch (err: any) {
+              message.error(err.message || 'Cập nhật thất bại');
+            } finally {
+              setSaving(false);
+            }
+          }}
+        >
+          <Form.Item
+            label="Tên người dùng *"
+            name="userName"
+            rules={[{ required: true, message: 'Vui lòng nhập tên người dùng' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Vai trò *"
+            name="role"
+            rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
+          >
+            <Select disabled={editingUser?.role === 'admin'}>
+              <Select.Option value="admin">Quản trị viên</Select.Option>
+              <Select.Option value="doctor">Bác sĩ</Select.Option>
+              <Select.Option value="staff">Nhân viên</Select.Option>
+              <Select.Option value="user">Người dùng</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label="Số điện thoại"
+            name="phone_number"
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item label="Trạng thái">
+            <Input value="Đang hoạt động" disabled />
+          </Form.Item>
+          <div className="flex justify-end space-x-2 mt-6">
+            <Button onClick={() => setIsModalOpen(false)} disabled={saving}>
+              Hủy
+            </Button>
+            <Button type="primary" htmlType="submit" loading={saving}>
+              Lưu thay đổi
+            </Button>
           </div>
-        </div>
-      )}
+        </Form>
+      </Modal>
     </div>
   );
 };
