@@ -85,7 +85,7 @@ const AdminLayout: React.FC = () => {
       icon: <BarChart className="w-5 h-5" />
     },
     {
-      name: 'Phân quyền',
+      name: 'Quản lý tài khoản',
       path: '/admin/roles',
       icon: <Shield className="w-5 h-5" />
     }
