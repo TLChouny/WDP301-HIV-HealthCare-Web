@@ -75,7 +75,7 @@ const StaffLayout: React.FC = () => {
       icon: <Calendar className="w-5 h-5" />
     },
     {
-      name: 'Tư vấn',
+      name: 'Lịch Tư vấn',
       path: '/staff/counseling',
       icon: <MessageSquare className="w-5 h-5" />
     }
