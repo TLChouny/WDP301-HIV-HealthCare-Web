@@ -173,11 +173,11 @@ const ARVProtocolManagement: React.FC = () => {
                   <li key={i}>{contra}</li>
                 ))}
               </ul>
-
+{/* 
               <h3 className="font-medium text-blue-600 mt-2">Cách dùng:</h3>
               <ul className="list-disc pl-5 space-y-1">
                 <li>Sử dụng nồng độ thận thận thận nồng cao thuc</li>
-              </ul>
+              </ul> */}
 
               <h3 className="font-medium text-blue-600 mt-2">Tác dụng phụ:</h3>
               <ul className="list-disc pl-5 space-y-1">
