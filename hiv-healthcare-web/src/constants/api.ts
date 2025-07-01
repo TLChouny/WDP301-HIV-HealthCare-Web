@@ -17,6 +17,9 @@ export const API_ENDPOINTS = {
   USER_BY_ID: (id: string) => `/users/${id}`,
   UPDATE_USER: (id: string) => `/users/${id}`,
   DELETE_USER: (id: string) => `/users/${id}`,
+  GET_WORK_SCHEDULE: (id: string) => `/users/${id}/work-schedule`,
+  UPDATE_WORK_SCHEDULE: (id: string) => `/users/${id}/work-schedule`,
+  CLEAR_WORK_SCHEDULE: (id: string) => `/users/${id}/work-schedule`,
 
   // ===== CATEGORY =====
   CATEGORIES: "/categories",

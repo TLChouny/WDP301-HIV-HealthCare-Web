@@ -16,6 +16,9 @@ import {
   getUserById as apiGetUserById,
   updateUser as apiUpdateUser,
   deleteUser as apiDeleteUser,
+  getWorkSchedule as apiGetWorkSchedule,
+  updateWorkSchedule as apiUpdateWorkSchedule,
+  clearWorkSchedule as apiClearWorkSchedule,
 } from "../api/authApi";
 import { useNavigate } from "react-router-dom";
 
@@ -57,6 +60,9 @@ interface AuthContextType {
   getUserById: (id: string) => Promise<User>;
   updateUser: (id: string, data: any) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
+  getWorkSchedule: (id: string) => Promise<any>;
+  updateWorkSchedule: (id: string, data: any) => Promise<void>;
+  clearWorkSchedule: (id: string) => Promise<void>;
 }
 
 interface VerifyResetOTPResponse {
@@ -84,7 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       const userData = decoded.user || {
         _id: decoded.id || decoded._id || "unknown",
-        userName: decoded.userName || "Unknown User", // ✅ đã sửa
+        userName: decoded.userName || "Unknown User",
         email: decoded.email || "no-email@example.com",
         role: decoded.role || "user",
         isVerified: decoded.isVerified ?? false,
@@ -308,6 +314,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const getWorkSchedule = async (id: string) => {
+    try {
+      const res = await apiGetWorkSchedule(id);
+      return res;
+    } catch (error: any) {
+      console.error("Lỗi lấy lịch làm việc:", error.message);
+      toast.error(error.message || "Không thể lấy lịch làm việc.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
+  const updateWorkSchedule = async (id: string, data: any) => {
+    try {
+      const res = await apiUpdateWorkSchedule(id, data);
+      if (user && user._id === id) setUser(res);
+      toast.success("Cập nhật lịch làm việc thành công!", { position: "top-right", autoClose: 3000 });
+    } catch (error: any) {
+      console.error("Lỗi cập nhật lịch làm việc:", error.message);
+      toast.error(error.message || "Cập nhật lịch làm việc thất bại.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
+  const clearWorkSchedule = async (id: string) => {
+    try {
+      await apiClearWorkSchedule(id);
+      if (user && user._id === id) {
+        const updatedUser = { ...user, workSchedule: null };
+        setUser(updatedUser);
+      }
+      toast.success("Xóa lịch làm việc thành công!", { position: "top-right", autoClose: 3000 });
+    } catch (error: any) {
+      console.error("Lỗi xóa lịch làm việc:", error.message);
+      toast.error(error.message || "Xóa lịch làm việc thất bại.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -329,6 +373,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         getUserById,
         updateUser,
         deleteUser,
+        getWorkSchedule,
+        updateWorkSchedule,
+        clearWorkSchedule,
       }}
       aria-live="polite"
     >

@@ -1,6 +1,6 @@
 import axios from "axios";
-import { BASE_URL, API_ENDPOINTS } from "../constants/api";
 import type { User } from "../types/user";
+import { BASE_URL, API_ENDPOINTS } from "../constants/api";
 
 // Cấu hình Axios mặc định
 const apiClient = axios.create({
@@ -183,7 +183,15 @@ export const updateUser = async (id: string, data: any) => {
 
 export const deleteUser = async (id: string) => {
   try {
-    const res = await apiClient.delete(`${API_ENDPOINTS.DELETE_USER(id)}`);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Không tìm thấy token xác thực");
+    }
+    const res = await apiClient.delete(`${API_ENDPOINTS.DELETE_USER(id)}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -210,5 +218,65 @@ export const createUser = async (data: Partial<User>) => {
       throw new Error(error.response?.data?.message || "Thêm người dùng thất bại");
     }
     throw new Error("Đã xảy ra lỗi không mong muốn khi thêm người dùng");
+  }
+};
+
+export const getWorkSchedule = async (id: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Không tìm thấy token xác thực");
+    }
+    const res = await apiClient.get(`${API_ENDPOINTS.GET_WORK_SCHEDULE(id)}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Lấy lịch làm việc thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi lấy lịch làm việc");
+  }
+};
+
+export const updateWorkSchedule = async (id: string, data: any) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Không tìm thấy token xác thực");
+    }
+    const res = await apiClient.put(`${API_ENDPOINTS.UPDATE_WORK_SCHEDULE(id)}`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Cập nhật lịch làm việc thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi cập nhật lịch làm việc");
+  }
+};
+
+export const clearWorkSchedule = async (id: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      throw new Error("Không tìm thấy token xác thực");
+    }
+    const res = await apiClient.delete(`${API_ENDPOINTS.CLEAR_WORK_SCHEDULE(id)}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Xóa lịch làm việc thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi xóa lịch làm việc");
   }
 };

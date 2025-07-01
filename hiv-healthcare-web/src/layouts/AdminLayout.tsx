@@ -72,6 +72,11 @@ const AdminLayout: React.FC = () => {
       icon: <Users className="w-5 h-5" />
     },
     {
+      name: 'Quản lý Lịch làm việc',
+      path: '/admin/doctors/schedule',
+      icon: <Users className="w-5 h-5" />
+    },
+    {
       name: 'Quản lý Lịch hẹn',
       path: '/admin/appointments',
       icon: <Calendar className="w-5 h-5" />

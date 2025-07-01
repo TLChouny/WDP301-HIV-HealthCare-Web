@@ -60,6 +60,11 @@ const DoctorLayout: React.FC = () => {
       icon: <User className="w-5 h-5" />
     },
     {
+      name: 'Lịch làm',
+      path: '/doctor/schedule',
+      icon: <Users className="w-5 h-5" />
+    },
+    {
       name: 'Quản lý Bệnh nhân',
       path: '/doctor/patients',
       icon: <Users className="w-5 h-5" />

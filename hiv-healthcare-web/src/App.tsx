@@ -33,6 +33,7 @@ import Statistics from './pages/Admin/Statistics';
 import RoleManagement from './pages/Admin/RoleManagement';
 import CategoryManagement from './pages/Admin/CategoryManagement';
 import BlogManagement from './pages/Admin/BlogManagement';
+import DoctorScheduleManagement from './pages/Admin/DoctorScheduleManagement';
 
 // Doctor Pages
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
@@ -44,6 +45,8 @@ import LabTestManagement from './pages/Doctor/LabTestManagement';
 import Doctors from './pages/Doctor/Doctors';
 import HIVSpecialist from './pages/Doctor/HIVSpecialist';
 import Counselors from './pages/Doctor/Counselors';
+import DoctorSchedule from './pages/Doctor/DoctorSchedule';
+
 
 // Staff Pages
 import StaffDashboard from './pages/Staff/StaffDashboard';
@@ -72,6 +75,7 @@ import { BookingProvider } from './context/BookingContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { PaymentProvider } from './context/PaymentContext';
 import PaymentSuccess from './pages/Appointment/PaymentSuccess';
+
 
 // Fallback component
 const FallbackComponent: React.FC = () => (
@@ -171,6 +175,7 @@ const App: React.FC = () => {
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="patients" element={<PatientManagement />} />
                   <Route path="doctors" element={<AdminDoctorManagement />} />
+                  <Route path="doctors/schedule" element={<DoctorScheduleManagement />} />
                   <Route path="medications" element={<MedicationManagement />} />
                   <Route path="appointments" element={<AppointmentManagement />} />
                   <Route path="statistics" element={<Statistics />} />
@@ -185,6 +190,7 @@ const App: React.FC = () => {
                 <Route element={<DoctorLayout />}>
                   <Route index element={<DoctorDashboard />} />
                   <Route path="dashboard" element={<DoctorDashboard />} />
+                  <Route path="schedule" element={<DoctorSchedule />} />
                   <Route path="patients" element={<DoctorPatientManagement />} />
                   <Route path="appointments" element={<DoctorAppointmentManagement />} />
                   <Route path="arv-protocols" element={<ARVProtocolManagement />} />
