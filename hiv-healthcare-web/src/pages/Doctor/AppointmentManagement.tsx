@@ -11,6 +11,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { Booking } from '../../types/booking';
 import { useBooking } from '../../context/BookingContext';
+import axios from 'axios';
 
 function isSameDayLocal(date1: string | Date, date2: string | Date) {
   const d1 = new Date(date1);
@@ -31,6 +32,15 @@ const AppointmentManagement: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [openMedicalModal, setOpenMedicalModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+
+  const [medicalDate, setMedicalDate] = useState('');
+  const [medicalType, setMedicalType] = useState('');
+  const [diagnosis, setDiagnosis] = useState('');
+  const [arvRegimen, setArvRegimen] = useState('');
+  const [hivLoad, setHivLoad] = useState('');
+  const [arvRegimens, setArvRegimens] = useState<{ _id: string; arvName: string; arvDescription?: string }[]>([]);
 
   const bookingDates = bookings.map(b => new Date(b.bookingDate));
 
@@ -103,6 +113,22 @@ const AppointmentManagement: React.FC = () => {
     new Date(a.bookingDate).getTime() - new Date(b.bookingDate).getTime()
   );
 
+  // Lấy danh sách phác đồ ARV khi mở modal
+  useEffect(() => {
+    if (openMedicalModal) {
+      axios.get('http://localhost:5000/api/arvrregimens')
+        .then(res => setArvRegimens(res.data))
+        .catch(() => setArvRegimens([]));
+    }
+  }, [openMedicalModal]);
+
+  const handleCloseMedicalModal = () => {
+    setOpenMedicalModal(false);
+    setDiagnosis('');
+    setArvRegimen('');
+    setHivLoad('');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
@@ -165,16 +191,32 @@ const AppointmentManagement: React.FC = () => {
                           )}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          {booking.status === 'completed' ? (
-                            <CheckCircle2 className="text-green-500 w-5 h-5 mx-auto" />
-                          ) : (
+                          <div className="flex items-center justify-center gap-2">
                             <button
-                              onClick={() => handleStatusChange(booking._id!, 'completed')}
-                              title="Đánh dấu hoàn tất"
+                              onClick={() => {
+                                setSelectedBooking(booking);
+                                setMedicalDate(new Date(booking.bookingDate).toISOString().slice(0, 10)); // Lấy ngày từ booking
+                                setMedicalType(booking.serviceId?.serviceName || ''); // Lấy loại khám từ booking
+                                setOpenMedicalModal(true);
+                              }}
+                              title="Tạo hồ sơ bệnh án"
+                              className="text-blue-500 hover:text-blue-700"
                             >
-                              <CheckCircle2 className="text-gray-400 hover:text-green-500 w-5 h-5 mx-auto" />
+                              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                              </svg>
                             </button>
-                          )}
+                            {booking.status === 'completed' ? (
+                              <CheckCircle2 className="text-green-500 w-5 h-5" />
+                            ) : (
+                              <button
+                                onClick={() => handleStatusChange(booking._id!, 'completed')}
+                                title="Đánh dấu hoàn tất"
+                              >
+                                <CheckCircle2 className="text-gray-400 hover:text-green-500 w-5 h-5" />
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -215,6 +257,120 @@ const AppointmentManagement: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal tạo hồ sơ bệnh án */}
+      {openMedicalModal && selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-bold mb-4">Tạo hồ sơ bệnh án</h2>
+            <p><span className="font-semibold">Tên bệnh nhân:</span> {selectedBooking.customerName}</p>
+            <p><span className="font-semibold">Mã booking:</span> {selectedBooking.bookingCode}</p>
+            <form
+              onSubmit={async e => {
+                e.preventDefault();
+                try {
+                  await axios.post(
+                    'http://localhost:5000/api/results',
+                    {
+                      resultName: diagnosis,
+                      resultDescription: hivLoad,
+                      bookingId: selectedBooking._id,
+                      arvregimenId: arvRegimens.find(r => r.arvName === arvRegimen)?._id,
+                    },
+                    {
+                      headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}` // hoặc nơi bạn lưu token
+                      }
+                    }
+                  );
+                  toast.success('Đã tạo hồ sơ bệnh án!');
+                  setOpenMedicalModal(false);
+                  setDiagnosis('');
+                  setArvRegimen('');
+                  setHivLoad('');
+                } catch (err: any) {
+                  toast.error('Lưu hồ sơ thất bại!');
+                }
+              }}
+            >
+              <div className="mt-4 space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Ngày khám</label>
+                  <input
+                    type="date"
+                    className="w-full border rounded px-2 py-1"
+                    value={medicalDate}
+                    onChange={e => setMedicalDate(e.target.value)}
+                    required
+                    readOnly // thêm dòng này nếu muốn chỉ xem, không cho sửa
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Loại khám</label>
+                  <input
+                    type="text"
+                    className="w-full border rounded px-2 py-1"
+                    value={medicalType}
+                    onChange={e => setMedicalType(e.target.value)}
+                    required
+                    readOnly // thêm nếu muốn chỉ xem, không cho sửa
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Chẩn đoán</label>
+                  <input
+                    type="text"
+                    className="w-full border rounded px-2 py-1"
+                    value={diagnosis}
+                    onChange={e => setDiagnosis(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Phác đồ ARV</label>
+                  <select
+                    className="w-full border rounded px-2 py-1"
+                    value={arvRegimen}
+                    onChange={e => setArvRegimen(e.target.value)}
+                    required
+                  >
+                    <option value="">-- Chọn phác đồ ARV --</option>
+                    {arvRegimens.map(regimen => (
+                      <option key={regimen._id} value={regimen.arvName}>
+                        {regimen.arvName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Tải lượng HIV</label>
+                  <input
+                    type="text"
+                    className="w-full border rounded px-2 py-1"
+                    value={hivLoad}
+                    onChange={e => setHivLoad(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-2">
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                  onClick={handleCloseMedicalModal}
+                >
+                  Đóng
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Lưu hồ sơ
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
