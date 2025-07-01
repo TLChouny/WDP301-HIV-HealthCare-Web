@@ -10,6 +10,8 @@ export function translateBookingStatus(status: string): string {
       return 'Đã điểm danh';
     case 'completed':
       return 'Hoàn thành';
+    case 'checked-out':
+      return 'Đã thanh toán';
     default:
       return status;
   }

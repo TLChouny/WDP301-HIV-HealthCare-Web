@@ -1,63 +1,65 @@
-import type React from "react"
-import { useEffect, useState } from "react"
-import { Eye, X, CreditCard, Calendar, Clock, User } from "lucide-react"
-import { useNavigate } from "react-router-dom"
-import { useBooking } from "../../context/BookingContext"
-import { useAuth } from "../../context/AuthContext"
-import { useServiceContext } from "../../context/ServiceContext"
-import { usePaymentContext } from "../../context/PaymentContext"
-import type { Booking } from "../../types/booking"
+import type React from "react";
+import { useEffect, useState } from "react";
+import { Eye, X, CreditCard, Calendar, Clock, User, CheckCircle2, XCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useBooking } from "../../context/BookingContext";
+import { useAuth } from "../../context/AuthContext";
+import { useServiceContext } from "../../context/ServiceContext";
+import { usePaymentContext } from "../../context/PaymentContext";
+import type { Booking } from "../../types/booking";
+import { translateBookingStatus } from "../../utils/status"; // Điều chỉnh đường dẫn nếu cần
 
 const UserAppointments: React.FC = () => {
-  const navigate = useNavigate()
-  const { getByUserId, remove } = useBooking()
-  const { user } = useAuth()
-  const { services } = useServiceContext()
-  const { createPayment } = usePaymentContext()
+  const navigate = useNavigate();
+  const { getByUserId, remove } = useBooking();
+  const { user } = useAuth();
+  const { services } = useServiceContext();
+  const { createPayment } = usePaymentContext();
 
-  const [appointments, setAppointments] = useState<Booking[]>([])
-  const [openViewDialog, setOpenViewDialog] = useState(false)
-  const [selectedAppointment, setSelectedAppointment] = useState<Booking | null>(null)
-  const [openPaymentDialog, setOpenPaymentDialog] = useState(false)
-  const [selectedPaymentBooking, setSelectedPaymentBooking] = useState<Booking | null>(null)
+  const [appointments, setAppointments] = useState<Booking[]>([]);
+  const [openViewDialog, setOpenViewDialog] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Booking | null>(null);
+  const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
+  const [selectedPaymentBooking, setSelectedPaymentBooking] = useState<Booking | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
 
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
         if (user?._id) {
-          const userBookings = await getByUserId(user._id)
-          setAppointments(userBookings)
+          const userBookings = await getByUserId(user._id);
+          setAppointments(userBookings || []);
         }
       } catch (error) {
-        console.error("Error fetching appointments:", error)
+        console.error("Error fetching appointments:", error);
       }
-    }
+    };
 
-    if (user?._id) fetchAppointments()
-  }, [getByUserId, user])
+    if (user?._id) fetchAppointments();
+  }, [getByUserId, user]);
 
   const handleViewAppointment = (appointment: Booking) => {
-    setSelectedAppointment(appointment)
-    setOpenViewDialog(true)
-  }
+    setSelectedAppointment(appointment);
+    setOpenViewDialog(true);
+  };
 
   const handleCancelAppointment = async (id: string) => {
     try {
-      await remove(id)
-      setAppointments((prev) => prev.filter((appt) => appt._id !== id))
-      setOpenViewDialog(false)
+      await remove(id);
+      setAppointments((prev) => prev.filter((appt) => appt._id !== id));
+      setOpenViewDialog(false);
     } catch (error) {
-      console.error("Error cancelling appointment:", error)
+      console.error("Error cancelling appointment:", error);
     }
-  }
+  };
 
   const handleOpenPayment = (booking: Booking) => {
-    setSelectedPaymentBooking(booking)
-    setOpenPaymentDialog(true)
-  }
+    setSelectedPaymentBooking(booking);
+    setOpenPaymentDialog(true);
+  };
 
   const handleConfirmPayment = async () => {
-    if (!selectedPaymentBooking || !selectedPaymentBooking.serviceId) return
+    if (!selectedPaymentBooking || !selectedPaymentBooking.serviceId) return;
 
     try {
       const payment = await createPayment({
@@ -70,46 +72,44 @@ const UserAppointments: React.FC = () => {
         returnUrl: `${window.location.origin}/payment-success`,
         cancelUrl: `${window.location.origin}/payment-cancel`,
         bookingIds: [selectedPaymentBooking._id!],
-      })
+      });
 
       if (payment.checkoutUrl) {
-        window.open(payment.checkoutUrl, "_blank")
+        window.open(payment.checkoutUrl, "_blank");
       } else {
-        alert("Không thể tạo liên kết thanh toán.")
+        alert("Không thể tạo liên kết thanh toán.");
       }
 
-      setOpenPaymentDialog(false)
+      setOpenPaymentDialog(false);
     } catch (error) {
-      console.error("Lỗi khi tạo thanh toán:", error)
-      alert("Tạo thanh toán thất bại.")
+      console.error("Lỗi khi tạo thanh toán:", error);
+      alert("Tạo thanh toán thất bại.");
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "pending":
-        return "bg-amber-100 text-amber-800 border-amber-200"
+        return "bg-amber-100 text-amber-800 border-amber-200";
       case "confirmed":
-        return "bg-green-100 text-green-800 border-green-200"
+        return "bg-green-100 text-green-800 border-green-200";
       case "cancelled":
-        return "bg-red-100 text-red-800 border-red-200"
+        return "bg-red-100 text-red-800 border-red-200";
+      case "completed":
+        return "bg-purple-100 text-purple-800 border-purple-200";
+      case "checked-in":
+        return "bg-blue-100 text-blue-800 border-blue-200";
+      case "paid":
+        return "bg-orange-100 text-orange-800 border-orange-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
-  }
+  };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "Chờ xác nhận"
-      case "confirmed":
-        return "Đã xác nhận"
-      case "cancelled":
-        return "Đã hủy"
-      default:
-        return status
-    }
-  }
+  // Lọc appointments theo trạng thái
+  const filteredAppointments = selectedStatus === "all"
+    ? appointments
+    : appointments.filter((appointment) => appointment.status === selectedStatus);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
@@ -125,13 +125,36 @@ const UserAppointments: React.FC = () => {
           <p className="text-gray-600">Quản lý và theo dõi các lịch hẹn khám bệnh của bạn</p>
         </div>
 
+        {/* Filter */}
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">Tất cả trạng thái</option>
+              <option value="pending">Chờ xác nhận</option>
+              <option value="confirmed">Đã xác nhận</option>
+              <option value="checked-in">Đã điểm danh</option>
+              <option value="paid">Đã thanh toán</option>
+              <option value="cancelled">Đã hủy</option>
+              <option value="completed">Hoàn thành</option>
+            </select>
+          </div>
+        </div>
+
         {/* Appointments Grid */}
         <div className="grid gap-6">
-          {appointments.length === 0 ? (
+          {filteredAppointments.length === 0 ? (
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
               <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-600 mb-2">Chưa có lịch hẹn nào</h3>
-              <p className="text-gray-500 mb-6">Bạn chưa có lịch hẹn nào được đặt</p>
+              <p className="text-gray-500 mb-6">
+                {selectedStatus === "all"
+                  ? "Bạn chưa có lịch hẹn nào được đặt"
+                  : `Không có lịch hẹn nào ở trạng thái "${translateBookingStatus(selectedStatus)}"`}
+              </p>
               <button
                 onClick={() => navigate("/services")}
                 className="bg-gradient-to-r from-teal-600 to-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-teal-700 hover:to-blue-700 transition-all duration-200"
@@ -140,9 +163,9 @@ const UserAppointments: React.FC = () => {
               </button>
             </div>
           ) : (
-            appointments.map((appointment) => (
+            filteredAppointments.map((appointment) => (
               <div
-                key={appointment._id}
+                key={appointment._id || Math.random()}
                 className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-all duration-200"
               >
                 <div className="flex flex-col lg:flex-row lg:items-center gap-6">
@@ -180,11 +203,19 @@ const UserAppointments: React.FC = () => {
                   <div className="flex items-center gap-4">
                     <div className="flex flex-col items-end gap-3">
                       <span
-                        className={`px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(
-                          appointment.status,
+                        className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold border ${getStatusColor(
+                          appointment.status || "unknown"
                         )}`}
                       >
-                        {getStatusText(appointment.status)}
+                        {appointment.status === "pending" && <Clock className="h-4 w-4 mr-1" />}
+                        {(appointment.status === "confirmed" ||
+                          appointment.status === "completed" ||
+                          appointment.status === "checked-in") && (
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                        )}
+                        {appointment.status === "cancelled" && <XCircle className="h-4 w-4 mr-1" />}
+                        {appointment.status === "checked-out" && <CreditCard className="h-4 w-4 mr-1" />}
+                        {translateBookingStatus(appointment.status || "unknown")}
                       </span>
 
                       <div className="flex items-center gap-2">
@@ -264,11 +295,19 @@ const UserAppointments: React.FC = () => {
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600">Trạng thái:</span>
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-                          selectedAppointment.status,
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
+                          selectedAppointment.status || "unknown"
                         )}`}
                       >
-                        {getStatusText(selectedAppointment.status)}
+                        {selectedAppointment.status === "pending" && <Clock className="h-4 w-4 mr-1" />}
+                        {(selectedAppointment.status === "confirmed" ||
+                          selectedAppointment.status === "completed" ||
+                          selectedAppointment.status === "checked-in") && (
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                        )}
+                        {selectedAppointment.status === "cancelled" && <XCircle className="h-4 w-4 mr-1" />}
+                        {selectedAppointment.status === "checked-out" && <CreditCard className="h-4 w-4 mr-1" />}
+                        {translateBookingStatus(selectedAppointment.status || "unknown")}
                       </span>
                     </div>
                     <div className="flex justify-between items-start py-2">
@@ -371,7 +410,7 @@ const UserAppointments: React.FC = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default UserAppointments
+export default UserAppointments;
