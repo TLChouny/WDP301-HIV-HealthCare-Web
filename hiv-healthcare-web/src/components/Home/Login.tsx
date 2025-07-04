@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, ArrowRight } from "lucide-react";
+import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/animation.css";
@@ -34,6 +34,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
 
@@ -140,16 +141,20 @@ const Login: React.FC = () => {
                 </label>
                 <div className="relative group">
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     id="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
+                    className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300 pr-10"
                     placeholder="Nhập mật khẩu"
                     disabled={isLoading}
                   />
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                    <Lock className="h-5 w-5 text-gray-400 transition-transform duration-300" />
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer" onClick={() => setShowPassword((prev) => !prev)} tabIndex={0} role="button" aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}>
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400 transition-transform duration-300" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400 transition-transform duration-300" />
+                    )}
                   </div>
                 </div>
               </div>
