@@ -159,8 +159,12 @@ const DoctorSchedule: React.FC = () => {
 
   const getBookingStatusColor = (status: string) => {
     switch (status) {
-      case "confirmed":
+      case "completed":
         return "from-green-500 to-green-600"
+      case "checked-out":
+        return "from-green-500 to-purple-600"
+      case "checked-in":
+        return "from-green-500 to-blue-600"
       case "pending":
         return "from-amber-500 to-amber-600"
       case "cancelled":
@@ -563,8 +567,12 @@ const DoctorSchedule: React.FC = () => {
                           selectedBooking.status,
                         )}`}
                       >
-                        {selectedBooking.status === "confirmed"
-                          ? "Đã xác nhận"
+                        {selectedBooking.status === "completed"
+                          ? "Đã hoàn thành"
+                          : selectedBooking.status === "checked-out"
+                            ? "Đã thanh toán"
+                            : selectedBooking.status === "checked-in"
+                              ? "Đã vào"
                           : selectedBooking.status === "pending"
                             ? "Chờ xác nhận"
                             : "Đã hủy"}
