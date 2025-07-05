@@ -1,24 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, CheckCircle } from 'lucide-react';
-
-interface ARVProtocol {
-  _id?: string;
-  arvName: string;
-  arvDescription: string;
-  drugs: string[];
-  dosages: string[];
-  contraindications: string[];
-  sideEffects: string[];
-}
-
-const API_BASE = 'http://localhost:5000/api/arvrregimens';
+import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { useArv } from '../../context/ArvContext';
+import type { ARVRegimen } from '../../types/arvRegimen';
 
 const ARVProtocolManagement: React.FC = () => {
+  const { getAll, create, update, remove } = useArv();
+
   const [search, setSearch] = useState('');
-  const [protocols, setProtocols] = useState<ARVProtocol[]>([]);
+  const [protocols, setProtocols] = useState<ARVRegimen[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProtocol, setEditingProtocol] = useState<ARVProtocol | null>(null);
-  const [formData, setFormData] = useState<ARVProtocol>({
+  const [editingProtocol, setEditingProtocol] = useState<ARVRegimen | null>(null);
+  const [formData, setFormData] = useState<ARVRegimen>({
     arvName: '',
     arvDescription: '',
     drugs: [],
@@ -27,14 +19,9 @@ const ARVProtocolManagement: React.FC = () => {
     sideEffects: [],
   });
 
-  const token = localStorage.getItem('token');
-
   const fetchProtocols = async () => {
     try {
-      const res = await fetch(API_BASE, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+      const data = await getAll();
       setProtocols(data);
     } catch (err) {
       console.error(err);
@@ -43,12 +30,13 @@ const ARVProtocolManagement: React.FC = () => {
 
   useEffect(() => {
     fetchProtocols();
+    // eslint-disable-next-line
   }, []);
 
   const filtered = protocols.filter(
     (p) =>
       p.arvName.toLowerCase().includes(search.toLowerCase()) ||
-      p.arvDescription.toLowerCase().includes(search.toLowerCase())
+      (p.arvDescription || '').toLowerCase().includes(search.toLowerCase())
   );
 
   const handleSave = async () => {
@@ -65,26 +53,18 @@ const ARVProtocolManagement: React.FC = () => {
       sideEffects: formData.sideEffects.filter((line) => line.trim() !== ''),
     };
 
-    const method = editingProtocol && editingProtocol._id ? 'PUT' : 'POST';
-    const url = editingProtocol && editingProtocol._id ? `${API_BASE}/${editingProtocol._id}` : API_BASE;
-
-    const res = await fetch(url, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (res.ok) {
+    try {
+      if (editingProtocol && editingProtocol._id) {
+        await update(editingProtocol._id, payload);
+      } else {
+        await create(payload);
+      }
       setIsModalOpen(false);
       setEditingProtocol(null);
       resetForm();
       fetchProtocols();
-    } else {
-      const err = await res.json();
-      alert(`Lỗi: ${err.message || res.statusText}`);
+    } catch (err: any) {
+      alert(`Lỗi: ${err.message || 'Có lỗi xảy ra'}`);
     }
   };
 
@@ -101,14 +81,12 @@ const ARVProtocolManagement: React.FC = () => {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Bạn có chắc muốn xoá?')) return;
-
-    const res = await fetch(`${API_BASE}/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    if (res.ok) fetchProtocols();
-    else alert('Xoá thất bại!');
+    try {
+      await remove(id);
+      fetchProtocols();
+    } catch {
+      alert('Xoá thất bại!');
+    }
   };
 
   return (
@@ -144,13 +122,9 @@ const ARVProtocolManagement: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filtered.map((protocol) => (
           <div key={protocol._id} className="bg-white rounded-xl shadow p-5">
-            {/* <div className="absolute top-3 right-3 text-sm text-green-600 font-semibold flex items-center">
-              <CheckCircle className="w-4 h-4 mr-1" />
-              Đang sử dụng
-            </div> */}
             <h2 className="text-xl font-semibold text-blue-700">{protocol.arvName}</h2>
             <p className="text-sm text-gray-600 mt-1 mb-3 whitespace-pre-line">
-              Phác đồ điều trị ARV thường dùng trong cộng đồng
+              {protocol.arvDescription || 'Phác đồ điều trị ARV thường dùng trong cộng đồng'}
             </p>
             <div className="text-sm text-gray-700">
               <h3 className="font-medium text-blue-600 mt-2">Thuốc trong phác đồ:</h3>
@@ -173,11 +147,6 @@ const ARVProtocolManagement: React.FC = () => {
                   <li key={i}>{contra}</li>
                 ))}
               </ul>
-{/* 
-              <h3 className="font-medium text-blue-600 mt-2">Cách dùng:</h3>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Sử dụng nồng độ thận thận thận nồng cao thuc</li>
-              </ul> */}
 
               <h3 className="font-medium text-blue-600 mt-2">Tác dụng phụ:</h3>
               <ul className="list-disc pl-5 space-y-1">

@@ -75,7 +75,7 @@ import { BookingProvider } from './context/BookingContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { PaymentProvider } from './context/PaymentContext';
 import PaymentSuccess from './pages/Appointment/PaymentSuccess';
-
+import { ArvProvider } from './context/ArvContext';
 
 // Fallback component
 const FallbackComponent: React.FC = () => (
@@ -144,6 +144,7 @@ const App: React.FC = () => {
           <BookingProvider>
             <NotificationProvider>
               <PaymentProvider>
+                <ArvProvider>
                 <Routes>
                   {/* Public routes */}
                   <Route path="/" element={<Layout />}>
@@ -234,6 +235,7 @@ const App: React.FC = () => {
               <Route path="*" element={<FallbackComponent />} />
             </Routes>
             <ToastContainer position="top-right" autoClose={2000} />
+            </ArvProvider>
             </PaymentProvider>
             </NotificationProvider>
           </BookingProvider>

@@ -35,8 +35,11 @@ export const API_ENDPOINTS = {
   SERVICES_BY_CATEGORY: (categoryId: string) => `/services/category/${categoryId}`,
 
   // ===== AR/VR Regimen =====
-  ARVR_REGIMENS: "/arvrregimens",
-  ARVR_REGIMEN_BY_ID: (id: string) => `/arvrregimens/${id}`,
+  ARVR_REGIMENS: "/arvrregimens", // GET all, POST create
+  ARVR_REGIMEN_BY_ID: (id: string) => `/arvrregimens/${id}`, // GET one, PUT update, DELETE remove
+  CREATE_ARVR_REGIMEN: "/arvrregimens", // POST
+  UPDATE_ARVR_REGIMEN: (id: string) => `/arvrregimens/${id}`, // PUT
+  DELETE_ARVR_REGIMEN: (id: string) => `/arvrregimens/${id}`, // DELETE
 
   // ===== BOOKING =====
   BOOKINGS: "/bookings",
