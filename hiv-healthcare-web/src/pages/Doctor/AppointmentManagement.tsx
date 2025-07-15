@@ -4,6 +4,7 @@ import {
   Phone,
   Mail,
   CheckCircle2,
+  CalendarClock,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -193,7 +194,8 @@ const AppointmentManagement: React.FC = () => {
                           {booking.status === 'checked-in' && <span className="text-indigo-600">Đã xác nhận</span>}
                           {booking.status === 'completed' && <span className="text-green-600">Hoàn tất</span>}
                           {booking.status === 'cancelled' && <span className="text-red-600">Đã hủy</span>}
-                          {!['pending', 'confirmed', 'checked-in', 'completed', 'cancelled'].includes(booking.status) && (
+                          {booking.status === 're-examination' && <span className="text-purple-600">Tái khám</span>}
+                          {!['pending', 'confirmed', 'checked-in', 'completed', 'cancelled', 're-examination'].includes(booking.status) && (
                             <span className="text-gray-500">Không xác định</span>
                           )}
                         </td>
@@ -219,6 +221,14 @@ const AppointmentManagement: React.FC = () => {
                               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                               </svg>
+                            </button>
+                            {/* Nút chuyển sang trạng thái tái khám */}
+                            <button
+                              onClick={() => handleStatusChange(booking._id!, 're-examination')}
+                              title="Đánh dấu tái khám"
+                              className="text-purple-500 hover:text-purple-700"
+                            >
+                              <CalendarClock className="w-5 h-5 inline" />
                             </button>
                             {booking.status === 'completed' ? (
                               <CheckCircle2 className="text-green-500 w-5 h-5" />
