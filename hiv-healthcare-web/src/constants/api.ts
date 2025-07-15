@@ -50,6 +50,9 @@ export const API_ENDPOINTS = {
   // ===== RESULT =====
   RESULTS: "/results",
   RESULT_BY_ID: (id: string) => `/results/${id}`,
+  CREATE_RESULT: "/results",
+  EDIT_RESULT: (id: string) => `/results/${id}`,
+  RESULTS_BY_USER_ID: (userId: string) => `/results/user/${userId}`,
 
   // ===== NOTIFICATION =====
   NOTIFICATIONS: "/notifications",
