@@ -124,6 +124,11 @@ const Layout: React.FC = () => {
     showToast("Đăng xuất thành công!", "success");
   };
 
+  // Sắp xếp notifications theo thời gian tạo, mới nhất lên đầu
+  const sortedNotifications = [...notifications].sort((a, b) =>
+    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
   return (
     <div className="min-h-screen flex flex-col font-sans bg-gray-50">
       {/* Header */}
@@ -268,7 +273,7 @@ const Layout: React.FC = () => {
                       <span className="relative">
                         <Bell className="w-6 h-6 text-teal-100" />
                         <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5">
-                          {loading ? "..." : notifications.length}
+                          {loading ? "..." : sortedNotifications.length}
                         </span>
                       </span>
                     </button>
@@ -293,10 +298,10 @@ const Layout: React.FC = () => {
                           <p className="px-4 py-3 text-gray-500 text-center">Đang tải...</p>
                         ) : error ? (
                           <p className="px-4 py-3 text-red-500 text-center">{error}</p>
-                        ) : notifications.length === 0 ? (
+                        ) : sortedNotifications.length === 0 ? (
                           <p className="px-4 py-3 text-gray-500 text-center">Chưa có thông báo nào</p>
                         ) : (
-                          notifications.map((notification, idx) => (
+                          sortedNotifications.map((notification, idx) => (
                             <div
                               key={notification._id || idx}
                               className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
