@@ -1,6 +1,7 @@
 import axios from "axios";
 import { BASE_URL, API_ENDPOINTS } from "../constants/api";
 import type { Result } from "../types/result";
+import type { NewResultPayload } from "../context/ResultContext";
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -27,7 +28,7 @@ export const getAllResults = async (): Promise<Result[]> => {
   return res.data;
 };
 
-export const createResult = async (data: Result): Promise<Result> => {
+export const createResult = async (data: NewResultPayload): Promise<Result> => {
   const res = await apiClient.post(API_ENDPOINTS.CREATE_RESULT, data);
   return res.data;
 };

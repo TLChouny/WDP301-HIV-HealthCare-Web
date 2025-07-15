@@ -11,7 +11,8 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { Booking } from '../../types/booking';
 import { useBooking } from '../../context/BookingContext';
-import axios from 'axios';
+import { useArv } from '../../context/ArvContext';
+import { useResult } from '../../context/ResultContext';
 
 function isSameDayLocal(date1: string | Date, date2: string | Date) {
   const d1 = new Date(date1);
@@ -24,7 +25,10 @@ function isSameDayLocal(date1: string | Date, date2: string | Date) {
 }
 
 const AppointmentManagement: React.FC = () => {
+  const [reExaminationDate, setReExaminationDate] = useState('');
   const { getAll, update } = useBooking();
+  const { getAll: getAllArv } = useArv();
+  const { addResult } = useResult();
   const [search, setSearch] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -116,11 +120,21 @@ const AppointmentManagement: React.FC = () => {
   // Lấy danh sách phác đồ ARV khi mở modal
   useEffect(() => {
     if (openMedicalModal) {
-      axios.get('http://localhost:5000/api/arvrregimens')
-        .then(res => setArvRegimens(res.data))
+      getAllArv()
+        .then((data) => {
+          // Chỉ nhận các regimen có _id là string
+          setArvRegimens(
+            data.filter(r => typeof r._id === 'string')
+              .map(r => ({
+                _id: r._id as string,
+                arvName: r.arvName,
+                arvDescription: r.arvDescription
+              }))
+          );
+        })
         .catch(() => setArvRegimens([]));
     }
-  }, [openMedicalModal]);
+  }, [openMedicalModal, getAllArv]);
 
   const handleCloseMedicalModal = () => {
     setOpenMedicalModal(false);
@@ -269,25 +283,25 @@ const AppointmentManagement: React.FC = () => {
               onSubmit={async e => {
                 e.preventDefault();
                 try {
-                  await axios.post(
-                    'http://localhost:5000/api/results',
-                    {
-                      resultName: diagnosis,
-                      resultDescription: hivLoad,
-                      bookingId: selectedBooking._id,
-                      arvregimenId: arvRegimens.find(r => r.arvName === arvRegimen)?._id,
-                    },
-                    {
-                      headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}` // hoặc nơi bạn lưu token
-                      }
-                    }
-                  );
+                  const bookingId = selectedBooking?._id;
+                  const arvregimenId = arvRegimens.find(r => r.arvName === arvRegimen)?._id;
+                  if (!bookingId || !arvregimenId) {
+                    toast.error('Thiếu thông tin booking hoặc phác đồ ARV!');
+                    return;
+                  }
+                  await addResult({
+                    resultName: diagnosis,
+                    resultDescription: hivLoad,
+                    bookingId,
+                    arvregimenId,
+                    reExaminationDate,
+                  });
                   toast.success('Đã tạo hồ sơ bệnh án!');
                   setOpenMedicalModal(false);
                   setDiagnosis('');
                   setArvRegimen('');
                   setHivLoad('');
+                  setReExaminationDate('');
                 } catch (err: any) {
                   toast.error('Lưu hồ sơ thất bại!');
                 }
@@ -349,6 +363,16 @@ const AppointmentManagement: React.FC = () => {
                     className="w-full border rounded px-2 py-1"
                     value={hivLoad}
                     onChange={e => setHivLoad(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Ngày tái khám</label>
+                  <input
+                    type="date"
+                    className="w-full border rounded px-2 py-1"
+                    value={reExaminationDate}
+                    onChange={e => setReExaminationDate(e.target.value)}
+                    required
                   />
                 </div>
               </div>

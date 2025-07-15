@@ -8,12 +8,21 @@ import {
 } from "../api/resultApi";
 import type { Result } from "../types/result";
 
+// Định nghĩa kiểu dữ liệu cho payload tạo mới kết quả
+export interface NewResultPayload {
+  resultName: string;
+  resultDescription?: string;
+  bookingId: string;
+  arvregimenId: string;
+  reExaminationDate: string;
+}
+
 interface ResultContextProps {
   results: Result[];
   loading: boolean;
   fetchResults: () => Promise<void>;
   getResult: (id: string) => Promise<Result | null>;
-  addResult: (data: Result) => Promise<Result | null>;
+  addResult: (data: NewResultPayload) => Promise<Result | null>;
   updateResult: (id: string, data: Result) => Promise<Result | null>;
   getResultsByUserId: (userId: string) => Promise<Result[]>;
 }
@@ -47,7 +56,7 @@ export const ResultProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const addResult = async (data: Result): Promise<Result | null> => {
+  const addResult = async (data: NewResultPayload): Promise<Result | null> => {
     try {
       const newResult = await createResult(data);
       setResults((prev) => [...prev, newResult]);
