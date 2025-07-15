@@ -86,3 +86,35 @@ export const getServiceDetail = async (id: string): Promise<Service> => {
   }
 };
 
+export const updateService = async (id: string, data: Partial<Service>): Promise<Service> => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Không tìm thấy token xác thực");
+    const res = await apiClient.put(API_ENDPOINTS.SERVICE_BY_ID(id), data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Failed to update service");
+    }
+    throw new Error("An unexpected error occurred while updating service");
+  }
+};
+
+export const deleteService = async (id: string): Promise<void> => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) throw new Error("Không tìm thấy token xác thực");
+    await apiClient.delete(API_ENDPOINTS.SERVICE_BY_ID(id), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Failed to delete service");
+    }
+    throw new Error("An unexpected error occurred while deleting service");
+  }
+};
+
+

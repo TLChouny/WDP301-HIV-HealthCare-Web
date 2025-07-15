@@ -35,6 +35,7 @@ import RoleManagement from './pages/Admin/RoleManagement';
 import CategoryManagement from './pages/Admin/CategoryManagement';
 import BlogManagement from './pages/Admin/BlogManagement';
 import DoctorScheduleManagement from './pages/Admin/DoctorScheduleManagement';
+import ServicesManagements from './pages/Admin/ServicesManagements';
 
 // Doctor Pages
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
@@ -185,6 +186,7 @@ const App: React.FC = () => {
                           <Route path="categories" element={<CategoryManagement />} />
                           <Route path="blogs" element={<BlogManagement />} />
                           <Route path="roles" element={<RoleManagement />} />
+                          <Route path="services" element={<ServicesManagements />} />
                         </Route>
                       </Route>
 

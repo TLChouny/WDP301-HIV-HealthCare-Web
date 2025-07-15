@@ -102,6 +102,11 @@ const AdminLayout: React.FC = () => {
       icon: <Folder className="w-5 h-5" />
     },
     {
+      name: 'Quản lý dịch vụ',
+      path: '/admin/services',
+      icon: <Book className="w-5 h-5" />
+    },
+    {
       name: 'Quản lý bài viết',
       path: '/admin/blogs',
       icon: <FileText className="w-5 h-5" />
