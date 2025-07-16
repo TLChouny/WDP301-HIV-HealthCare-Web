@@ -201,13 +201,21 @@ const ARVProtocolManagement: React.FC = () => {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"
                 />
               </div>
-              {(['drugs', 'dosages', 'contraindications', 'sideEffects'] as const).map((key) => (
+              {[
+                { key: 'drugs', label: 'Thuốc trong phác đồ' },
+                { key: 'dosages', label: 'Liều dùng' },
+                { key: 'contraindications', label: 'Chống chỉ định' },
+                { key: 'sideEffects', label: 'Tác dụng phụ' }
+              ].map(({ key, label }) => (
                 <div key={key}>
-                  <label className="block text-sm font-medium text-gray-700 mb-2 capitalize">{key}</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
                   <textarea
-                    value={formData[key].join('\n')}
+                    value={formData[key as 'drugs' | 'dosages' | 'contraindications' | 'sideEffects'].join('\n')}
                     onChange={(e) =>
-                      setFormData({ ...formData, [key]: e.target.value.split('\n') })
+                      setFormData({
+                        ...formData,
+                        [key]: e.target.value.split('\n')
+                      })
                     }
                     rows={3}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[80px]"

@@ -24,6 +24,7 @@ import { useAuth } from "../../context/AuthContext"
 import { useBooking } from "../../context/BookingContext"
 import type { User as UserType } from "../../types/user"
 import type { Booking } from "../../types/booking"
+import { getBookingStatusColor } from "../../utils/status"
 
 const DoctorSchedule: React.FC = () => {
   const { user, isDoctor } = useAuth()
@@ -157,22 +158,7 @@ const DoctorSchedule: React.FC = () => {
     return slots
   }
 
-  const getBookingStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "from-green-500 to-green-600"
-      case "checked-out":
-        return "from-green-500 to-purple-600"
-      case "checked-in":
-        return "from-green-500 to-blue-600"
-      case "pending":
-        return "from-amber-500 to-amber-600"
-      case "cancelled":
-        return "from-red-500 to-red-600"
-      default:
-        return "from-blue-500 to-blue-600"
-    }
-  }
+  // Sử dụng trực tiếp hàm import từ utils/status
 
   const getBookingStatusIcon = (status: string) => {
     switch (status) {
@@ -182,6 +168,14 @@ const DoctorSchedule: React.FC = () => {
         return Clock
       case "cancelled":
         return X
+      case "checked-in":
+        return UserCheck
+      case "checked-out":
+        return CheckCircle
+      case "completed":
+        return CheckCircle
+      case "re-examination":
+        return Calendar
       default:
         return UserCheck
     }
@@ -563,19 +557,19 @@ const DoctorSchedule: React.FC = () => {
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600">Trạng thái:</span>
                       <span
-                        className={`px-3 py-1 rounded-full text-sm font-semibold text-white bg-gradient-to-r ${getBookingStatusColor(
-                          selectedBooking.status,
-                        )}`}
+                        className={`px-3 py-1 rounded-full text-sm font-semibold text-white bg-gradient-to-r ${getBookingStatusColor(selectedBooking.status)}`}
                       >
                         {selectedBooking.status === "completed"
                           ? "Đã hoàn thành"
                           : selectedBooking.status === "checked-out"
                             ? "Đã thanh toán"
                             : selectedBooking.status === "checked-in"
-                              ? "Đã vào"
+                              ? "Đã xác nhận"
                           : selectedBooking.status === "pending"
                             ? "Chờ xác nhận"
-                            : "Đã hủy"}
+                          : selectedBooking.status === "re-examination"
+                            ? "Tái khám"
+                          : "Đã hủy"}
                       </span>
                     </div>
                     {selectedBooking.notes && (

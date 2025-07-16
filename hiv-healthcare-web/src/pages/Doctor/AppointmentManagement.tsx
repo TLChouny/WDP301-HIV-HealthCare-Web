@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   CalendarClock,
 } from 'lucide-react';
+import { getBookingStatusColor, translateBookingStatus } from '../../utils/status';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Calendar from 'react-calendar';
@@ -189,15 +190,11 @@ const AppointmentManagement: React.FC = () => {
                           <div className="text-xs text-gray-500">{booking.serviceId?.serviceDescription || 'Không có mô tả'}</div>
                         </td>
                         <td className="px-6 py-4 text-center font-medium">
-                          {booking.status === 'pending' && <span className="text-yellow-600">Chờ xác nhận</span>}
-                          {booking.status === 'confirmed' && <span className="text-blue-600">Đã xác nhận</span>}
-                          {booking.status === 'checked-in' && <span className="text-indigo-600">Đã xác nhận</span>}
-                          {booking.status === 'completed' && <span className="text-green-600">Hoàn tất</span>}
-                          {booking.status === 'cancelled' && <span className="text-red-600">Đã hủy</span>}
-                          {booking.status === 're-examination' && <span className="text-purple-600">Tái khám</span>}
-                          {!['pending', 'confirmed', 'checked-in', 'completed', 'cancelled', 're-examination'].includes(booking.status) && (
-                            <span className="text-gray-500">Không xác định</span>
-                          )}
+                          <span
+                            className={`bg-clip-text text-transparent bg-gradient-to-r ${getBookingStatusColor(booking.status)}`}
+                          >
+                            {translateBookingStatus(booking.status)}
+                          </span>
                         </td>
                         <td className="px-6 py-4">
                           {booking.meetLink ? (
