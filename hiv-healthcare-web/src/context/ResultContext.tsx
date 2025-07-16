@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import {
   getAllResults,
   getResultById,
   createResult,
   editResult,
-  getResultsByUserId, // Đảm bảo API này đã được định nghĩa trong resultApi
+  getResultsByUserId,
+  getResultsByDoctorName,
 } from "../api/resultApi";
 import type { Result } from "../types/result";
 
@@ -24,7 +25,8 @@ interface ResultContextProps {
   getResult: (id: string) => Promise<Result | null>;
   addResult: (data: NewResultPayload) => Promise<Result | null>;
   updateResult: (id: string, data: Result) => Promise<Result | null>;
-  getResultsByUserId: (userId: string) => Promise<Result[]>;
+  getByUserId: (userId: string) => Promise<Result[]>;
+  getByDoctorName: (doctorName: string) => Promise<Result[]>;
 }
 
 const ResultContext = createContext<ResultContextProps | undefined>(undefined);
@@ -83,20 +85,36 @@ export const ResultProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const getResultsByUserId = async (userId: string): Promise<Result[]> => {
+  const getByUserId = useCallback(async (userId: string): Promise<Result[]> => {
     setLoading(true);
     try {
-      const userResults = await getResultsByUserId(userId); // Gọi API đúng
-      setResults(userResults); // Cập nhật state với kết quả
+      const userResults = await getResultsByUserId(userId);
+      setResults(userResults);
       return userResults;
     } catch (err: any) {
       console.error(`Failed to get results for user with id ${userId}:`, err);
-      setResults([]); // Đặt về mảng rỗng khi lỗi
       return [];
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+  
+  const getByDoctorName = useCallback(
+    async (doctorName: string): Promise<Result[]> => {
+      setLoading(true);
+      try {
+        const doctorResults = await getResultsByDoctorName(doctorName);
+        setResults(doctorResults);
+        return doctorResults;
+      } catch (err: any) {
+        console.error(`Failed to get results for doctor ${doctorName}:`, err);
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     fetchResults();
@@ -111,7 +129,8 @@ export const ResultProvider: React.FC<{ children: React.ReactNode }> = ({
         getResult,
         addResult,
         updateResult,
-        getResultsByUserId,
+        getByUserId,
+        getByDoctorName,
       }}
     >
       {children}

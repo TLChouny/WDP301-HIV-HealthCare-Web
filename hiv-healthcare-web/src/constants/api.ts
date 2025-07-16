@@ -53,6 +53,7 @@ export const API_ENDPOINTS = {
   CREATE_RESULT: "/results",
   EDIT_RESULT: (id: string) => `/results/${id}`,
   RESULTS_BY_USER_ID: (userId: string) => `/results/user/${userId}`,
+  RESULTS_BY_DOCTOR_NAME: (doctorName: string) => `/results/doctor/${doctorName}`,
 
   // ===== NOTIFICATION =====
   NOTIFICATIONS: "/notifications",

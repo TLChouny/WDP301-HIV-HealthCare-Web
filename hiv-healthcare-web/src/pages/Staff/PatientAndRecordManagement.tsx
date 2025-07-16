@@ -7,7 +7,7 @@ import type { Result } from '../../types/result';
 
 const StaffPatientAndRecordManagement: React.FC = () => {
   const { getAllUsers, isAuthenticated } = useAuth();
-  const { results, getResultsByUserId, loading: resultsLoading } = useResult();
+  const { results, getByUserId, loading: resultsLoading } = useResult();
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [activeTab, setActiveTab] = useState<'patients' | 'records'>('patients');
@@ -46,7 +46,7 @@ const StaffPatientAndRecordManagement: React.FC = () => {
     if (activeTab === 'records' && selectedUser) {
       setLoading(true);
       setError(null);
-      getResultsByUserId(selectedUser._id)
+      getByUserId(selectedUser._id)
         .then(() => {
           if (isMounted) setLoading(false);
         })
@@ -63,7 +63,7 @@ const StaffPatientAndRecordManagement: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [activeTab, selectedUser, getResultsByUserId]);
+  }, [activeTab, selectedUser, getByUserId]);
 
   const getRecordStatusInfo = (status: string) => {
     switch (status) {

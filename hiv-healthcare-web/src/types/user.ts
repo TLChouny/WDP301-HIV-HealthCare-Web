@@ -10,6 +10,7 @@ export interface User {
   phone_number?: string;
   gender?: Gender;
   address?: string;
+  dateOfBirth?: string;
   role: Role;
   avatar?: string;
   userDescription?: string;
