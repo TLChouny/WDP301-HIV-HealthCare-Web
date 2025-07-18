@@ -29,6 +29,10 @@ interface JwtPayload {
   userName?: string;
   email?: string;
   role?: Role;
+  userDescription?: string;
+  avatar?: string;
+  phone_number?: string;
+  dateOfBirth?: string;
   isVerified?: boolean;
   createdAt?: string;
   updatedAt?: string;

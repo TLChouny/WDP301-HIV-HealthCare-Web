@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Search, 
+import {
+  Search,
   Plus,
   Edit,
   Trash2,
@@ -128,6 +128,20 @@ const RoleManagement: React.FC = () => {
     }, 0);
   };
 
+  const buildUpdatePayload = (values: any) => {
+    const payload: any = {
+      userName: values.userName,
+      role: values.role,
+      phone_number: values.phone_number,
+    };
+    if (values.role === 'doctor') {
+      payload.userDescription = values.userDescription;
+    } else {
+      payload.userDescription = undefined; // Optional: clear nếu không phải doctor
+    }
+    return payload;
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -219,10 +233,10 @@ const RoleManagement: React.FC = () => {
                     Ngày tạo
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thao tác
+                    Mô tả bác sĩ
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mô tả bác sĩ
+                    Thao tác
                   </th>
                 </tr>
               </thead>
@@ -258,9 +272,12 @@ const RoleManagement: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {user.createdAt ? new Date(user.createdAt).toLocaleString('vi-VN') : ''}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap max-w-[200px] overflow-hidden text-ellipsis">
+                      {user.role === 'doctor' ? user.userDescription || '' : ''}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Button 
+                        <Button
                           type="link"
                           className="text-blue-600"
                           icon={<Edit className="w-5 h-5" />}
@@ -296,9 +313,7 @@ const RoleManagement: React.FC = () => {
                         />
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {user.role === 'doctor' ? user.userDescription || '' : ''}
-                    </td>
+
                   </tr>
                 ))}
               </tbody>
@@ -306,6 +321,7 @@ const RoleManagement: React.FC = () => {
           )}
         </div>
       </div>
+      {/* Modal for Edit User */}
       {/* Modal for Edit User */}
       <Modal
         title="Chỉnh sửa người dùng"
@@ -320,19 +336,20 @@ const RoleManagement: React.FC = () => {
           initialValues={editForm}
           onFinish={async (values) => {
             if (!editingUser) return;
+
             if (editingUser.role === 'admin' && values.role !== 'admin') {
               message.error('Không thể thay đổi quyền của tài khoản admin!');
               return;
             }
+
             setSaving(true);
             try {
-              await updateUser(editingUser._id, {
-                userName: values.userName,
-                role: values.role,
-                phone_number: values.phone_number,
-              });
+              const payload = buildUpdatePayload(values);
+              await updateUser(editingUser._id, payload);
+
               const data = await getAllUsers();
               setUsers(data);
+
               setIsModalOpen(false);
               message.success('Cập nhật người dùng thành công!');
             } catch (err: any) {
@@ -349,22 +366,27 @@ const RoleManagement: React.FC = () => {
           >
             <Input />
           </Form.Item>
+
           <Form.Item
             label="Vai trò *"
             name="role"
             rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
           >
-            <Select disabled={editingUser?.role === 'admin'} onChange={role => {
-              if (role !== 'doctor') {
-                form.setFieldsValue({ userDescription: undefined });
-              }
-            }}>
+            <Select
+              disabled={editingUser?.role === 'admin'}
+              onChange={role => {
+                if (role !== 'doctor') {
+                  form.setFieldsValue({ userDescription: undefined });
+                }
+              }}
+            >
               <Select.Option value="admin">Quản trị viên</Select.Option>
               <Select.Option value="doctor">Bác sĩ</Select.Option>
               <Select.Option value="staff">Nhân viên</Select.Option>
               <Select.Option value="user">Người dùng</Select.Option>
             </Select>
           </Form.Item>
+
           <Form.Item shouldUpdate={(prev, curr) => prev.role !== curr.role}>
             {() =>
               form.getFieldValue('role') === 'doctor' && (
@@ -378,15 +400,18 @@ const RoleManagement: React.FC = () => {
               )
             }
           </Form.Item>
+
           <Form.Item
             label="Số điện thoại"
             name="phone_number"
           >
             <Input />
           </Form.Item>
+
           <Form.Item label="Trạng thái">
             <Input value="Đang hoạt động" disabled />
           </Form.Item>
+
           <div className="flex justify-end space-x-2 mt-6">
             <Button onClick={() => setIsModalOpen(false)} disabled={saving}>
               Hủy
@@ -397,6 +422,7 @@ const RoleManagement: React.FC = () => {
           </div>
         </Form>
       </Modal>
+
       {/* Modal for Add User */}
       <Modal
         title="Thêm người dùng mới"
