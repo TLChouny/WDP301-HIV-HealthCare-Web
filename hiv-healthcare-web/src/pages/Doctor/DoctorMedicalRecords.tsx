@@ -138,7 +138,7 @@ const DoctorMedicalRecords: React.FC = () => {
                   </div>
 
                   <div className="mt-4">
-                    <h4 className="font-medium text-gray-900 mb-1">Mô tả kết quả</h4>
+                    <h4 className="font-medium text-gray-900 mb-1">Tải lượng HIV</h4>
                     <p className="text-gray-700">{record.resultDescription || "Không có mô tả"}</p>
                   </div>
 
