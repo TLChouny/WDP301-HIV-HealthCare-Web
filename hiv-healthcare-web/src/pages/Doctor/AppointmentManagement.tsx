@@ -47,6 +47,13 @@ const AppointmentManagement: React.FC = () => {
   const [arvRegimen, setArvRegimen] = useState('');
   const [hivLoad, setHivLoad] = useState('');
   const [arvRegimens, setArvRegimens] = useState<{ _id: string; arvName: string; arvDescription?: string }[]>([]);
+  // Trạng thái đã gửi hồ sơ bệnh án
+  const [medicalRecordSent, setMedicalRecordSent] = useState<{ [bookingId: string]: boolean }>({});
+  // Trạng thái chọn để gửi
+  const [selectedStatusForSubmit, setSelectedStatusForSubmit] = useState<'re-examination' | 'completed' | null>(null);
+  // Kiểm tra booking đã có kết quả chưa
+  const { results } = useResult();
+  const hasResult = selectedBooking && results.some(r => r.bookingId && r.bookingId._id === selectedBooking._id);
 
   const bookingDates = bookings.map(b => new Date(b.bookingDate));
 
@@ -147,7 +154,7 @@ const AppointmentManagement: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8">
+      <div className="w-full flex flex-row gap-8 justify-end">
         {/* LEFT - LIST */}
         <div className="flex-1 order-2 md:order-1">
           <div className="mb-8">
@@ -219,24 +226,6 @@ const AppointmentManagement: React.FC = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                               </svg>
                             </button>
-                            {/* Nút chuyển sang trạng thái tái khám */}
-                            <button
-                              onClick={() => handleStatusChange(booking._id!, 're-examination')}
-                              title="Đánh dấu tái khám"
-                              className="text-purple-500 hover:text-purple-700"
-                            >
-                              <CalendarClock className="w-5 h-5 inline" />
-                            </button>
-                            {booking.status === 'completed' ? (
-                              <CheckCircle2 className="text-green-500 w-5 h-5" />
-                            ) : (
-                              <button
-                                onClick={() => handleStatusChange(booking._id!, 'completed')}
-                                title="Đánh dấu hoàn tất"
-                              >
-                                <CheckCircle2 className="text-gray-400 hover:text-green-500 w-5 h-5" />
-                              </button>
-                            )}
                           </div>
                         </td>
                       </tr>
@@ -249,7 +238,7 @@ const AppointmentManagement: React.FC = () => {
         </div>
 
         {/* RIGHT - CALENDAR */}
-        <div className="w-full md:w-80 order-1 md:order-2">
+        <div className="w-full md:w-72 order-1 md:order-2 md:self-start md:ml-auto">
           <div className="bg-white rounded-lg shadow p-4">
             <Calendar
               onChange={(value) => {
@@ -289,11 +278,27 @@ const AppointmentManagement: React.FC = () => {
             <form
               onSubmit={async e => {
                 e.preventDefault();
+                const bookingId = selectedBooking?._id;
+                if (!bookingId) {
+                  toast.error('Thiếu thông tin booking!');
+                  return;
+                }
+                if (hasResult) {
+                  toast.error('Booking này đã có kết quả, không thể gửi thêm!');
+                  return;
+                }
+                if (medicalRecordSent[bookingId]) {
+                  toast.error('Hồ sơ bệnh án đã được gửi!');
+                  return;
+                }
+                if (!selectedStatusForSubmit) {
+                  toast.error('Vui lòng chọn trạng thái gửi!');
+                  return;
+                }
                 try {
-                  const bookingId = selectedBooking?._id;
                   const arvregimenId = arvRegimens.find(r => r.arvName === arvRegimen)?._id;
-                  if (!bookingId || !arvregimenId) {
-                    toast.error('Thiếu thông tin booking hoặc phác đồ ARV!');
+                  if (!arvregimenId) {
+                    toast.error('Thiếu phác đồ ARV!');
                     return;
                   }
                   await addResult({
@@ -303,12 +308,17 @@ const AppointmentManagement: React.FC = () => {
                     arvregimenId,
                     reExaminationDate,
                   });
+                  // Đánh dấu đã gửi hồ sơ bệnh án
+                  setMedicalRecordSent(prev => ({ ...prev, [bookingId]: true }));
+                  // Gửi trạng thái đã chọn
+                  await handleStatusChange(bookingId, selectedStatusForSubmit);
                   toast.success('Đã tạo hồ sơ bệnh án!');
                   setOpenMedicalModal(false);
                   setDiagnosis('');
                   setArvRegimen('');
                   setHivLoad('');
                   setReExaminationDate('');
+                  setSelectedStatusForSubmit(null);
                 } catch (err: any) {
                   toast.error('Lưu hồ sơ thất bại!');
                 }
@@ -382,6 +392,36 @@ const AppointmentManagement: React.FC = () => {
                     required
                   />
                 </div>
+                {/* Các nút trạng thái chuyển vào modal */}
+                <div className="mt-6 flex flex-col items-center">
+                  <div className="mb-2 text-sm text-gray-600 font-medium">Chọn trạng thái gửi hồ sơ</div>
+                  <div className="flex gap-4 justify-center">
+                    <button
+                      type="button"
+                      className={`px-5 py-3 border-2 rounded-lg shadow flex items-center gap-2 text-base font-semibold transition-all duration-150
+                        ${selectedStatusForSubmit === 're-examination'
+                          ? 'border-purple-600 bg-purple-500 text-white ring-2 ring-purple-400'
+                          : 'border-purple-400 bg-purple-100 text-purple-700 hover:bg-purple-200'}
+                      `}
+                      onClick={() => setSelectedStatusForSubmit('re-examination')}
+                    >
+                      <CalendarClock className="w-6 h-6" />
+                      Tái khám
+                    </button>
+                    <button
+                      type="button"
+                      className={`px-5 py-3 border-2 rounded-lg shadow flex items-center gap-2 text-base font-semibold transition-all duration-150
+                        ${selectedStatusForSubmit === 'completed'
+                          ? 'border-green-600 bg-green-500 text-white ring-2 ring-green-400'
+                          : 'border-green-400 bg-green-100 text-green-700 hover:bg-green-200'}
+                      `}
+                      onClick={() => setSelectedStatusForSubmit('completed')}
+                    >
+                      <CheckCircle2 className="w-6 h-6" />
+                      Hoàn tất
+                    </button>
+                  </div>
+                </div>
               </div>
               <div className="mt-6 flex justify-end gap-2">
                 <button
@@ -393,9 +433,12 @@ const AppointmentManagement: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  className={`px-4 py-2 rounded text-white ${selectedBooking && (medicalRecordSent[selectedBooking._id!] || !!hasResult) ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
+                  disabled={selectedBooking ? (medicalRecordSent[selectedBooking._id!] || !!hasResult) : true}
                 >
-                  Lưu hồ sơ
+                  {!!hasResult
+                    ? 'Đã có kết quả, không thể gửi'
+                    : selectedBooking && medicalRecordSent[selectedBooking._id!] ? 'Đã gửi hồ sơ' : 'Lưu hồ sơ'}
                 </button>
               </div>
             </form>
