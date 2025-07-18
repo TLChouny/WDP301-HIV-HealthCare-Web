@@ -5,6 +5,7 @@ export interface Result {
   resultName: string;
   resultDescription?: string;
   reExaminationDate: Date;
+  medicationTime?: string; // Thêm trường medicationTime
   bookingId: Booking;
   arvregimenId: ARVRegimen;
   createdAt: Date;

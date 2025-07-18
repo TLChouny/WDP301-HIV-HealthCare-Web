@@ -113,7 +113,13 @@ const MedicalRecords: React.FC = () => {
   }
 
   // Pagination logic
-  const allRecords = Object.entries(medicalRecords).flatMap(([_, results]) => results)
+  const allRecords = Object.entries(medicalRecords)
+    .flatMap(([_, results]) => results)
+    .sort((a, b) => {
+      const dateA = new Date(a.createdAt).getTime()
+      const dateB = new Date(b.createdAt).getTime()
+      return dateB - dateA // mới nhất lên trước
+    })
   const totalRecords = allRecords.length
   const totalPages = Math.ceil(totalRecords / recordsPerPage)
   const startIndex = (currentPage - 1) * recordsPerPage

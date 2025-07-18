@@ -13,6 +13,7 @@ import type { Result } from "../types/result";
 export interface NewResultPayload {
   resultName: string;
   resultDescription?: string;
+  medicationTime?: string; // Thêm trường medicationTime
   bookingId: string;
   arvregimenId: string;
   reExaminationDate: string;
