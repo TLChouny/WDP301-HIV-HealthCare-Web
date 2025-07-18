@@ -33,7 +33,8 @@ const PatientManagement: React.FC = () => {
     const searchLower = search.toLowerCase();
     return (
       booking.serviceId.serviceName?.toLowerCase().includes(searchLower) ||
-      booking.bookingCode?.toLowerCase().includes(searchLower)
+      booking.bookingCode?.toLowerCase().includes(searchLower) ||
+      booking.userId.userName?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -58,10 +59,6 @@ const PatientManagement: React.FC = () => {
               />
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
-              <Plus className="w-5 h-5" />
-              <span>Thêm lịch hẹn</span>
-            </button>
           </div>
         </div>
 
@@ -75,7 +72,6 @@ const PatientManagement: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dịch vụ</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Liên hệ</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thời gian</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -102,21 +98,11 @@ const PatientManagement: React.FC = () => {
                         {booking.startTime} - {booking.endTime}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">
-                          <Edit className="w-5 h-5" />
-                        </button>
-                        <button className="text-red-600 hover:text-red-900">
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </td>
                   </tr>
                 ))}
                 {filteredBookings.length === 0 && !loading && (
                   <tr>
-                    <td colSpan={5} className="text-center py-6 text-gray-500">
+                    <td colSpan={4} className="text-center py-6 text-gray-500">
                       Không có lịch hẹn nào.
                     </td>
                   </tr>
