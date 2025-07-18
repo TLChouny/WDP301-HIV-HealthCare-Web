@@ -41,7 +41,7 @@ const PatientManagement: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="w-full">
-        {/* Header */}
+        {/* Headerr */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Quản lý bệnh nhân</h1>
         </div>

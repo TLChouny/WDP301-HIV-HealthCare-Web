@@ -96,7 +96,7 @@ const DoctorMedicalRecords: React.FC = () => {
                   key={record._id}
                   className="bg-white rounded-lg shadow border border-gray-200 p-6 hover:shadow-md transition-all"
                 >
-                  {/* ...existing code... */}
+                  {/* ...existing code.... */}
                   <div className="flex items-center gap-3 mb-4">
                     <FileText className="h-6 w-6 text-gray-600" />
                     <h3 className="text-xl font-semibold text-gray-900">
