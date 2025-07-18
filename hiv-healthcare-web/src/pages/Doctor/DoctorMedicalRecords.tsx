@@ -83,7 +83,7 @@ const DoctorMedicalRecords: React.FC = () => {
           <div className="space-y-6">
             {records
               .filter((record: any) => {
-                const patientName = record.bookingId?.userName || record.bookingId?.userId?.userName || ""
+                const patientName = record.bookingId?.userId?.userName || record.bookingId?.userName || ""
                 const resultName = record.resultName || ""
                 const term = searchTerm.trim().toLowerCase()
                 return (
@@ -118,8 +118,8 @@ const DoctorMedicalRecords: React.FC = () => {
                       <User className="h-5 w-5 text-gray-500" />
                       <span className="text-gray-700">
                         Bệnh nhân:{" "}
-                        {record.bookingId?.userName ||
-                          record.bookingId?.userId?.userName ||
+                        {record.bookingId?.userId?.userName ||
+                          record.bookingId?.userName ||
                           "Không xác định"}
                       </span>
                     </div>
