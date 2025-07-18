@@ -137,7 +137,16 @@ const RoleManagement: React.FC = () => {
           <p className="mt-2 text-sm text-gray-600">
             Quản lý và phân quyền cho các tài khoản trong hệ thống
           </p>
-          <Button type="primary" icon={<Plus />} className="mt-4" onClick={() => setIsAddModalOpen(true)}>
+          <Button
+            type="primary"
+            icon={<Plus />}
+            className="mt-4"
+            onClick={() => {
+              setIsAddModalOpen(true);
+              addForm.resetFields();
+              addForm.setFieldsValue({ role: 'user' });
+            }}
+          >
             Thêm người dùng
           </Button>
         </div>
@@ -212,6 +221,9 @@ const RoleManagement: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Thao tác
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Mô tả bác sĩ
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -284,6 +296,9 @@ const RoleManagement: React.FC = () => {
                         />
                       </div>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {user.role === 'doctor' ? user.userDescription || '' : ''}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -339,12 +354,29 @@ const RoleManagement: React.FC = () => {
             name="role"
             rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
           >
-            <Select disabled={editingUser?.role === 'admin'}>
+            <Select disabled={editingUser?.role === 'admin'} onChange={role => {
+              if (role !== 'doctor') {
+                form.setFieldsValue({ userDescription: undefined });
+              }
+            }}>
               <Select.Option value="admin">Quản trị viên</Select.Option>
               <Select.Option value="doctor">Bác sĩ</Select.Option>
               <Select.Option value="staff">Nhân viên</Select.Option>
               <Select.Option value="user">Người dùng</Select.Option>
             </Select>
+          </Form.Item>
+          <Form.Item shouldUpdate={(prev, curr) => prev.role !== curr.role}>
+            {() =>
+              form.getFieldValue('role') === 'doctor' && (
+                <Form.Item
+                  label="Mô tả bác sĩ"
+                  name="userDescription"
+                  rules={[{ required: true, message: 'Vui lòng nhập mô tả cho bác sĩ' }]}
+                >
+                  <Input.TextArea rows={3} />
+                </Form.Item>
+              )
+            }
           </Form.Item>
           <Form.Item
             label="Số điện thoại"
@@ -418,19 +450,6 @@ const RoleManagement: React.FC = () => {
             name="phone_number"
           >
             <Input />
-          </Form.Item>
-          <Form.Item
-            label="Vai trò *"
-            name="role"
-            initialValue="user"
-            rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
-          >
-            <Select>
-              <Select.Option value="admin">Quản trị viên</Select.Option>
-              <Select.Option value="doctor">Bác sĩ</Select.Option>
-              <Select.Option value="staff">Nhân viên</Select.Option>
-              <Select.Option value="user">Người dùng</Select.Option>
-            </Select>
           </Form.Item>
           <div className="flex justify-end space-x-2 mt-6">
             <Button onClick={() => setIsAddModalOpen(false)} disabled={adding}>
