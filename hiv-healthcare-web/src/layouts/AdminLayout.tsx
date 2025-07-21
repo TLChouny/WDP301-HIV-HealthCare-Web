@@ -61,36 +61,36 @@ const AdminLayout: React.FC = () => {
       path: '/admin/dashboard',
       icon: <User className="w-5 h-5" />
     },
-    {
-      name: 'Quản lý Bệnh nhân',
-      path: '/admin/patients',
-      icon: <Users className="w-5 h-5" />
-    },
-    {
-      name: 'Quản lý Bác sĩ',
-      path: '/admin/doctors',
-      icon: <Users className="w-5 h-5" />
-    },
+    // {
+    //   name: 'Quản lý Bệnh nhân',
+    //   path: '/admin/patients',
+    //   icon: <Users className="w-5 h-5" />
+    // },
+    // {
+    //   name: 'Quản lý Bác sĩ',
+    //   path: '/admin/doctors',
+    //   icon: <Users className="w-5 h-5" />
+    // },
     {
       name: 'Quản lý Lịch làm việc',
       path: '/admin/doctors/schedule',
       icon: <Users className="w-5 h-5" />
     },
-    {
-      name: 'Quản lý Lịch hẹn',
-      path: '/admin/appointments',
-      icon: <Calendar className="w-5 h-5" />
-    },
-    {
-      name: 'Quản lý Thuốc',
-      path: '/admin/medications',
-      icon: <Pill className="w-5 h-5" />
-    },
-    {
-      name: 'Thống kê',
-      path: '/admin/statistics',
-      icon: <BarChart className="w-5 h-5" />
-    },
+    // {
+    //   name: 'Quản lý Lịch hẹn',
+    //   path: '/admin/appointments',
+    //   icon: <Calendar className="w-5 h-5" />
+    // },
+    // {
+    //   name: 'Quản lý Thuốc',
+    //   path: '/admin/medications',
+    //   icon: <Pill className="w-5 h-5" />
+    // },
+    // {
+    //   name: 'Thống kê',
+    //   path: '/admin/statistics',
+    //   icon: <BarChart className="w-5 h-5" />
+    // },
     {
       name: 'Quản lý tài khoản',
       path: '/admin/roles',
