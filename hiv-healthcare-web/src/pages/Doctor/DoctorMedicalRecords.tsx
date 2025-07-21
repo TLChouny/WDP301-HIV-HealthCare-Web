@@ -140,6 +140,12 @@ const DoctorMedicalRecords: React.FC = () => {
                   <div className="mt-4">
                     <h4 className="font-medium text-gray-900 mb-1">Tải lượng HIV</h4>
                     <p className="text-gray-700">{record.resultDescription || "Không có mô tả"}</p>
+                  {record.medicationTime && (
+                    <div className="mt-2">
+                      <h4 className="font-medium text-gray-900 mb-1">Thời gian uống thuốc</h4>
+                      <p className="text-gray-700">{record.medicationTime}</p>
+                    </div>
+                  )}
                   </div>
 
                   {record.arvregimenId && (

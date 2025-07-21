@@ -46,6 +46,7 @@ const AppointmentManagement: React.FC = () => {
   const [diagnosis, setDiagnosis] = useState('');
   const [arvRegimen, setArvRegimen] = useState('');
   const [hivLoad, setHivLoad] = useState('');
+  const [medicationTime, setMedicationTime] = useState('');
   const [arvRegimens, setArvRegimens] = useState<{ _id: string; arvName: string; arvDescription?: string }[]>([]);
   // Trạng thái đã gửi hồ sơ bệnh án
   const [medicalRecordSent, setMedicalRecordSent] = useState<{ [bookingId: string]: boolean }>({});
@@ -307,6 +308,7 @@ const AppointmentManagement: React.FC = () => {
                     bookingId,
                     arvregimenId,
                     reExaminationDate,
+                    medicationTime,
                   });
                   // Đánh dấu đã gửi hồ sơ bệnh án
                   setMedicalRecordSent(prev => ({ ...prev, [bookingId]: true }));
@@ -317,6 +319,7 @@ const AppointmentManagement: React.FC = () => {
                   setDiagnosis('');
                   setArvRegimen('');
                   setHivLoad('');
+                  setMedicationTime('');
                   setReExaminationDate('');
                   setSelectedStatusForSubmit(null);
                 } catch (err: any) {
@@ -380,6 +383,16 @@ const AppointmentManagement: React.FC = () => {
                     className="w-full border rounded px-2 py-1"
                     value={hivLoad}
                     onChange={e => setHivLoad(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Thời gian uống thuốc</label>
+                  <input
+                    type="text"
+                    className="w-full border rounded px-2 py-1"
+                    value={medicationTime}
+                    onChange={e => setMedicationTime(e.target.value)}
+                    placeholder="Ví dụ: 08:00, 20:00"
                   />
                 </div>
                 <div>
