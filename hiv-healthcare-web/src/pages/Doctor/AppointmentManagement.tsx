@@ -386,14 +386,16 @@ const AppointmentManagement: React.FC = () => {
                   />
                 </div>
                 <div>
+                <div>
                   <label className="block text-sm font-medium mb-1">Thời gian uống thuốc</label>
                   <input
-                    type="text"
+                    type="time"
                     className="w-full border rounded px-2 py-1"
                     value={medicationTime}
                     onChange={e => setMedicationTime(e.target.value)}
-                    placeholder="Ví dụ: 08:00, 20:00"
+                    required // ✅ optional: bắt buộc nhập nếu cần
                   />
+                </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Ngày tái khám</label>

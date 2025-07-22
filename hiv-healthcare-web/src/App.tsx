@@ -69,8 +69,7 @@ import {
   Profile,
   AppointmentsUser,
   MedicalRecords,
-  Notifications,
-  HIVHistory,
+  Notifications
 } from './pages/User';
 
 import { AuthProvider } from "../src/context/AuthContext";
@@ -234,7 +233,6 @@ const App: React.FC = () => {
                           <Route path="appointments" element={<AppointmentsUser />} />
                           <Route path="medical-records" element={<MedicalRecords />} />
                           <Route path="notifications" element={<Notifications />} />
-                          <Route path="history" element={<HIVHistory />} />
                         </Route>
                       </Route>
 
