@@ -110,6 +110,11 @@ const AdminLayout: React.FC = () => {
       name: 'Quản lý bài viết',
       path: '/admin/blogs',
       icon: <FileText className="w-5 h-5" />
+    },
+    {
+      name: 'Hồ sơ cá nhân',
+      path: '/admin/profile',
+      icon: <User className="w-5 h-5" />
     }
   ];
 

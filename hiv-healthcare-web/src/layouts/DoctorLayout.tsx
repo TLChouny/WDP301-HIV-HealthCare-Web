@@ -84,6 +84,11 @@ const DoctorLayout: React.FC = () => {
       path: '/doctor/medical-records',
       icon: <FileText className="w-5 h-5" />
     },
+    {
+      name: 'Hồ sơ cá nhân',
+      path: '/doctor/profile',
+      icon: <User className="w-5 h-5" />
+    },
     // {
     //   name: 'Quản lý Xét nghiệm',
     //   path: '/doctor/lab-tests',

@@ -78,6 +78,11 @@ const StaffLayout: React.FC = () => {
       name: 'Lịch Tư vấn',
       path: '/staff/counseling',
       icon: <MessageSquare className="w-5 h-5" />
+    },
+    {
+      name: 'Hồ sơ cá nhân',
+      path: '/staff/profile',
+      icon: <User className="w-5 h-5" />
     }
   ];
 
@@ -182,13 +187,13 @@ const StaffLayout: React.FC = () => {
                 <Bell className="w-6 h-6 text-gray-500" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">3</span>
               </div>
-              <Link 
+              {/* <Link 
                 to="/staff/settings"
                 className="flex items-center space-x-2 text-gray-500 hover:text-gray-600"
               >
                 <Settings className="w-6 h-6" />
                 <span className="hidden md:inline">Cài đặt</span>
-              </Link>
+              </Link> */}
               <button 
                 onClick={handleLogout}
                 className="flex items-center space-x-2 text-gray-500 hover:text-gray-600"

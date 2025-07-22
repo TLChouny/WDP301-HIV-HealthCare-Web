@@ -36,6 +36,7 @@ import CategoryManagement from './pages/Admin/CategoryManagement';
 import BlogManagement from './pages/Admin/BlogManagement';
 import DoctorScheduleManagement from './pages/Admin/DoctorScheduleManagement';
 import ServicesManagements from './pages/Admin/ServicesManagements';
+import AdminProfile from './pages/Admin/AdminProfile';
 
 // Doctor Pages
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
@@ -48,6 +49,7 @@ import HIVSpecialist from './pages/Doctor/HIVSpecialist';
 import Counselors from './pages/Doctor/Counselors';
 import DoctorSchedule from './pages/Doctor/DoctorSchedule';
 import DoctorMedicalRecords from './pages/Doctor/DoctorMedicalRecords';
+import DoctorProfile from './pages/Doctor/DoctorProfile';
 
 
 // Staff Pages
@@ -57,6 +59,7 @@ import StaffAppointmentManagement from './pages/Staff/AppointmentManagement';
 import StaffServiceManagement from './pages/Staff/ServiceManagement';
 import StaffCounseling from './pages/Staff/Counseling';
 import StaffSettings from './pages/Staff/StaffSettings';
+import StaffProfile from './pages/Staff/StaffProfile';
 
 
 // User Pages
@@ -187,6 +190,7 @@ const App: React.FC = () => {
                           <Route path="blogs" element={<BlogManagement />} />
                           <Route path="roles" element={<RoleManagement />} />
                           <Route path="services" element={<ServicesManagements />} />
+                          <Route path="profile" element={<AdminProfile />} />
                         </Route>
                       </Route>
 
@@ -200,7 +204,8 @@ const App: React.FC = () => {
                           <Route path="appointments" element={<DoctorAppointmentManagement />} />
                           <Route path="arv-protocols" element={<ARVProtocolManagement />} />
                           <Route path="medical-records" element={<DoctorMedicalRecords />} />
-                          <Route path="lab-tests" element={<LabTestManagement />} />
+                        <Route path="lab-tests" element={<LabTestManagement />} />
+                        <Route path="profile" element={<DoctorProfile />} />
                         </Route>
                       </Route>
 
@@ -214,6 +219,7 @@ const App: React.FC = () => {
                           <Route path="services" element={<StaffServiceManagement />} />
                           <Route path="counseling" element={<StaffCounseling />} />
                           <Route path="settings" element={<StaffSettings />} />
+                          <Route path="profile" element={<StaffProfile />} />
                         </Route>
                       </Route>
 
