@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { getAllServices, createService, updateService, deleteService } from '../../api/serviceApi';
 import { getAllCategories } from '../../api/categoryApi';
 import { Button, Modal, Form, Input, message, Select } from 'antd';
-import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Eye } from 'lucide-react';
 import type { Service } from '../../types/service';
 import type { Category } from '../../types/category';
+import { Link } from 'react-router-dom';
 
 const ServicesManagements: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -50,6 +51,15 @@ const ServicesManagements: React.FC = () => {
   const filteredServices = services.filter((service) =>
     service.serviceName.toLowerCase().includes(search.toLowerCase())
   );
+
+  const truncateText = (text: string | undefined, wordLimit: number): string => {
+    if (!text) return '';
+    const words = text.split(' ');
+    if (words.length <= wordLimit) {
+      return text;
+    }
+    return words.slice(0, wordLimit).join(' ') + '...';
+  };
 
   const handleAddService = async (values: Partial<Service>) => {
     setAdding(true);
@@ -174,8 +184,10 @@ const ServicesManagements: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{service.serviceName}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-700">{service.serviceDescription || ''}</div>
+                      <td className="px-6 py-4 max-w-xs">
+                        <div className="text-sm text-gray-700" title={service.serviceDescription || ''}>
+                          {truncateText(service.serviceDescription, 10)}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-500">{category?.categoryName || ''}</div>
@@ -193,6 +205,13 @@ const ServicesManagements: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2">
+                          <Link to={`/admin/services/${service._id}`}>
+                            <Button
+                              type="link"
+                              className="text-gray-600"
+                              icon={<Eye className="w-5 h-5" />}
+                            />
+                          </Link>
                           <Button
                             type="link"
                             className="text-blue-600"
