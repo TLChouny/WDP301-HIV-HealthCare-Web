@@ -128,7 +128,7 @@ const StaffLayout: React.FC = () => {
           </nav>
 
           {/* User Section */}
-          <div className="p-4 border-t">
+          {/* <div className="p-4 border-t">
             <div className="flex items-center space-x-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
                 <User className="w-6 h-6 text-blue-600" />
@@ -142,7 +142,7 @@ const StaffLayout: React.FC = () => {
                 </p>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -183,10 +183,10 @@ const StaffLayout: React.FC = () => {
 
             <div className="flex items-center space-x-4">
               {/* Icon thông báo cố định */}
-              <div className="relative">
+              {/* <div className="relative">
                 <Bell className="w-6 h-6 text-gray-500" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5">3</span>
-              </div>
+              </div> */}
               {/* <Link 
                 to="/staff/settings"
                 className="flex items-center space-x-2 text-gray-500 hover:text-gray-600"
