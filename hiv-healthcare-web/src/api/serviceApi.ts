@@ -73,19 +73,6 @@ export const getServicesByCategoryId = async (categoryId: string): Promise<Servi
   }
 };
 
-export const getServiceDetail = async (id: string): Promise<Service> => {
-  try {
-    // API_ENDPOINTS.SERVICE_DETAIL là một function, cần truyền id vào
-    const res = await apiClient.get(API_ENDPOINTS.SERVICE_BY_ID(id));
-    return res.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || "Failed to fetch service detail");
-    }
-    throw new Error("An unexpected error occurred while fetching service detail");
-  }
-};
-
 export const updateService = async (id: string, data: Partial<Service>): Promise<Service> => {
   try {
     const token = localStorage.getItem("token");

@@ -36,6 +36,18 @@ export const getAllCategories = async (): Promise<Category[]> => {
   }
 };
 
+export const getCategoryById = async (id: string): Promise<Category> => {
+  try {
+    const res = await apiClient.get(API_ENDPOINTS.CATEGORY_BY_ID(id));
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Failed to fetch category by ID");
+    }
+    throw new Error("An unexpected error occurred while fetching category by ID");
+  }
+};
+
 export const createCategory = async (data: Partial<Category>): Promise<Category> => {
   try {
     const res = await apiClient.post(API_ENDPOINTS.CATEGORIES, data);
