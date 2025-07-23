@@ -35,6 +35,7 @@ import RoleManagement from './pages/Admin/RoleManagement';
 import CategoryManagement from './pages/Admin/CategoryManagement';
 import BlogManagement from './pages/Admin/BlogManagement';
 import DoctorScheduleManagement from './pages/Admin/DoctorScheduleManagement';
+import DoctorManagement from './pages/Admin/DoctorManagement';
 import ServicesManagements from './pages/Admin/ServicesManagements';
 import AdminServiceDetail from './pages/Admin/ServiceDetail';
 import AdminProfile from './pages/Admin/AdminProfile';

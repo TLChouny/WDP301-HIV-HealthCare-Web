@@ -66,11 +66,11 @@ const AdminLayout: React.FC = () => {
     //   path: '/admin/patients',
     //   icon: <Users className="w-5 h-5" />
     // },
-    // {
-    //   name: 'Quản lý Bác sĩ',
-    //   path: '/admin/doctors',
-    //   icon: <Users className="w-5 h-5" />
-    // },
+    {
+      name: 'Quản lý Bác sĩ',
+      path: '/admin/doctors',
+      icon: <Users className="w-5 h-5" />
+    },
     {
       name: 'Quản lý Lịch làm việc',
       path: '/admin/doctors/schedule',

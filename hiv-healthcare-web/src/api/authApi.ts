@@ -280,3 +280,130 @@ export const clearWorkSchedule = async (id: string) => {
     throw new Error("Đã xảy ra lỗi không mong muốn khi xóa lịch làm việc");
   }
 };
+
+// Thêm chứng chỉ mới
+export const addCertification = async (userId: string, data: { title: string; issuer: string; issueDate: string; expiryDate?: string, description?: string, fileUrl?: string, status?: string }) => {
+  try {
+    const res = await apiClient.post(API_ENDPOINTS.ADD_CERTIFICATION(userId), data);
+    return res.data.certifications;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Thêm chứng chỉ thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi thêm chứng chỉ");
+  }
+};
+
+export const updateCertification = async (userId: string, certId: string, data: { title: string; issuer: string; issueDate: string; expiryDate?: string, description?: string, fileUrl?: string, status?: string }) => {
+  try {
+    const res = await apiClient.put(API_ENDPOINTS.UPDATE_CERTIFICATION(userId, certId), data);
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Cập nhật kinh nghiệm thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi cập nhật kinh nghiệm");
+  }
+};
+
+export const deleteCertification = async (userId: string, certId: string) => {
+  try {
+    const res = await apiClient.delete(API_ENDPOINTS.DELETE_CERTIFICATION(userId, certId));
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Xoá kinh nghiệm thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi xoá kinh nghiệm");
+  }
+};
+
+
+// Admin duyệt chứng chỉ
+export const approveCertification = async (userId: string, certId: string) => {
+  try {
+    const res = await apiClient.put(API_ENDPOINTS.APPROVE_CERTIFICATION(userId, certId));
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Duyệt chứng chỉ thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi duyệt chứng chỉ");
+  }
+};
+
+// Admin từ chối chứng chỉ
+export const rejectCertification = async (userId: string, certId: string) => {
+  try {
+    const res = await apiClient.delete(API_ENDPOINTS.REJECT_CERTIFICATION(userId, certId));
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Từ chối chứng chỉ thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi từ chối chứng chỉ");
+  }
+};
+
+// Thêm kinh nghiệm mới
+export const addExperience = async (userId: string, data: { hospital: string; position: string; startDate: string; endDate?: string; description?: string, status?: string }) => {
+  try {
+    const res = await apiClient.post(API_ENDPOINTS.ADD_EXPERIENCE(userId), data);
+    return res.data.experiences;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Thêm kinh nghiệm thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi thêm kinh nghiệm");
+  }
+};
+
+// Cập nhật kinh nghiệm
+export const updateExperience = async (userId: string, expId: string, data: { hospital?: string; position?: string; startDate?: string; endDate?: string; description?: string }) => {
+  try {
+    const res = await apiClient.put(API_ENDPOINTS.UPDATE_EXPERIENCE(userId, expId), data);
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Cập nhật kinh nghiệm thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi cập nhật kinh nghiệm");
+  }
+};
+
+// Xoá kinh nghiệm
+export const deleteExperience = async (userId: string, expId: string) => {
+  try {
+    const res = await apiClient.delete(API_ENDPOINTS.DELETE_EXPERIENCE(userId, expId));
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Xoá kinh nghiệm thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi xoá kinh nghiệm");
+  }
+};
+
+export const approveExperience = async (userId: string, expId: string) => {
+   try {
+    const res = await apiClient.put(API_ENDPOINTS.APPROVE_EXPERIENCE(userId, expId));
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Duyệt kinh nghiệm thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi duyệt kinh nghiệm");
+  }
+}
+
+export const rejectExperience = async (userId: string, expId: string) => {
+  try {
+    const res = await apiClient.delete(API_ENDPOINTS.REJECT_EXPERIENCE(userId, expId));
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Từ chối kinh nghiệm thất bại");
+    }
+    throw new Error("Đã xảy ra lỗi không mong muốn khi từ chối kinh nghiệm");
+  }
+};
