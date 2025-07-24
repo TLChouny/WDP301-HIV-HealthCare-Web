@@ -15,7 +15,7 @@ import {
 import doingubacsi from "../../assets/doingubacsi.png";
 import doingubacsi2 from "../../assets/doingubacsi2.png";
 import doingubacsi3 from "../../assets/doingubacsi3.png";
-import MeetingModal from "../../components/Home/MeetingModal";
+import { toast } from "react-toastify";
 
 // Hàm tiện ích để kiểm tra nếu element trong viewport
 const useInView = (ref: React.RefObject<HTMLElement>, threshold = 0.1) => {
@@ -26,7 +26,6 @@ const useInView = (ref: React.RefObject<HTMLElement>, threshold = 0.1) => {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          // Ngừng theo dõi sau khi hiển thị để tối ưu hiệu suất
           observer.unobserve(entry.target);
         }
       },
@@ -75,7 +74,6 @@ const AnimatedElement: React.FC<AnimatedElementProps> = ({
   const ref = useRef<HTMLDivElement>(null);
   const isVisible = useInView(ref);
 
-  // Xác định các style animation dựa trên type
   const getAnimationStyles = () => {
     const baseStyles = {
       opacity: isVisible ? 1 : 0,
@@ -83,7 +81,6 @@ const AnimatedElement: React.FC<AnimatedElementProps> = ({
       transitionDelay: `${delay}ms`,
     };
 
-    // Thêm transform dựa trên loại animation
     switch (animationType) {
       case "fade-up":
         return {
@@ -159,7 +156,6 @@ const StaggerContainer: React.FC<StaggerContainerProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const isVisible = useInView(containerRef);
 
-  // Clone các phần tử con và thêm delay tăng dần
   const staggeredChildren = React.Children.map(children, (child, index) => {
     if (React.isValidElement(child)) {
       return React.cloneElement(child, {
@@ -207,7 +203,7 @@ const ParallaxSection: React.FC<ParallaxSectionProps> = ({
     };
 
     window.addEventListener("scroll", handleScroll);
-    handleScroll(); // Gọi ngay lập tức để thiết lập giá trị ban đầu
+    handleScroll();
 
     return () => window.removeEventListener("scroll", handleScroll);
   }, [speed]);
@@ -228,9 +224,8 @@ const ParallaxSection: React.FC<ParallaxSectionProps> = ({
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  // Scroll progress indicator
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [showMeetingModal, setShowMeetingModal] = useState(false);
+  const [showNotification, setShowNotification] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -243,8 +238,24 @@ const Home: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Handle navigation and show notification if /services is not available
+  const handleBookConsultation = () => {
+    toast.info("Vui lòng lựa chọn dịch vụ phù hợp để đặt khám bệnh", {
+      position: "top-right",
+      autoClose: 3000,
+    });
+  };
+
   return (
     <div className="min-h-screen relative">
+      {/* Notification */}
+      {showNotification && (
+        <div className="fixed top-4 right-4 z-50 bg-red-500 text-white py-2 px-4 rounded-lg shadow-lg flex items-center gap-2 animate-fade-in-out">
+          <Info className="h-5 w-5" />
+          <span>Trang dịch vụ hiện không khả dụng. Vui lòng thử lại sau.</span>
+        </div>
+      )}
+
       {/* Scroll Progress Indicator */}
       <div className="fixed top-0 left-0 w-full h-1 bg-gray-200 z-50">
         <div
@@ -255,7 +266,6 @@ const Home: React.FC = () => {
 
       {/* Hero Section */}
       <section className="bg-gradient-to-r from-teal-700 to-teal-900 text-white py-16 relative overflow-hidden">
-        {/* Background Animation Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500 rounded-full opacity-10 blur-3xl animate-pulse"></div>
           <div
@@ -285,7 +295,7 @@ const Home: React.FC = () => {
               <div className="p-6 rounded-lg max-w-md flex flex-col items-center justify-center transform transition-all duration-500">
                 <button
                   className="w-full bg-teal-600 text-white py-3 px-6 rounded-lg font-medium text-lg transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 flex items-center justify-center gap-2"
-                  onClick={() => setShowMeetingModal(true)}
+                  onClick={handleBookConsultation}
                 >
                   <Calendar className="h-5 w-5 mr-2" />
                   Đặt lịch tư vấn trực tuyến
@@ -293,9 +303,7 @@ const Home: React.FC = () => {
               </div>
             </AnimatedElement>
           </AnimatedElement>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-teal-200 rounded-full opacity-20 -z-10 transform translate-x-1/3 -translate-y-1/3"></div>
-          {/* Đặt MeetingModal ở ngoài cùng để modal overlay không bị chèn trong div */}
-          <MeetingModal isOpen={showMeetingModal} onClose={() => setShowMeetingModal(false)} />
+          <div className="absolute top-0 right-0 w-64 h-64 bg-teal-200 rounded-full opacity-20 -z-10 transform translate-x-1/3 -translate-y-1/3"></div>
           <AnimatedElement
             animationType="fade-left"
             delay={300}
@@ -303,14 +311,12 @@ const Home: React.FC = () => {
             className="lg:w-1/2 lg:pl-10"
           >
             <div className="relative group">
-              {/* Lớp nền thứ nhất (khung cyan giống ảnh) */}
               <div className="absolute inset-0 z-0">
                 <div className="w-full h-full bg-cyan-800 rounded-lg clip-path-background transform scale-105 shadow-lg">
                   <div className="absolute w-full h-full bg-[radial-gradient(circle_at_top_left,#00ff00_0%,transparent_50%)] opacity-20"></div>
                   <div className="absolute w-full h-full bg-[length:20px_20px] bg-[radial-gradient(circle,rgba(0,255,0,0.1)_10%,transparent_10%)] opacity-30 animate-pulse"></div>
                 </div>
               </div>
-              {/* Lớp thứ hai (hình ảnh và viền cắt xén gốc) */}
               <div className="relative z-10">
                 <img
                   src={doingubacsi}
@@ -379,9 +385,7 @@ const Home: React.FC = () => {
                 duration={800}
               >
                 <div className="group text-center p-6 border border-gray-100 rounded-lg transition-all duration-500 hover:shadow-xl hover:border-teal-100 hover:-translate-y-2 bg-white relative overflow-hidden flex flex-col items-center h-full min-h-[260px]">
-                  {/* Background hover effect */}
                   <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
                   <div className="relative z-10 flex flex-col flex-1 items-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-50 mb-4 transition-all duration-500 group-hover:bg-teal-100 group-hover:scale-110 group-hover:shadow-md">
                       {service.icon}
@@ -469,7 +473,6 @@ const Home: React.FC = () => {
 
       {/* Experienced Staff Section */}
       <section className="py-16 bg-white relative overflow-hidden">
-        {/* Background decoration */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-teal-50 rounded-full opacity-70 -z-10 transform translate-x-1/3 -translate-y-1/3"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-50 rounded-full opacity-70 -z-10 transform -translate-x-1/3 translate-y-1/3"></div>
 
@@ -551,12 +554,6 @@ const Home: React.FC = () => {
                   </AnimatedElement>
                 ))}
               </div>
-
-              {/* <AnimatedElement animationType="fade-up" delay={800} duration={800}>
-                <button className="bg-teal-600 text-white py-3 px-6 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 relative overflow-hidden group">
-                  <span className="relative z-10">Tìm Hiểu Thêm</span>
-                </button>
-              </AnimatedElement> */}
             </div>
 
             <AnimatedElement
@@ -571,7 +568,7 @@ const Home: React.FC = () => {
                   <img
                     src={doingubacsi3 || "/placeholder.svg"}
                     alt="Bác sĩ chuyên khoa"
-                    className="rounded-lg  transition-all duration-500 "
+                    className="rounded-lg transition-all duration-500"
                   />
                 </div>
               </div>
@@ -582,7 +579,6 @@ const Home: React.FC = () => {
 
       {/* Services Section */}
       <section className="py-16 bg-gradient-to-br from-teal-800 to-teal-900 text-white relative overflow-hidden">
-        {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-teal-600 rounded-full opacity-10 blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-500 rounded-full opacity-10 blur-3xl"></div>
@@ -717,9 +713,7 @@ const Home: React.FC = () => {
                 key={index}
                 className="group flex flex-col items-center p-4 border border-gray-100 rounded-lg transition-all duration-500 hover:shadow-xl hover:border-teal-200 hover:-translate-y-2 bg-white relative overflow-hidden"
               >
-                {/* Background hover effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-teal-50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
                 <div className="relative z-10">
                   <div className="w-16 h-16 rounded-full bg-teal-50 flex items-center justify-center mb-3 transition-all duration-500 group-hover:bg-teal-100 group-hover:shadow-md">
                     {specialist.icon}
@@ -754,9 +748,7 @@ const Home: React.FC = () => {
             duration={800}
             className="mb-12"
           >
-            <p className="text-gray-600 text-center max-w-3xl mx-auto">
-              {/* Đội ngũ y bác sĩ giàu kinh nghiệm, tận tâm và được đào tạo chuyên sâu về HIV/AIDS */}
-            </p>
+            <p className="text-gray-600 text-center max-w-3xl mx-auto"></p>
           </AnimatedElement>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -779,7 +771,6 @@ const Home: React.FC = () => {
                       alt={doctor.name}
                       className="w-full h-64 object-cover object-center transition-transform duration-700 group-hover:scale-110"
                     />
-                    {/* Overlay on hover */}
                     <div className="absolute inset-0 bg-gradient-to-t from-teal-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                   </div>
 
@@ -799,97 +790,6 @@ const Home: React.FC = () => {
           </div>
         </div>
       </ParallaxSection>
-
-      {/* Contact Section */}
-      {/* <section className="py-16 bg-gradient-to-br from-teal-700 to-teal-800 text-white relative overflow-hidden">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col lg:flex-row">
-            <AnimatedElement animationType="fade-right" duration={800} className="lg:w-1/2 mb-10 lg:mb-0 lg:pr-10">
-              <h2 className="text-3xl font-bold mb-6 relative inline-block">
-                <span className="relative z-10">Liên Hệ Với Chúng Tôi</span>
-                <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-600/50 -z-10 transform -rotate-1"></span>
-              </h2>
-              <p className="text-teal-100 mb-8">
-                Hãy liên hệ với chúng tôi nếu bạn có bất kỳ câu hỏi nào về dịch vụ chăm sóc HIV/AIDS. Đội ngũ tư vấn
-                viên của chúng tôi luôn sẵn sàng hỗ trợ bạn.
-              </p>
-              <div className="mb-8 space-y-4">
-                <AnimatedElement animationType="fade-up" delay={200} duration={800}>
-                  <div className="group flex items-start transition-all duration-300 hover:bg-teal-600/30 p-3 rounded-lg">
-                    <div className="p-2 bg-teal-600/30 rounded-full mr-3 mt-1 transition-all duration-300 group-hover:bg-teal-600/50 group-hover:scale-110">
-                      <MapPin className="h-6 w-6 text-teal-200" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Địa Chỉ</h3>
-                      <p className="text-teal-100">123 Đường Nguyễn Văn A, Quận 1, TP. Hồ Chí Minh</p>
-                    </div>
-                  </div>
-                </AnimatedElement>
-
-                <AnimatedElement animationType="fade-up" delay={300} duration={800}>
-                  <div className="group flex items-start transition-all duration-300 hover:bg-teal-600/30 p-3 rounded-lg">
-                    <div className="p-2 bg-teal-600/30 rounded-full mr-3 mt-1 transition-all duration-300 group-hover:bg-teal-600/50 group-hover:scale-110">
-                      <Phone className="h-6 w-6 text-teal-200" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-1">Hotline</h3>
-                      <p className="text-teal-100">1800-1234 (Miễn phí)</p>
-                    </div>
-                  </div>
-                </AnimatedElement>
-              </div>
-            </AnimatedElement>
-
-            <AnimatedElement animationType="fade-left" delay={300} duration={800} className="lg:w-1/2">
-              <div className="bg-white rounded-lg shadow-xl p-8 text-gray-800 relative overflow-hidden">
-                <h3 className="text-2xl font-bold mb-6 text-gray-800 relative inline-block">
-                  <span className="relative z-10">Gửi Tin Nhắn</span>
-                  <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
-                </h3>
-
-                <div className="space-y-4">
-                  <div className="mb-4">
-                    <label htmlFor="name" className="block text-gray-700 text-sm font-medium mb-1">
-                      Họ và tên
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label htmlFor="email" className="block text-gray-700 text-sm font-medium mb-1">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      id="email"
-                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
-                    />
-                  </div>
-                  <div className="mb-6">
-                    <label htmlFor="message" className="block text-gray-700 text-sm font-medium mb-1">
-                      Tin nhắn
-                    </label>
-                    <textarea
-                      id="message"
-                      rows={4}
-                      className="w-full border border-gray-300 rounded-lg py-3 px-4 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-all duration-300"
-                    ></textarea>
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full bg-teal-600 text-white py-3 px-4 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 relative overflow-hidden group"
-                  >
-                    <span className="relative z-10">Gửi</span>
-                  </button>
-                </div>
-              </div>
-            </AnimatedElement>
-          </div>
-        </div>
-      </section> */}
 
       {/* Blog Section */}
       <section className="py-16 bg-white relative overflow-hidden">
@@ -976,37 +876,6 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
-
-      {/* Partners Section */}
-      {/* <section className="py-12 bg-gray-50 relative overflow-hidden">
-        <div className="container mx-auto px-4">
-          <AnimatedElement animationType="fade-up" duration={800} className="mb-8">
-            <h2 className="text-xl font-semibold text-center text-gray-600 relative inline-block mx-auto">
-              <span className="relative z-10">Đối Tác Của Chúng Tôi</span>
-              <span className="absolute bottom-0 left-0 w-full h-1 bg-teal-100 -z-10 transform -rotate-1"></span>
-            </h2>
-          </AnimatedElement>
-
-          <StaggerContainer
-            staggerDelay={150}
-            initialDelay={300}
-            className="flex flex-wrap justify-center items-center gap-8 md:gap-16"
-          >
-            {[1, 2, 3, 4, 5].map((partner) => (
-              <div
-                key={partner}
-                className="group grayscale transition-all duration-500 hover:grayscale-0 hover:scale-110 hover:drop-shadow-md"
-              >
-                <img
-                  src="/placeholder.svg?height=60&width=120"
-                  alt={`Đối tác ${partner}`}
-                  className="h-12 object-contain"
-                />
-              </div>
-            ))}
-          </StaggerContainer>
-        </div>
-      </section> */}
     </div>
   );
 };

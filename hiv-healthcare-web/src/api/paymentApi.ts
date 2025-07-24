@@ -47,5 +47,12 @@ export const updatePaymentStatus = async (
  */
 export const getAllPayments = async (): Promise<Payment[]> => {
   const res = await axios.get(`${BASE_URL}${API_ENDPOINTS.GET_ALL_PAYMENTS}`);
-  return res.data;
+  // Nếu data là mảng thì trả về, nếu là object thì bọc vào mảng
+  if (Array.isArray(res.data.data)) {
+    return res.data.data;
+  }
+  if (res.data.data) {
+    return [res.data.data];
+  }
+  return [];
 };

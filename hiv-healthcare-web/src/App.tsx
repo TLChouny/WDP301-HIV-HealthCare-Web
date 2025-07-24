@@ -35,9 +35,11 @@ import RoleManagement from './pages/Admin/RoleManagement';
 import CategoryManagement from './pages/Admin/CategoryManagement';
 import BlogManagement from './pages/Admin/BlogManagement';
 import DoctorScheduleManagement from './pages/Admin/DoctorScheduleManagement';
+import DoctorManagement from './pages/Admin/DoctorManagement';
 import ServicesManagements from './pages/Admin/ServicesManagements';
 import AdminServiceDetail from './pages/Admin/ServiceDetail';
 import AdminProfile from './pages/Admin/AdminProfile';
+import AdminRevenue from './pages/Admin/AdminRevenue';
 
 // Doctor Pages
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
@@ -59,7 +61,6 @@ import StaffPatientAndRecordManagement from './pages/Staff/PatientAndRecordManag
 import StaffAppointmentManagement from './pages/Staff/AppointmentManagement';
 import StaffServiceManagement from './pages/Staff/ServiceManagement';
 import StaffCounseling from './pages/Staff/Counseling';
-import StaffSettings from './pages/Staff/StaffSettings';
 import StaffProfile from './pages/Staff/StaffProfile';
 
 
@@ -69,8 +70,7 @@ import {
   Profile,
   AppointmentsUser,
   MedicalRecords,
-  Notifications,
-  HIVHistory,
+  Notifications
 } from './pages/User';
 
 import { AuthProvider } from "../src/context/AuthContext";
@@ -192,6 +192,7 @@ const App: React.FC = () => {
                           <Route path="roles" element={<RoleManagement />} />
                           <Route path="services" element={<ServicesManagements />} />
                           <Route path="services/:id" element={<AdminServiceDetail />} />
+                          <Route path="revenue" element={<AdminRevenue />} />
                           <Route path="profile" element={<AdminProfile />} />
                         </Route>
                       </Route>
@@ -220,7 +221,6 @@ const App: React.FC = () => {
                           <Route path="appointments" element={<StaffAppointmentManagement />} />
                           <Route path="services" element={<StaffServiceManagement />} />
                           <Route path="counseling" element={<StaffCounseling />} />
-                          <Route path="settings" element={<StaffSettings />} />
                           <Route path="profile" element={<StaffProfile />} />
                         </Route>
                       </Route>
@@ -234,7 +234,6 @@ const App: React.FC = () => {
                           <Route path="appointments" element={<AppointmentsUser />} />
                           <Route path="medical-records" element={<MedicalRecords />} />
                           <Route path="notifications" element={<Notifications />} />
-                          <Route path="history" element={<HIVHistory />} />
                         </Route>
                       </Route>
 

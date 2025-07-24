@@ -254,12 +254,12 @@ const Layout: React.FC = () => {
 
             {/* Desktop Buttons */}
             <div className="hidden md:flex items-center space-x-4">
-              <Link
+              {/* <Link
                 to="/appointment"
                 className="bg-white text-teal-700 hover:bg-teal-50 px-5 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow transform hover:-translate-y-0.5"
               >
                 Đặt lịch khám
-              </Link>
+              </Link> */}
               <div className="h-6 w-px bg-teal-600"></div>
               {!isAuthPage && user ? (
                 <div className="relative group flex items-center">

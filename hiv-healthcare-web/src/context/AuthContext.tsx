@@ -19,6 +19,18 @@ import {
   getWorkSchedule as apiGetWorkSchedule,
   updateWorkSchedule as apiUpdateWorkSchedule,
   clearWorkSchedule as apiClearWorkSchedule,
+
+  addCertification as apiAddCertification,
+  updateCertification as apiUpdateCertification,
+  deleteCertification as apiDeleteCertification,
+  approveCertification as apiApproveCertification,
+  rejectCertification as apiRejectCertification,
+  
+  addExperience as apiAddExperience,
+  updateExperience as apiUpdateExperience,
+  deleteExperience as apiDeleteExperience,
+  approveExperience as apiApproveExperience,
+  rejectExperience as apiRejectExperience,
 } from "../api/authApi";
 import { useNavigate } from "react-router-dom";
 
@@ -67,6 +79,17 @@ interface AuthContextType {
   getWorkSchedule: (id: string) => Promise<any>;
   updateWorkSchedule: (id: string, data: any) => Promise<void>;
   clearWorkSchedule: (id: string) => Promise<void>;
+  addCertification: (userId: string, data: { title: string; issuer: string; issueDate: string; expiryDate?: string, description?: string, fileUrl?: string, status?: string }) => Promise<void>;
+  updateCertification: (userId: string, certId: string, data: {  title: string; issuer: string; issueDate: string; expiryDate?: string, description?: string, fileUrl?: string, status?: string  }) => Promise<void>;
+  deleteCertification: (userId: string, certId: string) => Promise<void>;
+  approveCertification: (userId: string, certId: string) => Promise<void>;
+  rejectCertification: (userId: string, certId: string) => Promise<void>;
+  addExperience: (userId: string, data: { hospital: string; position: string; startDate: string; endDate?: string; description?: string }) => Promise<void>;
+  updateExperience: (userId: string, expId: string, data: { hospital?: string; position?: string; startDate?: string; endDate?: string; description?: string }) => Promise<void>;
+  deleteExperience: (userId: string, expId: string) => Promise<void>;
+  approveExperience: (userId: string, expId: string) => Promise<void>;
+  rejectExperience: (userId: string, expId: string) => Promise<void>;
+
 }
 
 interface VerifyResetOTPResponse {
@@ -356,6 +379,116 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const addCertification = async (userId: string, data: { title: string; issuer: string; issueDate: string; expiryDate?: string, description?: string, fileUrl?: string, status?: string }) => {
+    try {
+      await apiAddCertification(userId, data);
+      // toast.success("Thêm chứng chỉ thành công!", { position: "top-right", autoClose: 3000 });
+    } catch (error: any) {
+      console.error("Lỗi thêm chứng chỉ:", error.message);
+      // toast.error(error.message || "Thêm chứng chỉ thất bại.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
+    const updateCertification = async (userId: string, certId: string, data: {  title: string; issuer: string; issueDate: string; expiryDate?: string, description?: string, fileUrl?: string, status?: string }) => {
+    try {
+      await apiUpdateCertification(userId, certId, data);
+      // toast.success("Cập nhật chứng chỉ thành công!", { position: "top-right", autoClose: 3000 });
+    } catch (error: any) {
+      console.error("Lỗi cập nhật chứng chỉ:", error.message);
+      // toast.error(error.message || "Cập nhật chứng chỉ thất bại.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
+    const deleteCertification = async (userId: string, certId: string) => {
+    try {
+      await apiDeleteCertification(userId, certId);
+      // toast.success("Xoá chứng chỉ thành công!", { position: "top-right", autoClose: 3000 });
+    } catch (error: any) {
+      console.error("Lỗi xoá chứng chỉ:", error.message);
+      // toast.error(error.message || "Xoá chứng chỉ thất bại.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
+  const approveCertification = async (userId: string, certId: string) => {
+    try {
+      await apiApproveCertification(userId, certId);
+      // toast.success("Duyệt chứng chỉ thành công!", { position: "top-right", autoClose: 3000 });
+    } catch (error: any) {
+      console.error("Lỗi duyệt chứng chỉ:", error.message);
+      // toast.error(error.message || "Duyệt chứng chỉ thất bại.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
+  const rejectCertification = async (userId: string, certId: string) => {
+    try {
+      await apiRejectCertification(userId, certId);
+      // toast.success("Từ chối chứng chỉ thành công!", { position: "top-right", autoClose: 3000 });
+    } catch (error: any) {
+      console.error("Lỗi từ chối chứng chỉ:", error.message);
+      // toast.error(error.message || "Từ chối chứng chỉ thất bại.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
+  const addExperience = async (userId: string, data: { hospital: string; position: string; startDate: string; endDate?: string; description?: string }) => {
+    try {
+      await apiAddExperience(userId, data);
+      // toast.success("Thêm kinh nghiệm thành công!", { position: "top-right", autoClose: 3000 });
+    } catch (error: any) {
+      console.error("Lỗi thêm kinh nghiệm:", error.message);
+      // toast.error(error.message || "Thêm kinh nghiệm thất bại.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
+  const updateExperience = async (userId: string, expId: string, data: { hospital?: string; position?: string; startDate?: string; endDate?: string; description?: string }) => {
+    try {
+      await apiUpdateExperience(userId, expId, data);
+      // toast.success("Cập nhật kinh nghiệm thành công!", { position: "top-right", autoClose: 3000 });
+    } catch (error: any) {
+      console.error("Lỗi cập nhật kinh nghiệm:", error.message);
+      // toast.error(error.message || "Cập nhật kinh nghiệm thất bại.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
+  const deleteExperience = async (userId: string, expId: string) => {
+    try {
+      await apiDeleteExperience(userId, expId);
+      // toast.success("Xoá kinh nghiệm thành công!", { position: "top-right", autoClose: 3000 });
+    } catch (error: any) {
+      console.error("Lỗi xoá kinh nghiệm:", error.message);
+      // toast.error(error.message || "Xoá kinh nghiệm thất bại.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
+  const approveExperience = async (userId: string, expId: string) => {
+    try {
+      await apiApproveExperience(userId, expId);
+      // toast.success("Duyệt kinh nghiệm thành công!", { position: "top-right", autoClose: 3000 });
+    } catch (error: any) {
+      console.error("Lỗi duyệt kinh nghiệm:", error.message);
+      // toast.error(error.message || "Duyệt kinh nghiệm thất bại.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
+  const rejectExperience = async (userId: string, expId: string) => {
+    try {
+      await apiRejectExperience(userId, expId);
+      // toast.success("Từ chối kinh nghiệm thành công!", { position: "top-right", autoClose: 3000 });
+    } catch (error: any) {
+      console.error("Lỗi từ chối kinh nghiệmk:", error.message);
+      // toast.error(error.message || "Từ chối kinh nghiệm thất bại.", { position: "top-right", autoClose: 3000 });
+      throw error;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -380,6 +513,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         getWorkSchedule,
         updateWorkSchedule,
         clearWorkSchedule,
+        addCertification,
+        updateCertification,
+        deleteCertification,
+        approveCertification,
+        rejectCertification,
+        addExperience,
+        updateExperience,
+        deleteExperience,
+        approveExperience,
+        rejectExperience,
       }}
       aria-live="polite"
     >

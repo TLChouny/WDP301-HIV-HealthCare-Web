@@ -105,7 +105,7 @@ const Contact: React.FC = () => {
 
       {/* Contact Form Section */}
       <div className="py-16 bg-white">
-        <div className="container mx-auto px-4">
+        {/* <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -232,7 +232,7 @@ const Contact: React.FC = () => {
               )}
             </form>
           </motion.div>
-        </div>
+        </div> */}
       </div>
 
       {/* Working Hours Section */}

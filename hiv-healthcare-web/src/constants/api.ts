@@ -1,7 +1,7 @@
 // api.ts
 
 // export const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
-export const BASE_URL = "http://localhost:5000/api";
+export const BASE_URL = "http://localhost:5050/api";
 
 export const API_ENDPOINTS = {
   // ===== USER =====
@@ -20,6 +20,18 @@ export const API_ENDPOINTS = {
   GET_WORK_SCHEDULE: (id: string) => `/users/${id}/work-schedule`,
   UPDATE_WORK_SCHEDULE: (id: string) => `/users/${id}/work-schedule`,
   CLEAR_WORK_SCHEDULE: (id: string) => `/users/${id}/work-schedule`,
+  // ===== CERTIFICATION =====
+  ADD_CERTIFICATION: (userId: string) => `/${userId}/certifications`,
+  UPDATE_CERTIFICATION: (userId: string, certId: string) => `/${userId}/certifications/${certId}`,
+  DELETE_CERTIFICATION: (userId: string, certId: string) => `/${userId}/certifications/${certId}`,
+  APPROVE_CERTIFICATION: (userId: string, certId: string) => `/${userId}/certifications/${certId}/approve`,
+  REJECT_CERTIFICATION: (userId: string, certId: string) => `/${userId}/certifications/${certId}/reject`,
+  // ===== EXPERIENCE =====
+  ADD_EXPERIENCE: (userId: string) => `/${userId}/experiences`,
+  UPDATE_EXPERIENCE: (userId: string, expId: string) => `/${userId}/experiences/${expId}`,
+  DELETE_EXPERIENCE: (userId: string, expId: string) => `/${userId}/experiences/${expId}`,
+  APPROVE_EXPERIENCE: (userId: string, expId: string) => `/${userId}/experiences/${expId}/approve`,
+  REJECT_EXPERIENCE: (userId: string, expId: string) => `/${userId}/experiences/${expId}/reject`,
 
   // ===== CATEGORY =====
   CATEGORIES: "/categories",
