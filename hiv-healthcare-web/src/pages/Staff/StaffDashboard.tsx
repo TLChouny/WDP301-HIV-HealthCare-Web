@@ -12,111 +12,79 @@ import {
 } from 'lucide-react';
 import { useBooking } from '../../context/BookingContext';
 import { useServiceContext } from '../../context/ServiceContext';
+import { useAuth } from '../../context/AuthContext';
+import { getAllPayments } from '../../api/paymentApi';
+import { getNotificationsByUserId } from '../../api/notificationApi';
 
 const StaffDashboard: React.FC = () => {
-  const todayAppointments = [
-    {
-      id: 1,
-      patientName: 'Nguyễn Văn A',
-      time: '09:00',
-      type: 'Khám định kỳ',
-      status: 'confirmed',
-      doctor: 'BS. Trần Thị B'
-    },
-    {
-      id: 2,
-      patientName: 'Trần Thị C',
-      time: '10:30',
-      type: 'Tư vấn',
-      status: 'pending',
-      doctor: 'BS. Lê Văn D'
-    },
-    {
-      id: 3,
-      patientName: 'Lê Văn E',
-      time: '14:00',
-      type: 'Khám mới',
-      status: 'cancelled',
-      doctor: 'BS. Phạm Thị F'
-    }
-  ];
-
-  const recentActivities = [
-    {
-      id: 1,
-      type: 'appointment',
-      title: 'Lịch hẹn mới',
-      description: 'Bệnh nhân Nguyễn Văn A đã đặt lịch hẹn',
-      time: '10 phút trước',
-      icon: <Calendar className="w-5 h-5 text-blue-600" />
-    },
-    {
-      id: 2,
-      type: 'medical_record',
-      title: 'Cập nhật hồ sơ',
-      description: 'Hồ sơ bệnh án của bệnh nhân Trần Thị B đã được cập nhật',
-      time: '30 phút trước',
-      icon: <FileText className="w-5 h-5 text-purple-600" />
-    },
-    {
-      id: 3,
-      type: 'medication',
-      title: 'Cập nhật thuốc',
-      description: 'Danh sách thuốc đã được cập nhật',
-      time: '1 giờ trước',
-      icon: <ClipboardList className="w-5 h-5 text-green-600" />
-    }
-  ];
-
-  const getAppointmentStatus = (status: string) => {
-    switch (status) {
-      case 'confirmed':
-        return {
-          icon: <CheckCircle2 className="w-4 h-4 text-green-600" />,
-          text: 'Đã xác nhận',
-          color: 'bg-green-100 text-green-800'
-        };
-      case 'pending':
-        return {
-          icon: <AlertCircle className="w-4 h-4 text-yellow-600" />,
-          text: 'Chờ xác nhận',
-          color: 'bg-yellow-100 text-yellow-800'
-        };
-      case 'cancelled':
-        return {
-          icon: <XCircle className="w-4 h-4 text-red-600" />,
-          text: 'Đã hủy',
-          color: 'bg-red-100 text-red-800'
-        };
-      default:
-        return {
-          icon: null,
-          text: status,
-          color: 'bg-gray-100 text-gray-800'
-        };
-    }
-  };
-
+  // Contexts
   const { getAll } = useBooking();
   const { services } = useServiceContext();
+  const { getAllUsers, user } = useAuth();
+
+  // State
   const [bookings, setBookings] = useState<any[]>([]);
   const [serviceStats, setServiceStats] = useState<{serviceName: string, count: number}[]>([]);
+  const [patients, setPatients] = useState<any[]>([]);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch all data
   useEffect(() => {
-    // Lấy bookings từ API
-    const fetchBookings = async () => {
+    const fetchData = async () => {
+      setLoading(true);
       try {
-        const data = await getAll();
-        setBookings(data);
+        // Bookings
+        let bookingsData: any[] = [];
+        try {
+          bookingsData = await getAll();
+        } catch (e) {
+          bookingsData = [];
+        }
+        setBookings(Array.isArray(bookingsData) ? bookingsData : []);
+        // Users (patients)
+        let usersData: any[] = [];
+        try {
+          usersData = await getAllUsers();
+        } catch (e) {
+          usersData = [];
+        }
+        setPatients(Array.isArray(usersData) ? usersData.filter((u: any) => u && u.role === 'user') : []);
+        // Payments
+        let paymentsData: any[] = [];
+        try {
+          paymentsData = await getAllPayments();
+        } catch (e) {
+          paymentsData = [];
+        }
+        setPayments(Array.isArray(paymentsData) ? paymentsData : []);
+        // Notifications (recent activities)
+        if (user && user._id) {
+          try {
+            const notiRes = await getNotificationsByUserId(user._id);
+            setNotifications(Array.isArray(notiRes?.data) ? notiRes.data : []);
+          } catch (e) {
+            setNotifications([]);
+          }
+        } else {
+          setNotifications([]);
+        }
       } catch (err) {
         setBookings([]);
+        setPatients([]);
+        setPayments([]);
+        setNotifications([]);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchBookings();
-  }, [getAll]);
+    fetchData();
+    // eslint-disable-next-line
+  }, []);
 
+  // Service stats (booking theo dịch vụ)
   useEffect(() => {
-    // Đếm số lượng user đã booking từng dịch vụ
     const stats: { [serviceId: string]: Set<string> } = {};
     bookings.forEach(b => {
       if (b.serviceId && b.userId && b.userId._id) {
@@ -154,36 +122,81 @@ const StaffDashboard: React.FC = () => {
   );
   const todayUserCount = todayUsers.length;
 
+  // Tổng doanh thu
+  const totalRevenue = payments
+    .filter((p: any) => p.status === 'success')
+    .reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+
+  // Thống kê
   const stats = [
     {
       name: 'Tổng số bệnh nhân',
-      value: '150',
+      value: patients.length,
       icon: <Users className="w-6 h-6 text-blue-600" />,
-      change: '+12%',
+      change: '',
       changeType: 'increase'
     },
     {
       name: 'Lịch hẹn hôm nay',
       value: todayUserCount,
       icon: <Calendar className="w-6 h-6 text-green-600" />,
-      change: '+5%',
+      change: '',
       changeType: 'increase'
     },
     {
-      name: 'Hồ sơ bệnh án mới',
-      value: '8',
+      name: 'Tổng doanh thu',
+      value: totalRevenue.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }),
       icon: <FileText className="w-6 h-6 text-purple-600" />,
-      change: '-2%',
-      changeType: 'decrease'
+      change: '',
+      changeType: 'increase'
     },
     {
       name: 'Tư vấn đang chờ',
-      value: '12',
+      value: bookings.filter(b => b.status === 'pending').length,
       icon: <MessageSquare className="w-6 h-6 text-yellow-600" />,
-      change: '+3%',
+      change: '',
       changeType: 'increase'
     }
   ];
+
+  // Hoạt động gần đây (notifications)
+  const recentActivities = Array.isArray(notifications) ? notifications.slice(0, 5).map((noti: any) => ({
+    id: noti?._id || Math.random(),
+    type: 'notification',
+    title: noti?.notiName || 'Hoạt động',
+    description: noti?.notiDescription || '',
+    time: noti?.createdAt ? new Date(noti.createdAt).toLocaleString('vi-VN') : '',
+    icon: <Calendar className="w-5 h-5 text-blue-600" />
+  })) : [];
+
+  const getAppointmentStatus = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return {
+          icon: <CheckCircle2 className="w-4 h-4 text-green-600" />,
+          text: 'Đã xác nhận',
+          color: 'bg-green-100 text-green-800'
+        };
+      case 'pending':
+        return {
+          icon: <AlertCircle className="w-4 h-4 text-yellow-600" />,
+          text: 'Chờ xác nhận',
+          color: 'bg-yellow-100 text-yellow-800'
+        };
+      case 'cancelled':
+        return {
+          icon: <XCircle className="w-4 h-4 text-red-600" />,
+          text: 'Đã hủy',
+          color: 'bg-red-100 text-red-800'
+        };
+      default:
+        return {
+          icon: null,
+          text: status,
+          color: 'bg-gray-100 text-gray-800'
+        };
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -194,6 +207,12 @@ const StaffDashboard: React.FC = () => {
           <p className="mt-2 text-sm text-gray-600">
             Chào mừng trở lại! Đây là tổng quan về hoạt động của bạn
           </p>
+          {loading && (
+            <div className="text-blue-600 mt-2">Đang tải dữ liệu...</div>
+          )}
+          {!loading && (bookings.length === 0 && patients.length === 0 && payments.length === 0) && (
+            <div className="text-red-600 mt-2">Không thể tải dữ liệu. Vui lòng thử lại hoặc kiểm tra kết nối.</div>
+          )}
         </div>
 
         {/* Stats Grid */}
