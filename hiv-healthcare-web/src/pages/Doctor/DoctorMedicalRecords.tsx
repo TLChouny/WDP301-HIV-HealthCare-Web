@@ -25,6 +25,23 @@ const formatFrequency = (freq: string | undefined): string => {
   return isNaN(num) ? freq : `${num} lần/ngày`;
 };
 
+// Format medication times based on medicationSlot
+const formatMedicationTimes = (medicationTime: string | undefined, medicationSlot: string | undefined): string => {
+  if (!medicationTime || !medicationSlot) return "Chưa có";
+  const times = medicationTime.split(';').filter(t => t);
+  const slots = {
+    "Sáng": ["Sáng"],
+    "Trưa": ["Trưa"],
+    "Tối": ["Tối"],
+    "Sáng và Trưa": ["Sáng", "Trưa"],
+    "Trưa và Tối": ["Trưa", "Tối"],
+    "Sáng và Tối": ["Sáng", "Tối"],
+    "Sáng, Trưa và Tối": ["Sáng", "Trưa", "Tối"],
+  }[medicationSlot] || [];
+  if (times.length !== slots.length) return medicationTime; // Fallback if lengths don't match
+  return times.map((time, i) => `${slots[i]}: ${time}`).join(', ');
+};
+
 const DoctorMedicalRecords: React.FC = () => {
   const { user } = useAuth();
   const { getByDoctorName, loading } = useResult();
@@ -189,7 +206,9 @@ const DoctorMedicalRecords: React.FC = () => {
                   {record.medicationTime && (
                     <div className="mt-4">
                       <h4 className="font-medium text-gray-900 mb-1">Thời gian uống thuốc</h4>
-                      <p className="text-gray-700 bg-white p-2 rounded border">{record.medicationTime}</p>
+                      <p className="text-gray-700 bg-white p-2 rounded border">
+                        {formatMedicationTimes(record.medicationTime, record.medicationSlot)}
+                      </p>
                     </div>
                   )}
 

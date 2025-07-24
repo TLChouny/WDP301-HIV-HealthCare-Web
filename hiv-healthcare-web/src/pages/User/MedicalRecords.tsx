@@ -1,5 +1,3 @@
-// cspell:ignore arvregimen
-
 import type React from "react";
 import { useEffect, useState } from "react";
 import {
@@ -29,9 +27,32 @@ import {
 import { useResult } from "../../context/ResultContext";
 import { useAuth } from "../../context/AuthContext";
 import { User } from "../../types/user";
-import { Booking } from "../../types/booking";
 import { Result } from "../../types/result";
 import { ARVRegimen } from "../../types/arvRegimen";
+
+// Format frequency value (e.g., "2" → "2 lần/ngày")
+const formatFrequency = (freq: string | undefined): string => {
+  if (!freq || freq.trim() === "") return "Chưa có";
+  const num = parseInt(freq, 10);
+  return isNaN(num) ? freq : `${num} lần/ngày`;
+};
+
+// Format medication times based on medicationSlot
+const formatMedicationTimes = (medicationTime: string | undefined, medicationSlot: string | undefined): string => {
+  if (!medicationTime || !medicationSlot) return "Chưa có";
+  const times = medicationTime.split(';').filter(t => t);
+  const slots = {
+    "Sáng": ["Sáng"],
+    "Trưa": ["Trưa"],
+    "Tối": ["Tối"],
+    "Sáng và Trưa": ["Sáng", "Trưa"],
+    "Trưa và Tối": ["Trưa", "Tối"],
+    "Sáng và Tối": ["Sáng", "Tối"],
+    "Sáng, Trưa và Tối": ["Sáng", "Trưa", "Tối"],
+  }[medicationSlot] || [];
+  if (times.length !== slots.length) return medicationTime; // Fallback if lengths don't match
+  return times.map((time, i) => `${slots[i]}: ${time}`).join(', ');
+};
 
 const MedicalRecords: React.FC = () => {
   const { getByUserId, loading } = useResult();
@@ -42,13 +63,6 @@ const MedicalRecords: React.FC = () => {
   const [selectedRecord, setSelectedRecord] = useState<Result | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 3;
-
-  // Format frequency value (e.g., "2" → "2 lần/ngày")
-  const formatFrequency = (freq: string | undefined): string => {
-    if (!freq || freq.trim() === "") return "Chưa có";
-    const num = parseInt(freq, 10);
-    return isNaN(num) ? freq : `${num} lần/ngày`;
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -574,7 +588,7 @@ const MedicalRecords: React.FC = () => {
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Thời gian uống thuốc</label>
                           <p className="text-gray-900 bg-white p-2 rounded border">
-                            {selectedRecord.medicationTime || "Chưa có"}
+                            {formatMedicationTimes(selectedRecord.medicationTime, selectedRecord.medicationSlot)}
                           </p>
                         </div>
                         <div>

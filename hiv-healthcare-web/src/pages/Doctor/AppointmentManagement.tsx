@@ -1,5 +1,3 @@
-// cspell:ignore arvregimen
-
 import React, { useState, useEffect } from 'react';
 import {
   User,
@@ -53,6 +51,7 @@ const AppointmentManagement: React.FC = () => {
   const [arvRegimen, setArvRegimen] = useState('');
   const [hivLoad, setHivLoad] = useState('');
   const [medicationTime, setMedicationTime] = useState('');
+  const [medicationTimes, setMedicationTimes] = useState<string[]>([]);
   const [symptoms, setSymptoms] = useState('');
   const [weight, setWeight] = useState('');
   const [height, setHeight] = useState('');
@@ -82,6 +81,26 @@ const AppointmentManagement: React.FC = () => {
   const hasResult = selectedBooking && results.some(r => r.bookingId && r.bookingId._id === selectedBooking._id);
 
   const bookingDates = bookings.map(b => new Date(b.bookingDate));
+
+  // Map medication slots to time input labels
+  const slotToTimeCount: { [key: string]: string[] } = {
+    "Sáng": ["Sáng"],
+    "Trưa": ["Trưa"],
+    "Tối": ["Tối"],
+    "Sáng và Trưa": ["Sáng", "Trưa"],
+    "Trưa và Tối": ["Trưa", "Tối"],
+    "Sáng và Tối": ["Sáng", "Tối"],
+    "Sáng, Trưa và Tối": ["Sáng", "Trưa", "Tối"],
+  };
+
+  // Update medicationTimes when medicationSlot changes
+  useEffect(() => {
+    const timeSlots = slotToTimeCount[medicationSlot] || [];
+    setMedicationTimes(prev => {
+      const newTimes = timeSlots.map((_, i) => prev[i] || "");
+      return newTimes;
+    });
+  }, [medicationSlot]);
 
   // Calculate BMI when weight or height changes
   useEffect(() => {
@@ -201,6 +220,7 @@ const AppointmentManagement: React.FC = () => {
     setArvRegimen('');
     setHivLoad('');
     setMedicationTime('');
+    setMedicationTimes([]);
     setReExaminationDate('');
     setSelectedStatusForSubmit(null);
     setSymptoms('');
@@ -402,8 +422,12 @@ const AppointmentManagement: React.FC = () => {
                   toast.error('Vui lòng chọn phác đồ ARV!');
                   return;
                 }
-                if (!medicationTime) {
-                  toast.error('Vui lòng nhập thời gian uống thuốc!');
+                if (!medicationSlot) {
+                  toast.error('Vui lòng chọn khe thời gian uống thuốc!');
+                  return;
+                }
+                if (medicationTimes.length !== slotToTimeCount[medicationSlot]?.length || medicationTimes.some(t => !t)) {
+                  toast.error('Vui lòng nhập đầy đủ thời gian uống thuốc cho các khe đã chọn!');
                   return;
                 }
                 if (!reExaminationDate) {
@@ -465,7 +489,7 @@ const AppointmentManagement: React.FC = () => {
                     bookingId,
                     arvregimenId,
                     reExaminationDate,
-                    medicationTime,
+                    medicationTime: medicationTimes.join(';'),
                     medicationSlot: medicationSlot || undefined,
                     symptoms: symptoms || undefined,
                     weight: weight ? parseFloat(weight) : undefined,
@@ -739,28 +763,44 @@ const AppointmentManagement: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-1">Thời gian uống thuốc <span className="text-red-500">*</span></label>
-                      <input
-                        type="time"
-                        className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        value={medicationTime}
-                        onChange={e => setMedicationTime(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Khe thời gian uống thuốc</label>
+                      <label className="block text-sm font-medium mb-1">Khe thời gian uống thuốc <span className="text-red-500">*</span></label>
                       <select
                         className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                         value={medicationSlot}
                         onChange={e => setMedicationSlot(e.target.value)}
+                        required
                       >
                         <option value="">-- Chọn khe thời gian --</option>
                         <option value="Sáng">Sáng</option>
+                        <option value="Trưa">Trưa</option>
                         <option value="Tối">Tối</option>
+                        <option value="Sáng và Trưa">Sáng và Trưa</option>
+                        <option value="Trưa và Tối">Trưa và Tối</option>
                         <option value="Sáng và Tối">Sáng và Tối</option>
+                        <option value="Sáng, Trưa và Tối">Sáng, Trưa và Tối</option>
                       </select>
                     </div>
+                    {medicationSlot && slotToTimeCount[medicationSlot]?.length > 0 && (
+                      <div>
+                        <label className="block text-sm font-medium mb-1">Thời gian uống thuốc <span className="text-red-500">*</span></label>
+                        {slotToTimeCount[medicationSlot].map((slot, index) => (
+                          <div key={index} className="mb-2">
+                            <label className="block text-sm font-medium mb-1">Thời gian {slot}</label>
+                            <input
+                              type="time"
+                              className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              value={medicationTimes[index] || ''}
+                              onChange={e => {
+                                const updatedTimes = [...medicationTimes];
+                                updatedTimes[index] = e.target.value;
+                                setMedicationTimes(updatedTimes);
+                              }}
+                              required
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-medium mb-1">Ngày tái khám <span className="text-red-500">*</span></label>
                       <input
