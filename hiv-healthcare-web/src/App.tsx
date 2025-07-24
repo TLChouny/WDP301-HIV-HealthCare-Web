@@ -60,7 +60,6 @@ import StaffPatientAndRecordManagement from './pages/Staff/PatientAndRecordManag
 import StaffAppointmentManagement from './pages/Staff/AppointmentManagement';
 import StaffServiceManagement from './pages/Staff/ServiceManagement';
 import StaffCounseling from './pages/Staff/Counseling';
-import StaffSettings from './pages/Staff/StaffSettings';
 import StaffProfile from './pages/Staff/StaffProfile';
 
 
@@ -220,7 +219,6 @@ const App: React.FC = () => {
                           <Route path="appointments" element={<StaffAppointmentManagement />} />
                           <Route path="services" element={<StaffServiceManagement />} />
                           <Route path="counseling" element={<StaffCounseling />} />
-                          <Route path="settings" element={<StaffSettings />} />
                           <Route path="profile" element={<StaffProfile />} />
                         </Route>
                       </Route>
