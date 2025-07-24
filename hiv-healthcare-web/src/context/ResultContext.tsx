@@ -10,13 +10,29 @@ import {
 import type { Result } from "../types/result";
 
 // Định nghĩa kiểu dữ liệu cho payload tạo mới kết quả
+// ResultContext.tsx
 export interface NewResultPayload {
   resultName: string;
   resultDescription?: string;
-  medicationTime?: string; // Thêm trường medicationTime
   bookingId: string;
   arvregimenId: string;
-  reExaminationDate: string;
+  reExaminationDate: string; // Already updated to string
+  medicationTime?: string;
+  medicationSlot?: string; // Added
+  symptoms?: string;
+  weight?: number;
+  height?: number;
+  bmi?: number;
+  bloodPressure?: string;
+  pulse?: number;
+  temperature?: number;
+  sampleType?: string;
+  testMethod?: string;
+  resultType?: 'positive-negative' | 'quantitative' | 'other';
+  testResult?: string;
+  testValue?: number;
+  unit?: string;
+  referenceRange?: string;
 }
 
 interface ResultContextProps {

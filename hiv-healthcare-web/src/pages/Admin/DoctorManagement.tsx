@@ -331,6 +331,7 @@ const DoctorManagement: React.FC = () => {
                         background: "linear-gradient(108deg, teal 100%, blue 100%)",
                         px: 4,
                         py: 3,
+                        height: 120
                       }}
                     >
                       <Box sx={{ display: "flex", alignItems: "center", gap: 3 }}>
@@ -349,7 +350,7 @@ const DoctorManagement: React.FC = () => {
                             <Avatar
                               src={doctor.avatar}
                               alt={doctor.userName}
-                              sx={{ width: 60, height: 60, borderRadius: 2 }}
+                              sx={{ width: 60, height: 60, borderRadius: 2, justifyContent: "center", alignItems: "center" }}
                             />
                           ) : (
                             <MedicalServicesIcon sx={{ color: "white", fontSize: 30 }} />

@@ -64,7 +64,9 @@ export const getServiceById = async (id: string): Promise<Service> => {
 export const getServicesByCategoryId = async (categoryId: string): Promise<Service[]> => {
   try {
     const res = await apiClient.get(API_ENDPOINTS.SERVICES_BY_CATEGORY(categoryId));
-    return res.data.services || res.data;
+    console.log("API getServicesByCategoryId response:", res.data);
+    const services = Array.isArray(res.data) ? res.data : res.data.services;
+    return services;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || "Failed to fetch services by category");

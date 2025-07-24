@@ -19,6 +19,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../context/AuthContext";
 import { useCategoryContext } from "../context/CategoryContext";
 import { useNotification } from "../context/NotificationContext";
+import { getBookingStatusColor, translateBookingStatus } from "../utils/status";
 
 // Cấu hình toast chung
 const TOAST_CONFIG = {
@@ -323,13 +324,11 @@ const Layout: React.FC = () => {
                                   </p>
                                 </div>
                                 <span
-                                  className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                    notification.bookingId.status === "checked-in"
-                                      ? "bg-green-100 text-green-700"
-                                      : "bg-yellow-100 text-yellow-700"
-                                  }`}
+                                  className={`px-2 py-1 text-xs font-medium rounded-full bg-gradient-to-r text-white ${getBookingStatusColor(
+                                    notification.bookingId.status
+                                  )}`}
                                 >
-                                  {notification.bookingId.status || "Chờ xác nhận"}
+                                  {translateBookingStatus(notification.bookingId.status) || "Chờ xác nhận"}
                                 </span>
                               </div>
                               <div className="mt-2 flex justify-end">
@@ -841,7 +840,13 @@ const Layout: React.FC = () => {
               </div>
               <div className="flex items-center">
                 <span className="w-40 font-semibold text-gray-700">Trạng thái booking:</span>
-                <span className={`font-semibold px-2 py-1 rounded-lg ${selectedNotification.bookingId?.status === 'checked-in' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{selectedNotification.bookingId?.status}</span>
+                <span
+                  className={`font-semibold px-2 py-1 rounded-lg bg-gradient-to-r text-white ${getBookingStatusColor(
+                    selectedNotification.bookingId?.status
+                  )}`}
+                >
+                  {translateBookingStatus(selectedNotification.bookingId?.status) || "Chờ xác nhận"}
+                </span>
               </div>
               <div className="flex items-center">
                 <span className="w-40 font-semibold text-gray-700">Dịch vụ:</span>

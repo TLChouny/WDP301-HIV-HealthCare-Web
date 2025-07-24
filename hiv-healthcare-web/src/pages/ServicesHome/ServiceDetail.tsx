@@ -51,7 +51,7 @@ const ServiceDetail: React.FC = () => {
     );
   }
 
-  const categoryName = typeof service.categoryId === "string" ? service.categoryId : service.categoryId?.categoryName;
+  const categoryName = service.categoryId?.categoryName;
   const formattedPrice = typeof service.price === "number"
     ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(service.price)
     : service.price;

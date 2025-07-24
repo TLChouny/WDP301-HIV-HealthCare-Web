@@ -21,6 +21,11 @@ const ServiceByCategoryId: React.FC = () => {
     getServicesByCategoryId(categoryId)
       .then((data) => {
         setServices(data || []);
+        if (data && data.length > 0) {
+          setCategoryName(data[0].categoryId?.categoryName || "");
+        } else {
+          setCategoryName("");
+        }
       })
       .catch((error) => {
         console.error("Failed to fetch services:", error);
