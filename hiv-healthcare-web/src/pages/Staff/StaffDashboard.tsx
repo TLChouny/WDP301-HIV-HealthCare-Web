@@ -242,7 +242,7 @@ const StaffDashboard: React.FC = () => {
 
         {/* Thống kê booking dịch vụ */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Thống kê số lượng Bệnh nhân đã đặt lịch từng gói dịch vụ</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Thống kê số lượng bệnh nhân đã đặt lịch từng gói dịch vụ</h2>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
