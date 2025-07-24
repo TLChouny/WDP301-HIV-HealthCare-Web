@@ -39,6 +39,7 @@ import DoctorManagement from './pages/Admin/DoctorManagement';
 import ServicesManagements from './pages/Admin/ServicesManagements';
 import AdminServiceDetail from './pages/Admin/ServiceDetail';
 import AdminProfile from './pages/Admin/AdminProfile';
+import AdminRevenue from './pages/Admin/AdminRevenue';
 
 // Doctor Pages
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
@@ -191,6 +192,7 @@ const App: React.FC = () => {
                           <Route path="roles" element={<RoleManagement />} />
                           <Route path="services" element={<ServicesManagements />} />
                           <Route path="services/:id" element={<AdminServiceDetail />} />
+                          <Route path="revenue" element={<AdminRevenue />} />
                           <Route path="profile" element={<AdminProfile />} />
                         </Route>
                       </Route>
