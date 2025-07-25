@@ -236,6 +236,7 @@ const App: React.FC = () => {
                           <Route path="notifications" element={<Notifications />} />
                         </Route>
                       </Route>
+                          <Route path="/payment-cancel" element={<Navigate to="/user/appointments" replace />} />
 
                       {/* Redirects */}
                       <Route path="/login" element={<Navigate to="/auth/login" replace />} />
