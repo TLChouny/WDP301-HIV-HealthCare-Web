@@ -59,6 +59,7 @@ const DoctorProfile: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
+    avatar: "",
     userName: "",
     phone_number: "",
     gender: "",
@@ -115,6 +116,12 @@ const DoctorProfile: React.FC = () => {
   const handleEditExperienceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setEditExperience((prev) => (prev ? { ...prev, [name]: value } : null));
+  };
+
+  // Accept select changes for gender
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   // Add Certification
@@ -271,6 +278,7 @@ const DoctorProfile: React.FC = () => {
         console.log("User data:", detailedUser);
         setUserData(detailedUser);
         setFormData({
+          avatar: detailedUser.avatar || "",
           userName: detailedUser.userName || "",
           phone_number: detailedUser.phone_number || "",
           gender: detailedUser.gender || "",
@@ -292,11 +300,6 @@ const DoctorProfile: React.FC = () => {
     };
     fetchUserData();
   }, [user?._id, getUserById, logout, loading]);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
 
   const handleDateChange = (date: Date | null) => {
     setFormData((prev) => ({
@@ -328,6 +331,7 @@ const DoctorProfile: React.FC = () => {
     }
     try {
       const updatePayload = {
+        avatar: formData.avatar || undefined,
         userName: formData.userName.trim(),
         phone_number: formData.phone_number || undefined,
         gender: (formData.gender as Gender) || undefined,
@@ -364,6 +368,7 @@ const DoctorProfile: React.FC = () => {
     setError(null);
     if (!userData) return;
     setFormData({
+      avatar: userData.avatar || "",
       userName: userData.userName || "",
       phone_number: userData.phone_number || "",
       gender: userData.gender || "",
@@ -399,7 +404,15 @@ const DoctorProfile: React.FC = () => {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-teal-600 to-blue-600 px-8 py-6 flex items-center gap-6">
             <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center">
-              <UserIcon className="h-10 w-10 text-white" />
+              {userData.avatar ? (
+                <img
+                  src={userData.avatar}
+                  alt={userData.userName}
+                  className="w-20 h-20 rounded-2xl object-cover border-2 border-white shadow"
+                />
+              ) : (
+                <UserIcon className="h-10 w-10 text-white" />
+              )}
             </div>
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-white mb-1">{userData.userName || "Chưa cập nhật"}</h2>
@@ -435,6 +448,32 @@ const DoctorProfile: React.FC = () => {
             </div>
           </div>
           <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Avatar */}
+            <div className="space-y-2 lg:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700">Ảnh đại diện (URL)</label>
+              <div className="relative">
+                <input
+                  type="url"
+                  name="avatar"
+                  value={formData.avatar || ''}
+                  onChange={handleInputChange}
+                  readOnly={!isEditing}
+                  className={`w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg ${isEditing ? "border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100" : "bg-gray-50 border-gray-200 text-gray-600"}`}
+                  placeholder="Nhập url ảnh đại diện"
+                />
+                <UserIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              </div>
+              {formData.avatar && (
+                <div className="mt-2 flex items-center gap-3">
+                  <img
+                    src={formData.avatar}
+                    alt="Avatar preview"
+                    className="w-32 h-32 rounded-2xl object-cover border-2 border-teal-500 shadow"
+                  />
+                  <span className="text-gray-500 text-sm">Xem trước ảnh đại diện</span>
+                </div>
+              )}
+            </div>
             {/* Full Name */}
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-700">
@@ -458,15 +497,27 @@ const DoctorProfile: React.FC = () => {
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-700">Giới tính</label>
               <div className="relative">
-                <input
-                  type="text"
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleInputChange}
-                  readOnly={!isEditing}
-                  className={`w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg ${isEditing ? "border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100" : "bg-gray-50 border-gray-200 text-gray-600"}`}
-                  placeholder="male, female, hoặc other"
-                />
+                {isEditing ? (
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    className="w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+                  >
+                    <option value="">Chọn giới tính</option>
+                    <option value="male">Nam</option>
+                    <option value="female">Nữ</option>
+                    <option value="other">Khác</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    name="gender"
+                    value={formData.gender === 'male' ? 'Nam' : formData.gender === 'female' ? 'Nữ' : formData.gender === 'other' ? 'Khác' : ''}
+                    readOnly
+                    className="w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg bg-gray-50 border-gray-200 text-gray-600"
+                  />
+                )}
                 <UserIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               </div>
             </div>
@@ -648,7 +699,7 @@ const DoctorProfile: React.FC = () => {
                           value={newCertification.fileUrl}
                           onChange={handleNewCertificationChange}
                           className="w-full rounded-xl border-2 border-gray-200 py-3 px-4 pl-10 text-base focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
-                          placeholder="URL tài liệu chứng chỉ (nếu có)"
+                          placeholder="URL tài liệu chứng chỉ "
                         />
                         <FileText className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                       </div>
@@ -806,7 +857,7 @@ const DoctorProfile: React.FC = () => {
                           {cert.fileUrl && (
                             <p className="text-gray-500 text-sm mt-1 truncate">
                               <a href={cert.fileUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                                Xem tài liệu
+                                Xem chứng chỉ
                               </a>
                             </p>
                           )}

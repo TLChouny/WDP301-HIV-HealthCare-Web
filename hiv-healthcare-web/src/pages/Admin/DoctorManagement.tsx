@@ -33,6 +33,11 @@ import {
   Work,
   ExpandMore,
   PersonAdd, // Replaced UserCheck with PersonAdd
+  Wc, // Gender icon
+  Phone as PhoneIcon,
+  Email as EmailIcon,
+  LocationOn as LocationOnIcon,
+  Cake as CakeIcon,
 } from "@mui/icons-material"
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 
@@ -350,7 +355,7 @@ const DoctorManagement: React.FC = () => {
                             <Avatar
                               src={doctor.avatar}
                               alt={doctor.userName}
-                              sx={{ width: 60, height: 60, borderRadius: 2, justifyContent: "center", alignItems: "center" }}
+                              sx={{ width: 60, height: 60, borderRadius: 2, justifyContent: 'center', alignItems: 'center', objectFit: 'cover', border: '2px solid #fff', boxShadow: 2 }}
                             />
                           ) : (
                             <MedicalServicesIcon sx={{ color: "white", fontSize: 30 }} />
@@ -368,7 +373,7 @@ const DoctorManagement: React.FC = () => {
                           >
                             {doctor.userName}
                           </Typography>
-                          <Typography sx={{ color: "rgba(255, 255, 255, 0.8)", mb: 1 }}>{doctor.userDescription}</Typography>
+                          <Typography sx={{ color: "rgba(255, 255, 255, 0.8)", mb: 1 }}>{doctor.email || 'Chưa cập nhật'}</Typography>
                           {totalPending > 0 && (
                             <Chip
                               label={`${totalPending} cần duyệt`}
@@ -383,6 +388,51 @@ const DoctorManagement: React.FC = () => {
                         </Box>
                       </Box>
                     </Box>
+
+                    {/* Doctor Info Card - moved out of header */}
+                    <Box
+                      sx={{
+                        background: '#fff',
+                        borderRadius: 2,
+                        boxShadow: '0 2px 8px 0 rgba(16,30,54,0.08)',
+                        p: 2.5,
+                        mx: { xs: 1, sm: 3 },
+                        mt: -3,
+                        mb: 2,
+                        position: 'relative',
+                        zIndex: 2,
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' },
+                        gap: 2,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                        <Wc sx={{ fontSize: 20, color: '#0d9488' }} />
+                        <Typography sx={{ color: '#222', fontWeight: 500, fontSize: 15 }}>
+                          Giới tính: {doctor.gender === 'male' ? 'Nam' : doctor.gender === 'female' ? 'Nữ' : doctor.gender === 'other' ? 'Khác' : 'Chưa cập nhật'}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                        <PhoneIcon sx={{ fontSize: 20, color: '#0d9488' }} />
+                        <Typography sx={{ color: '#222', fontWeight: 500, fontSize: 15 }}>
+                          SĐT: {doctor.phone_number || 'Chưa cập nhật'}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                        <LocationOnIcon sx={{ fontSize: 20, color: '#0d9488' }} />
+                        <Typography sx={{ color: '#222', fontWeight: 500, fontSize: 15 }}>
+                          Địa chỉ: {doctor.address || 'Chưa cập nhật'}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                        <CakeIcon sx={{ fontSize: 20, color: '#0d9488' }} />
+                        <Typography sx={{ color: '#222', fontWeight: 500, fontSize: 15 }}>
+                          Ngày sinh: {doctor.dateOfBirth ? formatDate(doctor.dateOfBirth) : 'Chưa cập nhật'}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    {/* End Doctor Info Card */}
 
                     <CardContent sx={{ p: 0 }}>
                       {/* Certifications Accordion */}
@@ -455,9 +505,9 @@ const DoctorManagement: React.FC = () => {
                               <Table>
                                 <TableHead>
                                   <TableRow sx={{ bgcolor: "#f9fafb" }}>
-                                    <TableCell sx={{ fontWeight: 600, color: "#374151", py: 2 }}>Tiêu đề</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, color: "#374151", py: 2 }}>Tên chứng chỉ</TableCell>
                                     <TableCell sx={{ fontWeight: 600, color: "#374151", py: 2 }}>Ngày cấp</TableCell>
-                                    <TableCell sx={{ fontWeight: 600, color: "#374151", py: 2 }}>Tổ chức</TableCell>
+                                    <TableCell sx={{ fontWeight: 600, color: "#374151", py: 2 }}>Tên tổ chức cấp</TableCell>
                                     <TableCell sx={{ fontWeight: 600, color: "#374151", py: 2 }}>Trạng thái</TableCell>
                                     <TableCell sx={{ fontWeight: 600, color: "#374151", py: 2 }}>Thao tác</TableCell>
                                   </TableRow>
@@ -475,6 +525,13 @@ const DoctorManagement: React.FC = () => {
                                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
                                           {cert.title || "Không có tiêu đề"}
                                         </Typography>
+                                        {cert.fileUrl && (
+                                          <Typography variant="body2" sx={{ mt: 0.5 }}>
+                                            <a href={cert.fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'underline', fontSize: 13 }}>
+                                              Xem chứng chỉ
+                                            </a>
+                                          </Typography>
+                                        )}
                                       </TableCell>
                                       <TableCell sx={{ py: 2 }}>
                                         <Typography variant="body2" sx={{ color: "#6b7280" }}>

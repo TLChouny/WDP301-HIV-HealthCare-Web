@@ -5,6 +5,7 @@ import {
   Edit,
   Trash2,
   User as UserIcon,
+  Eye, // Add Eye icon
 } from 'lucide-react';
 import { getAllUsers, updateUser, deleteUser, createUser } from '../../api/authApi';
 import type { User } from '../../types/user';
@@ -25,6 +26,8 @@ const RoleManagement: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [addForm] = Form.useForm();
   const [adding, setAdding] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
+  const [viewingUser, setViewingUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -280,6 +283,15 @@ const RoleManagement: React.FC = () => {
                         <Button
                           type="link"
                           className="text-blue-600"
+                          icon={<Eye className="w-5 h-5" />}
+                          onClick={() => {
+                            setViewingUser(user);
+                            setIsViewModalOpen(true);
+                          }}
+                        />
+                        <Button
+                          type="link"
+                          className="text-blue-600"
                           icon={<Edit className="w-5 h-5" />}
                           onClick={() => handleEditUser(user)}
                         />
@@ -486,6 +498,29 @@ const RoleManagement: React.FC = () => {
             </Button>
           </div>
         </Form>
+      </Modal>
+
+      {/* Modal for View User Details */}
+      <Modal
+        title="Chi tiết người dùng"
+        open={isViewModalOpen}
+        onCancel={() => setIsViewModalOpen(false)}
+        footer={null}
+        destroyOnClose
+      >
+        {viewingUser && (
+          <div className="space-y-3">
+            <div><b>Tên người dùng:</b> {viewingUser.userName}</div>
+            <div><b>Email:</b> {viewingUser.email}</div>
+            <div><b>Vai trò:</b> {getRoleText(viewingUser.role)}</div>
+            <div><b>Số điện thoại:</b> {viewingUser.phone_number || ''}</div>
+            <div><b>Trạng thái:</b> {getStatusText(getStatus(viewingUser))}</div>
+            <div><b>Ngày tạo:</b> {viewingUser.createdAt ? new Date(viewingUser.createdAt).toLocaleString('vi-VN') : ''}</div>
+            {viewingUser.role === 'doctor' && (
+              <div><b>Mô tả bác sĩ:</b> {viewingUser.userDescription || ''}</div>
+            )}
+          </div>
+        )}
       </Modal>
     </div>
   );
