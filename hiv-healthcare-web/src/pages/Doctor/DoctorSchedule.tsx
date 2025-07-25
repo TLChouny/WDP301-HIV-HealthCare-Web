@@ -252,7 +252,7 @@ const DoctorSchedule: React.FC = () => {
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-white mb-1">{doctor.userName}</h2>
-                <p className="text-blue-100 mb-3">{doctor.userDescription || "Bác sĩ chuyên khoa"}</p>
+                {/* <p className="text-blue-100 mb-3">{doctor.userDescription || "Bác sĩ chuyên khoa"}</p> */}
                 <div className="flex flex-wrap gap-4 text-sm text-blue-100">
                   {doctor.email && (
                     <div className="flex items-center gap-1">
