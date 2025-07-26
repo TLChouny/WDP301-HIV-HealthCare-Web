@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getAllPayments } from '../../api/paymentApi';
 import type { Payment } from '../../types/payment';
 import { Table, Tag, Select, message, Input, Button, Tooltip } from 'antd';
-import { Copy, Eye } from 'lucide-react';
+import { Copy, Eye, DollarSign } from 'lucide-react';
 
 const { Option } = Select;
 
@@ -45,6 +45,17 @@ const AdminRevenue: React.FC = () => {
   const totalRevenue = (Array.isArray(payments) ? payments : [])
     .filter((p) => p.status === 'success')
     .reduce((sum, p) => sum + (p.amount || 0), 0);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-teal-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Đang tải danh sách giao dịch...</p>
+        </div>
+      </div>
+    );
+  }
 
   const columns = [
     {
@@ -116,7 +127,18 @@ const AdminRevenue: React.FC = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Quản lý doanh thu</h1>
+        {/* Header */}
+        <div className="bg-white rounded-2xl shadow flex flex-col md:flex-row md:items-center md:justify-between p-8 mb-8 gap-6">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-teal-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+              <DollarSign className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">Quản lý doanh thu</h1>
+              <p className="text-base text-gray-600">Theo dõi và quản lý các giao dịch thanh toán trong hệ thống</p>
+            </div>
+          </div>
+        </div>
         <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
           <div>
             <span className="font-semibold">Tổng doanh thu thành công: </span>

@@ -188,14 +188,16 @@ const DoctorScheduleManagement: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
-              <Settings className="h-6 w-6 text-white" />
+        <div className="bg-white rounded-2xl shadow flex flex-col md:flex-row md:items-center md:justify-between p-8 mb-8 gap-6">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-teal-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+              <Settings className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-800">Quản lý lịch làm việc</h1>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-1">Quản lý lịch làm việc</h1>
+              <p className="text-base text-gray-600">Thiết lập và quản lý lịch làm việc cho các bác sĩ trong hệ thống</p>
+            </div>
           </div>
-          <p className="text-gray-600">Thiết lập và quản lý lịch làm việc cho các bác sĩ trong hệ thống</p>
         </div>
 
         {/* Statistics Cards */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   Plus,
@@ -12,6 +13,7 @@ import type { User } from '../../types/user';
 import { Modal, message, Select, Input, Button, Form } from 'antd';
 
 const RoleManagement: React.FC = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
@@ -26,8 +28,6 @@ const RoleManagement: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [addForm] = Form.useForm();
   const [adding, setAdding] = useState(false);
-  const [isViewModalOpen, setIsViewModalOpen] = useState<boolean>(false);
-  const [viewingUser, setViewingUser] = useState<User | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -120,6 +120,8 @@ const RoleManagement: React.FC = () => {
       userName: user.userName || '',
       role: user.role,
       phone_number: user.phone_number || '',
+      // Thêm userDescription nếu là doctor
+      ...(user.role === 'doctor' ? { userDescription: user.userDescription || '' } : {})
     });
     setIsModalOpen(true);
     setTimeout(() => {
@@ -127,6 +129,8 @@ const RoleManagement: React.FC = () => {
         userName: user.userName || '',
         role: user.role,
         phone_number: user.phone_number || '',
+        // Thêm userDescription nếu là doctor
+        ...(user.role === 'doctor' ? { userDescription: user.userDescription || '' } : {})
       });
     }, 0);
   };
@@ -145,19 +149,35 @@ const RoleManagement: React.FC = () => {
     return payload;
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-teal-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Đang tải danh sách tài khoản...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý tài khoản</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Quản lý và phân quyền cho các tài khoản trong hệ thống
-          </p>
+        <div className="bg-white rounded-2xl shadow flex flex-col md:flex-row md:items-center md:justify-between p-8 mb-8 gap-6">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-cyan-600 to-blue-500 shadow-lg">
+              <UserIcon className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">Quản lý tài khoản</h1>
+              <p className="text-base text-gray-600">Quản lý và phân quyền cho các tài khoản trong hệ thống</p>
+            </div>
+          </div>
           <Button
             type="primary"
             icon={<Plus />}
-            className="mt-4"
+            className="!h-12 !px-8 !text-base !font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow"
             onClick={() => {
               setIsAddModalOpen(true);
               addForm.resetFields();
@@ -169,55 +189,53 @@ const RoleManagement: React.FC = () => {
         </div>
 
         {/* Filters and Search */}
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm theo tên hoặc email..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-              </div>
+        <div className="bg-white rounded-xl shadow p-6 mb-6 flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Tìm kiếm theo tên hoặc email..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
-            <div className="flex gap-4">
-              <select
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {roles.map((role) => (
-                  <option key={role} value={role}>
-                    {role === 'all' ? 'Tất cả vai trò' : getRoleText(role)}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status === 'all' ? 'Tất cả trạng thái' : getStatusText(status)}
-                  </option>
-                ))}
-              </select>
-            </div>
+          </div>
+          <div className="flex gap-4">
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {roles.map((role) => (
+                <option key={role} value={role}>
+                  {role === 'all' ? 'Tất cả vai trò' : getRoleText(role)}
+                </option>
+              ))}
+            </select>
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {statuses.map((status) => (
+                <option key={status} value={status}>
+                  {status === 'all' ? 'Tất cả trạng thái' : getStatusText(status)}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
         {/* Users List */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
           {loading ? (
             <div className="p-8 text-center text-gray-500">Đang tải dữ liệu...</div>
           ) : error ? (
             <div className="p-8 text-center text-red-500">{error}</div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200">
+            <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: 900 }}>
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -260,23 +278,15 @@ const RoleManagement: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs rounded-full ${getRoleColor(user.role)}`}>
-                        {getRoleText(user.role)}
-                      </span>
+                      <span className={`px-2 py-1 text-xs rounded-full ${getRoleColor(user.role)}`}>{getRoleText(user.role)}</span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.phone_number || ''}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {user.phone_number || ''}
+                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(getStatus(user))}`}>{getStatusText(getStatus(user))}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(getStatus(user))}`}>
-                        {getStatusText(getStatus(user))}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {user.createdAt ? new Date(user.createdAt).toLocaleString('vi-VN') : ''}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap max-w-[200px] overflow-hidden text-ellipsis">
-                      {user.role === 'doctor' ? user.userDescription || '' : ''}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.createdAt ? new Date(user.createdAt).toLocaleString('vi-VN') : ''}</td>
+                    <td className="px-6 py-4 whitespace-nowrap max-w-[120px] overflow-hidden text-ellipsis">
+                      {user.role === 'doctor' ? (user.userDescription && user.userDescription.length > 10 ? `${user.userDescription.slice(0, 10)}...` : user.userDescription || '') : ''}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex space-x-2">
@@ -284,10 +294,7 @@ const RoleManagement: React.FC = () => {
                           type="link"
                           className="text-blue-600"
                           icon={<Eye className="w-5 h-5" />}
-                          onClick={() => {
-                            setViewingUser(user);
-                            setIsViewModalOpen(true);
-                          }}
+                          onClick={() => navigate(`/admin/user-detail/${user._id}`)}
                         />
                         <Button
                           type="link"
@@ -325,7 +332,6 @@ const RoleManagement: React.FC = () => {
                         />
                       </div>
                     </td>
-
                   </tr>
                 ))}
               </tbody>
@@ -500,28 +506,7 @@ const RoleManagement: React.FC = () => {
         </Form>
       </Modal>
 
-      {/* Modal for View User Details */}
-      <Modal
-        title="Chi tiết người dùng"
-        open={isViewModalOpen}
-        onCancel={() => setIsViewModalOpen(false)}
-        footer={null}
-        destroyOnClose
-      >
-        {viewingUser && (
-          <div className="space-y-3">
-            <div><b>Tên người dùng:</b> {viewingUser.userName}</div>
-            <div><b>Email:</b> {viewingUser.email}</div>
-            <div><b>Vai trò:</b> {getRoleText(viewingUser.role)}</div>
-            <div><b>Số điện thoại:</b> {viewingUser.phone_number || ''}</div>
-            <div><b>Trạng thái:</b> {getStatusText(getStatus(viewingUser))}</div>
-            <div><b>Ngày tạo:</b> {viewingUser.createdAt ? new Date(viewingUser.createdAt).toLocaleString('vi-VN') : ''}</div>
-            {viewingUser.role === 'doctor' && (
-              <div><b>Mô tả bác sĩ:</b> {viewingUser.userDescription || ''}</div>
-            )}
-          </div>
-        )}
-      </Modal>
+
     </div>
   );
 };

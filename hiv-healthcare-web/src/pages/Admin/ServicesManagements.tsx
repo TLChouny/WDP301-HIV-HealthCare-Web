@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getAllServices, createService, updateService, deleteService } from '../../api/serviceApi';
 import { getAllCategories } from '../../api/categoryApi';
 import { Button, Modal, Form, Input, message, Select } from 'antd';
-import { Plus, Edit, Trash2, Search, Eye } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Eye, Briefcase } from 'lucide-react'; // Thêm icon Briefcase
 import type { Service } from '../../types/service';
 import type { Category } from '../../types/category';
 import { Link } from 'react-router-dom';
@@ -22,44 +22,29 @@ const ServicesManagements: React.FC = () => {
   const [imageUrl, setImageUrl] = useState('');
   const [editImageUrl, setEditImageUrl] = useState('');
 
-  const fetchServices = async () => {
+  const fetchServicesAndCategories = async () => {
     setLoading(true);
     try {
-      const data = await getAllServices();
-      setServices(data);
+      const [servicesData, categoriesData] = await Promise.all([
+        getAllServices(),
+        getAllCategories()
+      ]);
+      setServices(servicesData);
+      setCategories(categoriesData);
     } catch (err: any) {
-      message.error(err.message || 'Lỗi khi lấy danh sách dịch vụ');
+      message.error(err.message || 'Lỗi khi tải dữ liệu');
     } finally {
       setLoading(false);
     }
   };
-
-  const fetchCategories = async () => {
-    try {
-      const data = await getAllCategories();
-      setCategories(data);
-    } catch (err: any) {
-      message.error(err.message || 'Lỗi khi lấy danh mục');
-    }
-  };
-
+  
   useEffect(() => {
-    fetchServices();
-    fetchCategories();
+    fetchServicesAndCategories();
   }, []);
 
   const filteredServices = services.filter((service) =>
     service.serviceName.toLowerCase().includes(search.toLowerCase())
   );
-
-  const truncateText = (text: string | undefined, wordLimit: number): string => {
-    if (!text) return '';
-    const words = text.split(' ');
-    if (words.length <= wordLimit) {
-      return text;
-    }
-    return words.slice(0, wordLimit).join(' ') + '...';
-  };
 
   const handleAddService = async (values: Partial<Service>) => {
     setAdding(true);
@@ -69,7 +54,7 @@ const ServicesManagements: React.FC = () => {
       setIsAddModalOpen(false);
       addForm.resetFields();
       setImageUrl('');
-      fetchServices();
+      fetchServicesAndCategories(); // Tải lại để cập nhật
     } catch (err: any) {
       message.error(err.message || 'Thêm dịch vụ thất bại');
     } finally {
@@ -99,7 +84,7 @@ const ServicesManagements: React.FC = () => {
       await updateService(editingService._id, { ...values, serviceImage: editImageUrl });
       message.success('Cập nhật dịch vụ thành công!');
       setIsEditModalOpen(false);
-      fetchServices();
+      fetchServicesAndCategories(); // Tải lại để cập nhật
     } catch (err: any) {
       message.error(err.message || 'Cập nhật dịch vụ thất bại');
     } finally {
@@ -118,7 +103,7 @@ const ServicesManagements: React.FC = () => {
         try {
           await deleteService(service._id);
           message.success('Xóa dịch vụ thành công!');
-          fetchServices();
+          fetchServicesAndCategories(); // Tải lại để cập nhật
         } catch (err: any) {
           message.error(err.message || 'Xóa dịch vụ thất bại');
         }
@@ -126,22 +111,41 @@ const ServicesManagements: React.FC = () => {
     });
   };
 
-  // Giả lập upload ảnh: chỉ lấy link từ input
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, setUrl: (url: string) => void) => {
     setUrl(e.target.value);
   };
 
+  // YÊU CẦU 3: Thêm hiệu ứng loading toàn trang
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-teal-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Đang tải danh sách dịch vụ...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý Dịch vụ</h1>
-          <p className="mt-2 text-sm text-gray-600">Quản lý các dịch vụ trong hệ thống</p>
-          <Button type="primary" icon={<Plus />} className="mt-4" onClick={() => setIsAddModalOpen(true)}>
+        {/* YÊU CẦU 1: Header được cập nhật */}
+        <div className="bg-white rounded-2xl shadow flex flex-col md:flex-row md:items-center md:justify-between p-8 mb-8 gap-6">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-teal-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+              <Briefcase className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">Quản lý Dịch vụ</h1>
+              <p className="text-base text-gray-600">Quản lý, thêm, sửa, xóa các dịch vụ trong hệ thống</p>
+            </div>
+          </div>
+          <Button type="primary" icon={<Plus />} className="!h-12 !px-8 !text-base !font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow" onClick={() => setIsAddModalOpen(true)}>
             Thêm dịch vụ
           </Button>
         </div>
+
         {/* Filter & Search */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
@@ -159,11 +163,9 @@ const ServicesManagements: React.FC = () => {
             </div>
           </div>
         </div>
-        {/* Service List */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          {loading ? (
-            <div className="p-8 text-center text-gray-500">Đang tải dữ liệu...</div>
-          ) : (
+
+        {/* YÊU CẦU 2: Thêm thanh trượt cho table */}
+        <div className="bg-white rounded-lg shadow overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -184,17 +186,18 @@ const ServicesManagements: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{service.serviceName}</div>
                       </td>
-                      <td className="px-6 py-4 max-w-xs">
-                        <div className="text-sm text-gray-700" title={service.serviceDescription || ''}>
-                          {truncateText(service.serviceDescription, 10)}
+                      {/* YÊU CẦU 2: Giới hạn ký tự mô tả */}
+                      <td className="px-6 py-4 whitespace-nowrap max-w-[250px] overflow-hidden text-ellipsis">
+                        <div className="text-sm text-gray-500" title={service.serviceDescription || ''}>
+                          {service.serviceDescription}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{category?.categoryName || ''}</div>
+                        <div className="text-sm text-gray-500">{category?.categoryName || 'N/A'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {service.serviceImage && (
-                          <img src={service.serviceImage} alt="service" className="w-16 h-10 object-cover rounded" />
+                          <img src={service.serviceImage} alt={service.serviceName} className="w-16 h-10 object-cover rounded" />
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -231,8 +234,8 @@ const ServicesManagements: React.FC = () => {
                 })}
               </tbody>
             </table>
-          )}
         </div>
+        
         {/* Modal for Add Service */}
         <Modal
           title="Thêm dịch vụ mới"
@@ -242,11 +245,7 @@ const ServicesManagements: React.FC = () => {
           destroyOnClose
         >
           <Form form={addForm} layout="vertical" onFinish={handleAddService}>
-            <Form.Item
-              label="Tên dịch vụ *"
-              name="serviceName"
-              rules={[{ required: true, message: 'Vui lòng nhập tên dịch vụ' }]}
-            >
+            <Form.Item label="Tên dịch vụ *" name="serviceName" rules={[{ required: true, message: 'Vui lòng nhập tên dịch vụ' }]}>
               <Input />
             </Form.Item>
             <Form.Item label="Mô tả" name="serviceDescription">
@@ -260,11 +259,7 @@ const ServicesManagements: React.FC = () => {
               </Select>
             </Form.Item>
             <Form.Item label="Link ảnh (URL)" name="serviceImage">
-              <Input
-                placeholder="Dán link ảnh hoặc upload lên cloud"
-                value={imageUrl}
-                onChange={(e) => handleImageChange(e, setImageUrl)}
-              />
+              <Input placeholder="Dán link ảnh" value={imageUrl} onChange={(e) => handleImageChange(e, setImageUrl)} />
             </Form.Item>
             <Form.Item label="Thời lượng (phút)" name="duration">
               <Input type="number" min={1} />
@@ -273,15 +268,12 @@ const ServicesManagements: React.FC = () => {
               <Input type="number" min={0} />
             </Form.Item>
             <div className="flex justify-end space-x-2 mt-6">
-              <Button onClick={() => setIsAddModalOpen(false)} disabled={adding}>
-                Hủy
-              </Button>
-              <Button type="primary" htmlType="submit" loading={adding}>
-                Thêm
-              </Button>
+              <Button onClick={() => setIsAddModalOpen(false)} disabled={adding}> Hủy </Button>
+              <Button type="primary" htmlType="submit" loading={adding}> Thêm </Button>
             </div>
           </Form>
         </Modal>
+
         {/* Modal for Edit Service */}
         <Modal
           title="Chỉnh sửa dịch vụ"
@@ -290,16 +282,8 @@ const ServicesManagements: React.FC = () => {
           footer={null}
           destroyOnClose
         >
-          <Form
-            form={editForm}
-            layout="vertical"
-            onFinish={handleUpdateService}
-          >
-            <Form.Item
-              label="Tên dịch vụ *"
-              name="serviceName"
-              rules={[{ required: true, message: 'Vui lòng nhập tên dịch vụ' }]}
-            >
+          <Form form={editForm} layout="vertical" onFinish={handleUpdateService}>
+            <Form.Item label="Tên dịch vụ *" name="serviceName" rules={[{ required: true, message: 'Vui lòng nhập tên dịch vụ' }]}>
               <Input />
             </Form.Item>
             <Form.Item label="Mô tả" name="serviceDescription">
@@ -313,11 +297,7 @@ const ServicesManagements: React.FC = () => {
               </Select>
             </Form.Item>
             <Form.Item label="Link ảnh (URL)" name="serviceImage">
-              <Input
-                placeholder="Dán link ảnh hoặc upload lên cloud"
-                value={editImageUrl}
-                onChange={(e) => handleImageChange(e, setEditImageUrl)}
-              />
+              <Input placeholder="Dán link ảnh" value={editImageUrl} onChange={(e) => handleImageChange(e, setEditImageUrl)} />
             </Form.Item>
             <Form.Item label="Thời lượng (phút)" name="duration">
               <Input type="number" min={1} />
@@ -326,12 +306,8 @@ const ServicesManagements: React.FC = () => {
               <Input type="number" min={0} />
             </Form.Item>
             <div className="flex justify-end space-x-2 mt-6">
-              <Button onClick={() => setIsEditModalOpen(false)} disabled={saving}>
-                Hủy
-              </Button>
-              <Button type="primary" htmlType="submit" loading={saving}>
-                Lưu thay đổi
-              </Button>
+              <Button onClick={() => setIsEditModalOpen(false)} disabled={saving}> Hủy </Button>
+              <Button type="primary" htmlType="submit" loading={saving}> Lưu thay đổi </Button>
             </div>
           </Form>
         </Modal>
