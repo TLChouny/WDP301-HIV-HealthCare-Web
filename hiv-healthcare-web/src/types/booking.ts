@@ -18,7 +18,7 @@ export interface Booking {
   currency: string;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 're-examination' | 'checked-in' | 'checked-out';
   isAnonymous: boolean;
-  userId: User; // BE muốn full object
+  userId: User | null; // BE muốn full object
   serviceId: Service; // BE muốn full object
   createdAt?: string;
   updatedAt?: string;

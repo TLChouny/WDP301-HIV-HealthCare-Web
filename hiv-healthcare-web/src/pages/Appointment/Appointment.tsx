@@ -1,17 +1,18 @@
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import { Calendar, AlertCircle, Shield, Clock, UserIcon, Phone, Mail, FileText, ChevronDown } from "lucide-react"
-import DatePicker from "react-datepicker"
-import "react-datepicker/dist/react-datepicker.css"
-import { toast } from "react-toastify"
-import { getServiceById } from "../../api/serviceApi"
-import { getAllUsers } from "../../api/authApi"
-import { useBooking } from "../../context/BookingContext"
-import type { Service } from "../../types/service"
-import type { User } from "../../types/user"
-import { useAuth } from "../../context/AuthContext"
-import { format } from "date-fns"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Calendar, AlertCircle, Shield, Clock, UserIcon, Phone, Mail, FileText, ChevronDown } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { toast } from "react-toastify";
+import { getServiceById } from "../../api/serviceApi";
+import { getAllUsers } from "../../api/authApi";
+import { useBooking } from "../../context/BookingContext";
+import type { Service } from "../../types/service";
+import type { User } from "../../types/user";
+import { useAuth } from "../../context/AuthContext";
+import { format } from "date-fns";
+import { Booking } from "../../types/booking";
 
 // Toast configuration
 const TOAST_CONFIG = {
@@ -23,193 +24,238 @@ const TOAST_CONFIG = {
   draggable: true,
   progress: undefined,
   theme: "colored" as const,
-}
+};
 
 const showToast = (message: string, type: "error" | "success" = "error") => {
   if (!toast.isActive(message)) {
-    const config = { ...TOAST_CONFIG, toastId: message }
+    const config = { ...TOAST_CONFIG, toastId: message };
     if (type === "success") {
-      toast.success(message, config)
+      toast.success(message, config);
     } else {
-      toast.error(message, config)
+      toast.error(message, config);
     }
   }
-}
+};
 
 const Appointment: React.FC = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { create } = useBooking()
-  const { user } = useAuth()
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { create, checkExistingBookings } = useBooking();
+  const { user } = useAuth();
 
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
-  const formattedDate = selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""
-  const [filteredDoctors, setFilteredDoctors] = useState<User[]>([])
-  const [timeSlots, setTimeSlots] = useState<string[]>([])
-  const [selectedTime, setSelectedTime] = useState("")
-  const [selectedDoctor, setSelectedDoctor] = useState("")
-  const [doctors, setDoctors] = useState<User[]>([])
-  const [loadingDoctors, setLoadingDoctors] = useState(false)
-  const [isAnonymous, setIsAnonymous] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const formattedDate = selectedDate ? format(selectedDate, "yyyy-MM-dd") : "";
+  const [filteredDoctors, setFilteredDoctors] = useState<User[]>([]);
+  const [timeSlots, setTimeSlots] = useState<string[]>([]);
+  const [bookedSlots, setBookedSlots] = useState<string[]>([]);
+  const [selectedTime, setSelectedTime] = useState("");
+  const [selectedDoctor, setSelectedDoctor] = useState("");
+  const [doctors, setDoctors] = useState<User[]>([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [formData, setFormData] = useState({
     customerName: "",
     customerPhone: "",
     customerEmail: "",
     notes: "",
-  })
-  const [service, setService] = useState<Service | null>(null)
-  const [serviceLoading, setServiceLoading] = useState(false)
+  });
+  const [service, setService] = useState<Service | null>(null);
+  const [serviceLoading, setServiceLoading] = useState(false);
 
   // Generate time slots function
   const generateTimeSlots = (start: string, end: string, interval = 30) => {
-    const slots = []
-    const [startHour, startMinute] = start.split(":").map(Number)
-    const [endHour, endMinute] = end.split(":").map(Number)
+    const slots = [];
+    const [startHour, startMinute] = start.split(":").map(Number);
+    const [endHour, endMinute] = end.split(":").map(Number);
 
-    const current = new Date()
-    current.setHours(startHour, startMinute, 0, 0)
+    const current = new Date();
+    current.setHours(startHour, startMinute, 0, 0);
 
-    const endTime = new Date()
-    endTime.setHours(endHour, endMinute, 0, 0)
+    const endTime = new Date();
+    endTime.setHours(endHour, endMinute, 0, 0);
 
     while (current <= endTime) {
       slots.push(
-        `${current.getHours().toString().padStart(2, "0")}:${current.getMinutes().toString().padStart(2, "0")}`,
-      )
-      current.setMinutes(current.getMinutes() + interval)
+        `${current.getHours().toString().padStart(2, "0")}:${current.getMinutes().toString().padStart(2, "0")}`
+      );
+      current.setMinutes(current.getMinutes() + interval);
     }
 
-    return slots
-  }
+    return slots;
+  };
+
+  // Calculate end time for display in toast
+  const calculateEndTime = (startTime: string, duration: number = 30) => {
+    const [hour, minute] = startTime.split(':').map(Number);
+    const total = hour * 60 + minute + duration;
+    const endHour = Math.floor(total / 60) % 24;
+    const endMinute = total % 60;
+    return `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+  };
 
   const filterDoctorsByDate = (doctors: User[], date: Date) => {
-    const selectedDay = format(date, "EEEE")
+    const selectedDay = format(date, "EEEE");
     return doctors.filter((doctor) => {
-      if (!doctor.dayOfWeek || !doctor.startDay || !doctor.endDay) return false
-      const startDay = new Date(doctor.startDay)
-      const endDay = new Date(doctor.endDay)
-      return doctor.dayOfWeek.includes(selectedDay) && date >= startDay && date <= endDay
-    })
-  }
+      if (!doctor.dayOfWeek || !doctor.startDay || !doctor.endDay) return false;
+      const startDay = new Date(doctor.startDay);
+      const endDay = new Date(doctor.endDay);
+      return doctor.dayOfWeek.includes(selectedDay) && date >= startDay && date <= endDay;
+    });
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleTimeSelection = (time: string) => {
+    const doctorObj = doctors.find((d) => d._id === selectedDoctor);
+    if (bookedSlots.includes(time)) {
+      showToast(
+        `Bác sĩ ${doctorObj?.userName || "này"} đã có lịch hẹn từ ${time} đến ${calculateEndTime(time, service?.duration || 30)}! Vui lòng chọn khung giờ khác.`,
+        "error"
+      );
+      return;
+    }
+    setSelectedTime(time);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formattedDate || !selectedTime || !selectedDoctor) {
-      showToast("Vui lòng chọn ngày, giờ và bác sĩ!")
-      return
+      showToast("Vui lòng chọn ngày, giờ và bác sĩ!");
+      return;
     }
 
     if (!isAnonymous && (!formData.customerName || !formData.customerPhone)) {
-      showToast("Vui lòng điền họ tên và số điện thoại!")
-      return
+      showToast("Vui lòng điền họ tên và số điện thoại!");
+      return;
     }
 
     try {
-      const params = new URLSearchParams(location.search)
-      const serviceId = params.get("serviceId") || ""
-      const selectedDoctorObj = doctors.find((doc) => doc._id === selectedDoctor)
+      const params = new URLSearchParams(location.search);
+      const serviceId = params.get("serviceId") || "";
+      const selectedDoctorObj = doctors.find((doc) => doc._id === selectedDoctor);
 
-      const bookingData = {
-        bookingDate: formattedDate.split("T")[0],
+      const bookingData: Partial<Booking> = {
+        bookingDate: formattedDate,
         startTime: selectedTime,
-        fullName: isAnonymous ? undefined : formData.customerName,
-        phone: isAnonymous ? undefined : formData.customerPhone,
-        email: isAnonymous ? undefined : formData.customerEmail,
+        customerName: isAnonymous ? undefined : formData.customerName,
+        customerPhone: isAnonymous ? undefined : formData.customerPhone,
+        customerEmail: isAnonymous ? undefined : formData.customerEmail,
         doctorName: selectedDoctorObj?.userName ?? undefined,
         notes: formData.notes,
-        serviceId: service ?? undefined,
+        serviceId: service ?? undefined, // ✅ full object -> đúng type Service
         currency: "VND",
         status: "pending" as const,
         isAnonymous,
-        userId: user as User,
+        userId: user, // Sử dụng toàn bộ user object nếu type Booking yêu cầu User
+      };
+
+      if (!user) {
+        showToast("Vui lòng đăng nhập để đặt lịch!");
+        return;
       }
 
-      if (!user || !user._id) {
-        showToast("Vui lòng đăng nhập để đặt lịch!")
-        return
-      }
-
-      console.log("Booking data sending to BE:", bookingData)
-      await create(bookingData)
-      showToast("Đặt lịch khám thành công!", "success")
+      console.log("Booking data sending to BE:", bookingData);
+      await create(bookingData);
+      showToast("Đặt lịch khám thành công!", "success");
 
       setTimeout(() => {
-        navigate("/")
-        window.location.reload()
-      }, 2000)
+        navigate("/");
+        window.location.reload();
+      }, 2000);
     } catch (err: any) {
-      console.error("Booking error:", err)
+      console.error("Booking error:", err);
       if (err.message?.toLowerCase().includes("service")) {
-        showToast("Dịch vụ không tồn tại!")
+        showToast("Dịch vụ không tồn tại!");
       } else if (err.message?.toLowerCase().includes("doctor")) {
-        showToast("Bác sĩ không hợp lệ!")
+        showToast("Bác sĩ không hợp lệ!");
       } else if (err.message?.toLowerCase().includes("time")) {
-        showToast("Thời gian đặt lịch không khả dụng!")
+        showToast("Thời gian đặt lịch không khả dụng!");
       } else {
-        showToast(err.message || "Đặt lịch thất bại.")
+        showToast(err.message || "Đặt lịch thất bại.");
       }
     }
-  }
+  };
 
-  // useEffect hooks remain the same...
+  // useEffect hooks
   useEffect(() => {
-    const params = new URLSearchParams(location.search)
-    const serviceId = params.get("serviceId")
+    const params = new URLSearchParams(location.search);
+    const serviceId = params.get("serviceId");
 
     if (serviceId) {
-      setServiceLoading(true)
+      setServiceLoading(true);
       getServiceById(serviceId)
         .then((data) => setService(data))
         .catch((err) => {
-          console.error("Service error:", err)
-          showToast("Không thể tải thông tin dịch vụ!")
+          console.error("Service error:", err);
+          showToast("Không thể tải thông tin dịch vụ!");
         })
-        .finally(() => setServiceLoading(false))
+        .finally(() => setServiceLoading(false));
     }
-  }, [location.search])
+  }, [location.search]);
 
   useEffect(() => {
     const fetchDoctors = async () => {
-      setLoadingDoctors(true)
+      setLoadingDoctors(true);
       try {
-        const users = await getAllUsers()
-        const doctors = users.filter((u: User) => u.role === "doctor")
-        setDoctors(doctors)
+        const users = await getAllUsers();
+        const doctors = users.filter((u: User) => u.role === "doctor");
+        setDoctors(doctors);
       } catch (err) {
-        console.error("Doctors error:", err)
-        showToast("Không thể tải danh sách bác sĩ!")
+        console.error("Doctors error:", err);
+        showToast("Không thể tải danh sách bác sĩ!");
       } finally {
-        setLoadingDoctors(false)
+        setLoadingDoctors(false);
       }
-    }
+    };
 
-    fetchDoctors()
-  }, [])
+    fetchDoctors();
+  }, []);
 
   useEffect(() => {
     if (selectedDate && doctors.length > 0) {
-      const filtered = filterDoctorsByDate(doctors, selectedDate)
-      setFilteredDoctors(filtered)
+      const filtered = filterDoctorsByDate(doctors, selectedDate);
+      setFilteredDoctors(filtered);
     } else {
-      setFilteredDoctors(doctors)
+      setFilteredDoctors(doctors);
     }
-  }, [selectedDate, doctors])
+  }, [selectedDate, doctors]);
 
   useEffect(() => {
-    const doctorObj = doctors.find((d) => d._id === selectedDoctor)
+    const fetchBookedSlots = async () => {
+      if (selectedDoctor && formattedDate) {
+        try {
+          const doctorObj = doctors.find((d) => d._id === selectedDoctor);
+          if (doctorObj) {
+            const booked = await checkExistingBookings(doctorObj.userName, formattedDate);
+            setBookedSlots(booked);
+          } else {
+            setBookedSlots([]);
+          }
+        } catch (err) {
+          console.error("Check bookings error:", err);
+          showToast("Không thể kiểm tra khung giờ khả dụng!");
+          setBookedSlots([]);
+        }
+      } else {
+        setBookedSlots([]);
+      }
+    };
+
+    fetchBookedSlots();
+
+    const doctorObj = doctors.find((d) => d._id === selectedDoctor);
     if (doctorObj && doctorObj.startTimeInDay && doctorObj.endTimeInDay) {
-      const slots = generateTimeSlots(doctorObj.startTimeInDay, doctorObj.endTimeInDay)
-      setTimeSlots(slots)
+      const slots = generateTimeSlots(doctorObj.startTimeInDay, doctorObj.endTimeInDay);
+      const availableSlots = slots.filter((slot) => !bookedSlots.includes(slot));
+      setTimeSlots(availableSlots);
     } else {
-      setTimeSlots([])
+      setTimeSlots([]);
     }
-  }, [selectedDoctor, doctors])
+  }, [selectedDoctor, formattedDate, doctors, checkExistingBookings]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">
@@ -249,15 +295,22 @@ const Appointment: React.FC = () => {
                 </div>
               )}
               <div className="flex-1 text-center lg:text-left">
-                <h2 className="text-2xl font-bold text-gray-800 mb-3">{service.serviceName}</h2>
-                {service.price && (
+                <h2 className="text-2xl font-bold text-gray-800 mb-3 text-left">{service.serviceName}</h2>
+                {service.price !== undefined && (
                   <div className="inline-flex items-center bg-teal-100 text-teal-800 px-4 py-2 rounded-full text-lg font-semibold mb-4">
-                    {typeof service.price === "number"
-                      ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(service.price)
-                      : service.price}
+                    Giá tiền:&nbsp;
+                    {service.price === 0
+                      ? "Miễn phí"
+                      : new Intl.NumberFormat("vi-VN", {
+                        style: "currency",
+                        currency: "VND",
+                      }).format(service.price)}
                   </div>
                 )}
-                <p className="text-gray-600 text-lg leading-relaxed">{service.serviceDescription}</p>
+                <p className="text-gray-600 text-lg leading-relaxed text-left">{service.serviceDescription}</p>
+                <p className="text-gray-600 text-lg leading-relaxed text-left">Thời lượng: {service.duration} phút</p>
+                <p className="text-gray-600 text-lg leading-relaxed text-left">Danh mục: {service.categoryId.categoryName}</p>
+
               </div>
             </div>
           </div>
@@ -277,14 +330,12 @@ const Appointment: React.FC = () => {
                     className="sr-only"
                   />
                   <div
-                    className={`w-12 h-6 rounded-full transition-colors duration-200 ${
-                      isAnonymous ? "bg-teal-600" : "bg-gray-300"
-                    }`}
+                    className={`w-12 h-6 rounded-full transition-colors duration-200 ${isAnonymous ? "bg-teal-600" : "bg-gray-300"
+                      }`}
                   >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${
-                        isAnonymous ? "translate-x-6" : "translate-x-0.5"
-                      } mt-0.5`}
+                      className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 ${isAnonymous ? "translate-x-6" : "translate-x-0.5"
+                        } mt-0.5`}
                     />
                   </div>
                 </div>
@@ -316,11 +367,10 @@ const Appointment: React.FC = () => {
                       name="customerName"
                       value={formData.customerName}
                       onChange={handleInputChange}
-                      className={`w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg transition-all duration-200 ${
-                        isAnonymous
-                          ? "bg-gray-100 border-gray-200 text-gray-400"
-                          : "border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
-                      }`}
+                      className={`w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg transition-all duration-200 ${isAnonymous
+                        ? "bg-gray-100 border-gray-200 text-gray-400"
+                        : "border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+                        }`}
                       placeholder="Nhập họ và tên"
                       required={!isAnonymous}
                       disabled={isAnonymous}
@@ -340,11 +390,10 @@ const Appointment: React.FC = () => {
                       name="customerPhone"
                       value={formData.customerPhone}
                       onChange={handleInputChange}
-                      className={`w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg transition-all duration-200 ${
-                        isAnonymous
-                          ? "bg-gray-100 border-gray-200 text-gray-400"
-                          : "border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
-                      }`}
+                      className={`w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg transition-all duration-200 ${isAnonymous
+                        ? "bg-gray-100 border-gray-200 text-gray-400"
+                        : "border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+                        }`}
                       placeholder="Nhập số điện thoại"
                       required={!isAnonymous}
                       disabled={isAnonymous}
@@ -362,11 +411,10 @@ const Appointment: React.FC = () => {
                       name="customerEmail"
                       value={formData.customerEmail}
                       onChange={handleInputChange}
-                      className={`w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg transition-all duration-200 ${
-                        isAnonymous
-                          ? "bg-gray-100 border-gray-200 text-gray-400"
-                          : "border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
-                      }`}
+                      className={`w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg transition-all duration-200 ${isAnonymous
+                        ? "bg-gray-100 border-gray-200 text-gray-400"
+                        : "border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+                        }`}
                       placeholder="Nhập email"
                       disabled={isAnonymous}
                     />
@@ -446,21 +494,26 @@ const Appointment: React.FC = () => {
                       <button
                         key={time}
                         type="button"
-                        onClick={() => setSelectedTime(time)}
-                        className={`py-3 px-4 rounded-xl border-2 text-sm font-semibold transition-all duration-200 ${
-                          selectedTime === time
-                            ? "bg-teal-600 text-white border-teal-600 shadow-lg transform scale-105"
+                        onClick={() => handleTimeSelection(time)}
+                        className={`py-3 px-4 rounded-xl border-2 text-sm font-semibold transition-all duration-200 ${selectedTime === time
+                          ? "bg-teal-600 text-white border-teal-600 shadow-lg transform scale-105"
+                          : bookedSlots.includes(time)
+                            ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed"
                             : "bg-white text-gray-700 border-gray-200 hover:border-teal-300 hover:bg-teal-50"
-                        }`}
+                          }`}
+                        disabled={bookedSlots.includes(time)}
                       >
                         {time}
+                        {bookedSlots.includes(time) && (
+                          <span className="ml-2 text-red-500 text-xs">Đã đặt</span>
+                        )}
                       </button>
                     ))}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-xl">
                     <Clock className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p className="text-lg">Vui lòng chọn bác sĩ để xem giờ khả dụng</p>
+                    <p className="text-lg">Vui lòng chọn bác sĩ và ngày để xem giờ khả dụng</p>
                   </div>
                 )}
               </div>
@@ -528,7 +581,7 @@ const Appointment: React.FC = () => {
       {/* Bottom Spacing */}
       <div className="h-16"></div>
     </div>
-  )
-}
+  );
+};
 
-export default Appointment
+export default Appointment;

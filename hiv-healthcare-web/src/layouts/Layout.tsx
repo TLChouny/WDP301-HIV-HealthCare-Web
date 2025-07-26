@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import {
   ChevronDown,
   Clock,
@@ -11,7 +11,6 @@ import {
   Twitter,
   X,
   Youtube,
-  Bell,
 } from "react-feather";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
@@ -19,9 +18,9 @@ import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../context/AuthContext";
 import { useCategoryContext } from "../context/CategoryContext";
 import { useNotification } from "../context/NotificationContext";
-import { getBookingStatusColor, translateBookingStatus } from "../utils/status";
+import NotificationBell from "../components/Notifications/notification-bell";
 
-// Cấu hình toast chung
+// Toast configuration
 const TOAST_CONFIG = {
   position: "top-right" as const,
   autoClose: 3000,
@@ -33,7 +32,7 @@ const TOAST_CONFIG = {
   theme: "colored" as const,
 };
 
-// Hàm tiện ích để hiển thị toast
+// Toast utility function
 const showToast = (message: string, type: "error" | "success" | "info" = "error") => {
   if (!toast.isActive(message)) {
     const config = { ...TOAST_CONFIG, toastId: message };
@@ -51,13 +50,14 @@ const Layout: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [activeDropdown, setActiveDropdown] = React.useState<string | null>(null);
-  const [showBookingModal, setShowBookingModal] = React.useState(false);
-  const [selectedNotification, setSelectedNotification] = React.useState<any>(null);
-  const [showModal, setShowModal] = React.useState(false);
+
   const location = useLocation();
   const { user, logout } = useAuth();
   const { categories } = useCategoryContext();
   const { notifications, getNotificationsByUserIdHandler, loading, error } = useNotification();
+
+  const servicesDropdownRef = useRef<HTMLDivElement>(null);
+  const userDropdownRef = useRef<HTMLDivElement>(null);
 
   const isAuthPage =
     location.pathname.startsWith("/auth") ||
@@ -65,12 +65,11 @@ const Layout: React.FC = () => {
     location.pathname === "/register" ||
     location.pathname === "/forgot-password";
 
-  // Lấy notification theo userId khi user thay đổi
+  // Fetch notifications when user changes
   useEffect(() => {
     if (user) {
       getNotificationsByUserIdHandler(user._id).catch((err) => {
         console.error("Notification error:", err);
-        // Xử lý lỗi cụ thể từ getNotificationsByUserIdHandler
         if (err.message?.toLowerCase().includes("unauthorized")) {
           showToast("Không có quyền truy cập thông báo!");
         } else if (err.message?.toLowerCase().includes("network")) {
@@ -82,53 +81,45 @@ const Layout: React.FC = () => {
     }
   }, [user, getNotificationsByUserIdHandler]);
 
-  // Đóng mobile menu khi route thay đổi
+  // Close mobile menu when route changes
   useEffect(() => {
     setIsMenuOpen(false);
   }, [location.pathname]);
 
-  // Handle hiệu ứng scroll cho header
+  // Handle scroll effect for header
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 10);
     };
 
     window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Auto-close dropdown after 3 seconds if no interaction
+  // Auto-close dropdown when mouse leaves
   useEffect(() => {
-    if (activeDropdown === "userDesktop" || activeDropdown === "userMobile") {
-      const timer = setTimeout(() => {
-        setActiveDropdown(null);
-      }, 3000);
+    const handleMouseLeave = (ref: React.RefObject<HTMLDivElement>, dropdownName: string) => {
+      if (activeDropdown === dropdownName && ref.current) {
+        const handleLeave = () => setActiveDropdown(null);
+        ref.current.addEventListener("mouseleave", handleLeave);
+        return () => ref.current?.removeEventListener("mouseleave", handleLeave);
+      }
+    };
 
-      return () => clearTimeout(timer);
-    }
+    handleMouseLeave(servicesDropdownRef, "servicesDesktop");
+    handleMouseLeave(userDropdownRef, "userDesktop");
   }, [activeDropdown]);
 
   const toggleDropdown = (name: string) => {
     setActiveDropdown((prev) => (prev === name ? null : name));
   };
 
-  // Xử lý đăng xuất với toast
+  // Handle logout with toast
   const handleLogout = () => {
     logout();
     setActiveDropdown(null);
     showToast("Đăng xuất thành công!", "success");
   };
-
-  // Sắp xếp notifications theo thời gian tạo, mới nhất lên đầu
-  const sortedNotifications = [...notifications].sort((a, b) =>
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
 
   return (
     <div className="min-h-screen flex flex-col font-sans bg-gray-50">
@@ -143,7 +134,7 @@ const Layout: React.FC = () => {
             {/* Logo */}
             <Link
               to="/"
-              className="flex items-center group transition-transform duration-300 hover:scale-105"
+              className="flex items-center group transition-transform duration-300 hover:scale-105 hover:shadow-lg"
               aria-label="HIV Care Home"
             >
               <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center mr-3 shadow-md group-hover:shadow-lg transition-shadow duration-300">
@@ -163,19 +154,19 @@ const Layout: React.FC = () => {
                 className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
                   location.pathname === "/"
                     ? "text-teal-100 after:w-full"
-                    : "text-white hover:text-teal-100"
+                    : "text-white hover:text-teal-100 transition-colors duration-300"
                 }`}
               >
                 Trang chủ
               </Link>
 
-              {/* Dropdown "Dịch vụ" */}
+              {/* Services Dropdown */}
               <div className="relative group">
                 <button
                   className={`py-2 font-medium flex items-center relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 group-hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
                     location.pathname.includes("/services")
                       ? "text-teal-100 after:w-full"
-                      : "text-white hover:text-teal-100"
+                      : "text-white hover:text-teal-100 transition-colors duration-300"
                   }`}
                   onClick={() => toggleDropdown("servicesDesktop")}
                   type="button"
@@ -188,10 +179,11 @@ const Layout: React.FC = () => {
                   />
                 </button>
                 <div
-                  className={`absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 z-10 transition-all duration-300 origin-top-left ${
+                  ref={servicesDropdownRef}
+                  className={`absolute left-1/2 top-full -translate-x-1/2 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-20 transition-all duration-300 ${
                     activeDropdown === "servicesDesktop"
-                      ? "visible opacity-100 translate-y-0"
-                      : "invisible opacity-0 -translate-y-2"
+                      ? "opacity-100 visible translate-y-0"
+                      : "opacity-0 invisible -translate-y-2"
                   }`}
                 >
                   {categories.length === 0 ? (
@@ -201,7 +193,7 @@ const Layout: React.FC = () => {
                       <Link
                         key={cat._id}
                         to={`/services/category/${cat._id}`}
-                        className="block px-4 py-2 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200"
+                        className="block px-5 py-3 text-gray-800 font-medium hover:bg-teal-50 hover:text-teal-700 rounded-lg transition-colors duration-200"
                         onClick={() => setActiveDropdown(null)}
                       >
                         {cat.categoryName}
@@ -216,7 +208,7 @@ const Layout: React.FC = () => {
                 className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
                   location.pathname === "/doctors"
                     ? "text-teal-100 after:w-full"
-                    : "text-white hover:text-teal-100"
+                    : "text-white hover:text-teal-100 transition-colors duration-300"
                 }`}
               >
                 Bác sĩ
@@ -226,7 +218,7 @@ const Layout: React.FC = () => {
                 className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
                   location.pathname === "/blog"
                     ? "text-teal-100 after:w-full"
-                    : "text-white hover:text-teal-100"
+                    : "text-white hover:text-teal-100 transition-colors duration-300"
                 }`}
               >
                 Blog
@@ -236,7 +228,7 @@ const Layout: React.FC = () => {
                 className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
                   location.pathname === "/about"
                     ? "text-teal-100 after:w-full"
-                    : "text-white hover:text-teal-100"
+                    : "text-white hover:text-teal-100 transition-colors duration-300"
                 }`}
               >
                 Giới thiệu
@@ -246,7 +238,7 @@ const Layout: React.FC = () => {
                 className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
                   location.pathname === "/contact"
                     ? "text-teal-100 after:w-full"
-                    : "text-white hover:text-teal-100"
+                    : "text-white hover:text-teal-100 transition-colors duration-300"
                 }`}
               >
                 Liên hệ
@@ -255,116 +247,23 @@ const Layout: React.FC = () => {
 
             {/* Desktop Buttons */}
             <div className="hidden md:flex items-center space-x-4">
-              {/* <Link
-                to="/appointment"
-                className="bg-white text-teal-700 hover:bg-teal-50 px-5 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow transform hover:-translate-y-0.5"
-              >
-                Đặt lịch khám
-              </Link> */}
               <div className="h-6 w-px bg-teal-600"></div>
               {!isAuthPage && user ? (
-                <div className="relative group flex items-center">
-                  {/* Bell icon with badge and dropdown */}
-                  <div className="relative">
-                    <button
-                      className="relative mr-3"
-                      onClick={() => toggleDropdown("notificationDesktop")}
-                      aria-label="Thông báo booking"
-                    >
-                      <span className="relative">
-                        <Bell className="w-6 h-6 text-teal-100" />
-                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5">
-                          {loading ? "..." : sortedNotifications.length}
-                        </span>
-                      </span>
-                    </button>
-                    {/* Notification Dropdown */}
-                    <div
-                      className={`absolute left-1/2 top-full -translate-x-1/2 mt-2 w-96 bg-white rounded-lg shadow-xl py-2 z-10 transition-all duration-300 ${
-                        activeDropdown === "notificationDesktop"
-                          ? "opacity-100 visible translate-y-0"
-                          : "opacity-0 invisible -translate-y-2"
-                      }`}
-                    >
-                      <div className="px-4 py-2 border-b border-gray-100">
-                        <h3 className="text-lg font-semibold text-gray-800">Thông báo đặt lịch</h3>
-                        {/* Lời nhắc nhở cho user */}
-                        <div className="flex items-center mt-2 bg-yellow-50 border-l-4 border-yellow-400 p-2 rounded-md">
-                          <svg className="w-5 h-5 text-yellow-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" /></svg>
-                          <span className="text-yellow-800 text-sm font-medium">Bạn nên kiểm tra lịch hẹn trong hồ sơ cá nhân để không bỏ lỡ dịch vụ đã đặt.</span>
-                        </div>
-                      </div>
-                      <div className="max-h-96 overflow-y-auto">
-                        {loading ? (
-                          <p className="px-4 py-3 text-gray-500 text-center">Đang tải...</p>
-                        ) : error ? (
-                          <p className="px-4 py-3 text-red-500 text-center">{error}</p>
-                        ) : sortedNotifications.length === 0 ? (
-                          <p className="px-4 py-3 text-gray-500 text-center">Chưa có thông báo nào</p>
-                        ) : (
-                          sortedNotifications.map((notification, idx) => (
-                            <div
-                              key={notification._id || idx}
-                              className="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-                            >
-                              <div className="flex justify-between items-start">
-                                <div>
-                                  <p className="font-medium text-gray-800">
-                                    Thông báo: {notification.notiName || "Thông báo"}
-                                  </p>
-                                  <p className="text-sm text-gray-600">
-                                    Dịch vụ: {notification.bookingId.serviceId.serviceName || "Chi tiết không có"}
-                                  </p>
-                                  <p className="text-sm text-gray-600">
-                                    Time: {notification.bookingId.startTime || "Chi tiết không có"} -{" "}
-                                    {notification.bookingId.endTime || "Chi tiết không có"}
-                                  </p>
-                                  <p className="text-sm text-gray-600">
-                                    Giá tiền: {notification.bookingId.serviceId.price || "Chi tiết không có"}
-                                  </p>
-                                </div>
-                                <span
-                                  className={`px-2 py-1 text-xs font-medium rounded-full bg-gradient-to-r text-white ${getBookingStatusColor(
-                                    notification.bookingId.status
-                                  )}`}
-                                >
-                                  {translateBookingStatus(notification.bookingId.status) || "Chờ xác nhận"}
-                                </span>
-                              </div>
-                              <div className="mt-2 flex justify-end">
-                                <Link
-                                  to="#"
-                                  className="text-teal-600 hover:text-teal-800 text-sm font-medium underline"
-                                  onClick={() => {
-                                    setSelectedNotification(notification);
-                                    setShowModal(true);
-                                    setActiveDropdown(null);
-                                  }}
-                                >
-                                  Xem chi tiết
-                                </Link>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                      <div className="px-4 py-2 border-t border-gray-100">
-                        <button
-                          className="w-full text-center text-sm text-teal-600 hover:text-teal-700 font-medium"
-                          onClick={() => setActiveDropdown(null)}
-                        >
-                          Đóng
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                <div className="relative group flex items-center space-x-3">
+                  {/* Notification Bell */}
+                  <NotificationBell notifications={notifications} loading={loading} error={error} />
+
+                  {/* User Avatar */}
                   <div
-                    className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium text-lg uppercase cursor-pointer"
+                    className="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-medium text-lg uppercase cursor-pointer hover:bg-teal-500 transition-colors duration-200"
                     onClick={() => toggleDropdown("userDesktop")}
                   >
                     {user?.email?.charAt(0) ?? ""}
                   </div>
+
+                  {/* User Dropdown */}
                   <div
+                    ref={userDropdownRef}
                     className={`absolute left-1/2 top-full -translate-x-1/2 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-20 transition-all duration-300 ${
                       activeDropdown === "userDesktop"
                         ? "opacity-100 visible translate-y-0"
@@ -421,13 +320,13 @@ const Layout: React.FC = () => {
                   <div className="flex items-center space-x-3">
                     <Link
                       to="/login"
-                      className="text-white hover:text-teal-100 font-medium transition-colors duration-300 flex items-center"
+                      className="text-white hover:text-teal-100 font-medium transition-colors duration-300 flex items-center hover:shadow-md"
                     >
                       Đăng nhập
                     </Link>
                     <Link
                       to="/register"
-                      className="bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow transform hover:-translate-y-0.5"
+                      className="bg-teal-600 hover:bg-teal-500 px-4 py-2 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
                     >
                       Đăng ký
                     </Link>
@@ -438,7 +337,7 @@ const Layout: React.FC = () => {
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden text-white focus:outline-none p-2 rounded-lg hover:bg-teal-600 transition-colors duration-300"
+              className="md:hidden text-white focus:outline-none p-2 rounded-lg hover:bg-teal-600 transition-colors duration-300 hover:shadow-md"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label={isMenuOpen ? "Đóng menu" : "Mở menu"}
             >
@@ -460,18 +359,18 @@ const Layout: React.FC = () => {
                 className={`py-2.5 font-medium transition-colors duration-200 rounded-md px-3 ${
                   location.pathname === "/"
                     ? "bg-teal-700 text-white"
-                    : "text-white hover:bg-teal-700/50"
+                    : "text-white hover:bg-teal-700/50 hover:shadow-md"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Trang chủ
               </Link>
 
-              {/* Dropdown Mobile */}
+              {/* Mobile Services Dropdown */}
               <div className="py-2">
                 <button
                   className={`text-white font-medium flex items-center justify-between w-full rounded-md px-3 py-2 ${
-                    activeDropdown === "servicesMobile" ? "bg-teal-700" : "hover:bg-teal-700/50"
+                    activeDropdown === "servicesMobile" ? "bg-teal-700" : "hover:bg-teal-700/50 hover:shadow-md"
                   }`}
                   onClick={() => toggleDropdown("servicesMobile")}
                 >
@@ -494,7 +393,7 @@ const Layout: React.FC = () => {
                       <Link
                         key={cat._id}
                         to={`/services/${cat._id}`}
-                        className="block py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
+                        className="block py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200 hover:shadow-md"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         {cat.categoryName}
@@ -509,7 +408,7 @@ const Layout: React.FC = () => {
                 className={`py-2.5 font-medium transition-colors duration-200 rounded-md px-3 ${
                   location.pathname === "/doctors"
                     ? "bg-teal-700 text-white"
-                    : "text-white hover:bg-teal-700/50"
+                    : "text-white hover:bg-teal-700/50 hover:shadow-md"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -520,7 +419,7 @@ const Layout: React.FC = () => {
                 className={`py-2.5 font-medium transition-colors duration-200 rounded-md px-3 ${
                   location.pathname === "/blog"
                     ? "bg-teal-700 text-white"
-                    : "text-white hover:bg-teal-700/50"
+                    : "text-white hover:bg-teal-700/50 hover:shadow-md"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -531,7 +430,7 @@ const Layout: React.FC = () => {
                 className={`py-2.5 font-medium transition-colors duration-200 rounded-md px-3 ${
                   location.pathname === "/about"
                     ? "bg-teal-700 text-white"
-                    : "text-white hover:bg-teal-700/50"
+                    : "text-white hover:bg-teal-700/50 hover:shadow-md"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
@@ -542,25 +441,19 @@ const Layout: React.FC = () => {
                 className={`py-2.5 font-medium transition-colors duration-200 rounded-md px-3 ${
                   location.pathname === "/contact"
                     ? "bg-teal-700 text-white"
-                    : "text-white hover:bg-teal-700/50"
+                    : "text-white hover:bg-teal-700/50 hover:shadow-md"
                 }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Liên hệ
               </Link>
+
               <div className="pt-2 border-t border-teal-700/50 mt-2">
-                <Link
-                  to="/appointment"
-                  className="bg-white text-teal-700 hover:bg-teal-50 px-5 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow inline-block text-center w-full mb-3"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Đặt lịch khám
-                </Link>
                 {!isAuthPage && user ? (
                   <div className="py-2">
                     <button
                       className={`text-white font-medium flex items-center justify-between w-full rounded-md px-3 py-2 ${
-                        activeDropdown === "userMobile" ? "bg-teal-700" : "hover:bg-teal-700/50"
+                        activeDropdown === "userMobile" ? "bg-teal-700" : "hover:bg-teal-700/50 hover:shadow-md"
                       }`}
                       onClick={() => toggleDropdown("userMobile")}
                     >
@@ -580,14 +473,14 @@ const Layout: React.FC = () => {
                     >
                       <Link
                         to="/user/profile"
-                        className="block py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
+                        className="block py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200 hover:shadow-md"
                         onClick={() => setActiveDropdown(null)}
                       >
                         Hồ sơ
                       </Link>
                       <button
                         onClick={handleLogout}
-                        className="block w-full text-left py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200"
+                        className="block w-full text-left py-2 px-3 text-teal-100 hover:text-white hover:bg-teal-700/30 rounded-md transition-colors duration-200 hover:shadow-md"
                       >
                         Đăng xuất
                       </button>
@@ -598,14 +491,14 @@ const Layout: React.FC = () => {
                     <div className="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
                       <Link
                         to="/login"
-                        className="text-white hover:text-teal-100 font-medium transition-colors duration-200 bg-teal-700/50 hover:bg-teal-700 py-2.5 px-4 rounded-lg text-center"
+                        className="text-white hover:text-teal-100 font-medium transition-colors duration-200 bg-teal-700/50 hover:bg-teal-700 py-2.5 px-4 rounded-lg text-center hover:shadow-md"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Đăng nhập
                       </Link>
                       <Link
                         to="/register"
-                        className="bg-teal-600 hover:bg-teal-500 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow text-center"
+                        className="bg-teal-600 hover:bg-teal-500 px-4 py-2.5 rounded-lg font-medium transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Đăng ký
@@ -624,7 +517,7 @@ const Layout: React.FC = () => {
         <Outlet />
       </main>
 
-      {/* Footer */}
+      {/* Footer - keeping the same as original */}
       <footer className="bg-gradient-to-r from-teal-800 to-teal-900 text-white shadow-inner relative">
         {/* Wave Separator */}
         <div className="absolute top-0 left-0 w-full overflow-hidden leading-none h-12">
@@ -641,20 +534,19 @@ const Layout: React.FC = () => {
             ></path>
           </svg>
         </div>
-
         <div className="container mx-auto px-4 pt-20 pb-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* About */}
             <div className="relative z-10">
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mr-3 shadow-md transform transition-transform duration-500 hover:rotate-12">
+                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mr-3 shadow-md transform transition-transform duration-500 hover:rotate-12 hover:shadow-lg">
                   <span className="text-teal-700 font-bold text-xl">HC</span>
                 </div>
                 <span className="text-2xl font-bold tracking-tight">HIV Care</span>
               </div>
               <p className="text-teal-100 mb-8 leading-relaxed">
-                Chúng tôi cung cấp dịch vụ chăm sóc sức khỏe toàn diện cho người sống chung với HIV, với đội ngũ y bác sĩ
-                chuyên nghiệp và tận tâm.
+                Chúng tôi cung cấp dịch vụ chăm sóc sức khỏe toàn diện cho người sống chung với HIV, với đội ngũ y bác
+                sĩ chuyên nghiệp và tận tâm.
               </p>
               <div className="flex space-x-4">
                 {[
@@ -674,7 +566,6 @@ const Layout: React.FC = () => {
                 ))}
               </div>
             </div>
-
             {/* Services */}
             <div className="relative z-10">
               <h3 className="text-xl font-semibold mb-6 text-white relative inline-block">
@@ -692,7 +583,7 @@ const Layout: React.FC = () => {
                   <li key={index}>
                     <Link
                       to={service.path}
-                      className="text-teal-100 hover:text-white transition-all duration-300 flex items-center group"
+                      className="text-teal-100 hover:text-white transition-all duration-300 flex items-center group hover:shadow-md"
                     >
                       <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2.5 group-hover:w-2 group-hover:h-2 transition-all duration-300"></span>
                       <span className="group-hover:translate-x-0.5 transition-transform duration-300">
@@ -703,7 +594,6 @@ const Layout: React.FC = () => {
                 ))}
               </ul>
             </div>
-
             {/* Useful Links */}
             <div className="relative z-10">
               <h3 className="text-xl font-semibold mb-6 text-white relative inline-block">
@@ -721,7 +611,7 @@ const Layout: React.FC = () => {
                   <li key={index}>
                     <Link
                       to={link.path}
-                      className="text-teal-100 hover:text-white transition-all duration-300 flex items-center group"
+                      className="text-teal-100 hover:text-white transition-all duration-300 flex items-center group hover:shadow-md"
                     >
                       <span className="w-1.5 h-1.5 bg-teal-400 rounded-full mr-2.5 group-hover:w-2 group-hover:h-2 transition-all duration-300"></span>
                       <span className="group-hover:translate-x-0.5 transition-transform duration-300">{link.name}</span>
@@ -730,7 +620,6 @@ const Layout: React.FC = () => {
                 ))}
               </ul>
             </div>
-
             {/* Contact */}
             <div className="relative z-10">
               <h3 className="text-xl font-semibold mb-6 text-white relative inline-block">
@@ -760,7 +649,6 @@ const Layout: React.FC = () => {
             </div>
           </div>
         </div>
-
         {/* Copyright */}
         <div className="bg-teal-950 py-5">
           <div className="container mx-auto px-4">
@@ -773,7 +661,7 @@ const Layout: React.FC = () => {
                   <li>
                     <Link
                       to="/privacy"
-                      className="text-teal-200 hover:text-white transition-colors duration-300 hover:underline"
+                      className="text-teal-200 hover:text-white transition-colors duration-300 hover:underline hover:shadow-md"
                     >
                       Chính sách bảo mật
                     </Link>
@@ -781,7 +669,7 @@ const Layout: React.FC = () => {
                   <li>
                     <Link
                       to="/terms"
-                      className="text-teal-200 hover:text-white transition-colors duration-300 hover:underline"
+                      className="text-teal-200 hover:text-white transition-colors duration-300 hover:underline hover:shadow-md"
                     >
                       Điều khoản sử dụng
                     </Link>
@@ -791,11 +679,10 @@ const Layout: React.FC = () => {
             </div>
           </div>
         </div>
-
         {/* Back to top button */}
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-teal-600 text-white flex items-center justify-center shadow-lg hover:bg-teal-500 transition-all duration-300 transform hover:-translate-y-1 z-50 focus:outline-none"
+          className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-teal-600 text-white flex items-center justify-center shadow-lg hover:bg-teal-500 transition-all duration-300 transform hover:-translate-y-1 z-50 focus:outline-none hover:shadow-xl"
           aria-label="Lên đầu trang"
         >
           <svg
@@ -810,68 +697,6 @@ const Layout: React.FC = () => {
         </button>
       </footer>
 
-      {showModal && selectedNotification && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl p-8 relative flex flex-col items-center animate-fade-in">
-            <button
-              className="absolute top-4 right-4 text-gray-400 hover:text-red-500 text-2xl font-bold focus:outline-none transition-colors duration-200"
-              onClick={() => setShowModal(false)}
-              aria-label="Đóng"
-              style={{ lineHeight: 1 }}
-            >
-              ×
-            </button>
-
-            <div className="flex flex-col items-center mb-4">
-              <div className="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center mb-2 shadow">
-                <Bell className="w-8 h-8 text-teal-600" />
-              </div>
-              <h2 className="text-2xl font-bold mb-1 text-teal-700 text-center">Chi tiết thông báo</h2>
-              <div className="text-gray-500 text-sm mb-2">{new Date(selectedNotification.createdAt).toLocaleString()}</div>
-            </div>
-            <div className="w-full space-y-3">
-              <div className="flex items-center">
-                <span className="w-40 font-semibold text-gray-700">Tên thông báo:</span>
-                <span className="text-teal-700 font-medium">{selectedNotification.notiName}</span>
-              </div>
-              <div className="flex items-center">
-                <span className="w-40 font-semibold text-gray-700">Mô tả:</span>
-                <span className="text-gray-800">{selectedNotification.notiDescription}</span>
-              </div>
-              <div className="flex items-center">
-                <span className="w-40 font-semibold text-gray-700">Trạng thái booking:</span>
-                <span
-                  className={`font-semibold px-2 py-1 rounded-lg bg-gradient-to-r text-white ${getBookingStatusColor(
-                    selectedNotification.bookingId?.status
-                  )}`}
-                >
-                  {translateBookingStatus(selectedNotification.bookingId?.status) || "Chờ xác nhận"}
-                </span>
-              </div>
-              <div className="flex items-center">
-                <span className="w-40 font-semibold text-gray-700">Dịch vụ:</span>
-                <span className="text-blue-700 font-medium">{selectedNotification.bookingId?.serviceId?.serviceName}</span>
-              </div>
-              <div className="flex items-center">
-                <span className="w-40 font-semibold text-gray-700">Bác sĩ:</span>
-                <span className="text-gray-800">{selectedNotification.bookingId?.doctorName}</span>
-              </div>
-              <div className="flex items-center">
-                <span className="w-40 font-semibold text-gray-700">Người đặt:</span>
-                <span className="text-gray-800">{selectedNotification.bookingId?.userId?.userName}</span>
-              </div>
-              <div className="flex items-center">
-                <span className="w-40 font-semibold text-gray-700">Thời gian:</span>
-                <span className="text-gray-800">{selectedNotification.bookingId?.startTime} - {selectedNotification.bookingId?.endTime}</span>
-              </div>
-              <div className="flex items-center">
-                <span className="w-40 font-semibold text-gray-700">Giá tiền:</span>
-                <span className="text-rose-600 font-semibold">{selectedNotification.bookingId?.serviceId?.price ? Number(selectedNotification.bookingId?.serviceId?.price).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }) : ''}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
       <ToastContainer />
     </div>
   );

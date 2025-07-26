@@ -34,7 +34,7 @@ const PatientManagement: React.FC = () => {
     return (
       booking.serviceId.serviceName?.toLowerCase().includes(searchLower) ||
       booking.bookingCode?.toLowerCase().includes(searchLower) ||
-      booking.userId.userName?.toLowerCase().includes(searchLower)
+      booking.userId?.userName?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -78,7 +78,7 @@ const PatientManagement: React.FC = () => {
                 {filteredBookings.map((booking) => (
                   <tr key={booking._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                      {booking.userId.userName}
+                      {booking.userId?.userName ?? 'Không có'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                       {booking.serviceId.serviceDescription}

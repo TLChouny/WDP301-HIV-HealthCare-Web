@@ -1,3 +1,4 @@
+// src/pages/Home.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -16,6 +17,7 @@ import doingubacsi from "../../assets/doingubacsi.png";
 import doingubacsi2 from "../../assets/doingubacsi2.png";
 import doingubacsi3 from "../../assets/doingubacsi3.png";
 import { toast } from "react-toastify";
+// import ConsultationModal from "../../components/ConsultationModal";
 
 // Hàm tiện ích để kiểm tra nếu element trong viewport
 const useInView = (ref: React.RefObject<HTMLElement>, threshold = 0.1) => {
@@ -54,14 +56,14 @@ interface AnimatedElementProps {
   delay?: number;
   duration?: number;
   animationType?:
-  | "fade-up"
-  | "fade-down"
-  | "fade-left"
-  | "fade-right"
-  | "zoom-in"
-  | "zoom-out"
-  | "flip"
-  | "bounce";
+    | "fade-up"
+    | "fade-down"
+    | "fade-left"
+    | "fade-right"
+    | "zoom-in"
+    | "zoom-out"
+    | "flip"
+    | "bounce";
 }
 
 const AnimatedElement: React.FC<AnimatedElementProps> = ({
@@ -226,6 +228,7 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showNotification, setShowNotification] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal
 
   useEffect(() => {
     const handleScroll = () => {
@@ -238,12 +241,10 @@ const Home: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Handle navigation and show notification if /services is not available
+  // Handle navigation and open modal for consultation
   const handleBookConsultation = () => {
-    toast.info("Vui lòng lựa chọn dịch vụ phù hợp để đặt khám bệnh", {
-      position: "top-right",
-      autoClose: 3000,
-    });
+    // Chuyển hướng thẳng đến trang appointment với serviceId
+    navigate("/appointment?serviceId=6884c1b3dc415d604a31d5f5");
   };
 
   return (
@@ -876,6 +877,9 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Consultation Modal */}
+      {/* <ConsultationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} /> */}
     </div>
   );
 };

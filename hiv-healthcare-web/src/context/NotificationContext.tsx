@@ -17,7 +17,7 @@ interface NotificationContextType {
   error: string | null;
   createNotificationHandler: (notificationData: Partial<Notification>) => Promise<void>;
   getNotificationByIdHandler: (id: string) => Promise<void>;
-  getNotificationsByUserIdHandler: (userId: string) => Promise<void>;
+  getNotificationsByUserIdHandler: (userId: string) => Promise<Notification[]>; // ✅ Sửa chỗ này
   updateNotificationByIdHandler: (id: string, notificationData: Partial<Notification>) => Promise<void>;
   deleteNotificationByIdHandler: (id: string) => Promise<void>;
 }
@@ -81,20 +81,25 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
-  const getNotificationsByUserIdHandler = useCallback(
-    async (userId: string) => {
-      setLoading(true);
-      try {
-        const response = await getNotificationsByUserId(userId);
-        setNotifications(response.data || []);
-      } catch (err) {
-        setError('Failed to fetch notifications');
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
+const getNotificationsByUserIdHandler = useCallback(
+  async (userId: string): Promise<Notification[]> => {
+    setLoading(true);
+    try {
+      const response = await getNotificationsByUserId(userId);
+      const data = response.data || [];
+      setNotifications(data);
+      return data; // ✅ Trả về array để chỗ gọi có thể dùng
+    } catch (err) {
+      setError('Failed to fetch notifications');
+      console.error("Error fetching notifications:", err);
+      return []; // fallback
+    } finally {
+      setLoading(false);
+    }
+  },
+  []
+);
+
 
   const updateNotificationByIdHandler = async (id: string, notificationData: Partial<Notification>) => {
     setLoading(true);
