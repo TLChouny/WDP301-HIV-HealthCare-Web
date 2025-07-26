@@ -96,36 +96,12 @@ const AdminRevenue: React.FC = () => {
       width: 170,
       render: (date: string) => new Date(date).toLocaleString('vi-VN'),
     },
-    {
-      title: 'QR Code',
-      dataIndex: 'qrCode',
-      key: 'qrCode',
-      width: 100,
-      render: (qr: string) => qr ? (
-        <Tooltip title="Copy mã QR">
-          <Button type="link" onClick={() => handleCopy(qr)} size="small">QR</Button>
-        </Tooltip>
-      ) : '',
-    },
-    {
-      title: 'Hành động',
-      key: 'action',
-      width: 120,
-      render: (_: any, record: Payment) => (
-        <div className="flex space-x-2">
-          <Tooltip title="Copy link thanh toán">
-            <Button type="link" icon={<Copy />} onClick={() => record.checkoutUrl && handleCopy(record.checkoutUrl)} disabled={!record.checkoutUrl} />
-          </Tooltip>
-          <Tooltip title="Xem chi tiết">
-            <Button type="link" icon={<Eye />} onClick={() => record.checkoutUrl && window.open(record.checkoutUrl, '_blank')} disabled={!record.checkoutUrl} />
-          </Tooltip>
-        </div>
-      ),
-    },
+    // ĐÃ XÓA CỘT 'QR Code' và 'Hành động'
   ];
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    // THAY ĐỔI Ở ĐÂY: Thêm background gradient
+    <div className="p-6 bg-gradient-to-br from-blue-50 via-white to-teal-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow flex flex-col md:flex-row md:items-center md:justify-between p-8 mb-8 gap-6">
@@ -164,7 +140,9 @@ const AdminRevenue: React.FC = () => {
           dataSource={filteredPayments}
           rowKey="_id"
           loading={loading}
-          scroll={{ x: 900 }}
+          // Xóa scroll X nếu các cột bị xóa làm giảm tổng chiều rộng
+          // Nếu bạn có nhiều cột hơn trong tương lai, hãy cân nhắc lại thuộc tính này
+          // scroll={{ x: 900 }} 
           pagination={{ pageSize: 10 }}
         />
       </div>

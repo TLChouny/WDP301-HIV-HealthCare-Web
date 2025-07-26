@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getAllServices, createService, updateService, deleteService } from '../../api/serviceApi';
 import { getAllCategories } from '../../api/categoryApi';
 import { Button, Modal, Form, Input, message, Select } from 'antd';
-import { Plus, Edit, Trash2, Search, Eye, Briefcase } from 'lucide-react'; // Thêm icon Briefcase
+import { Plus, Edit, Trash2, Search, Eye, Briefcase } from 'lucide-react';
 import type { Service } from '../../types/service';
 import type { Category } from '../../types/category';
 import { Link } from 'react-router-dom';
@@ -37,7 +37,7 @@ const ServicesManagements: React.FC = () => {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchServicesAndCategories();
   }, []);
@@ -66,6 +66,7 @@ const ServicesManagements: React.FC = () => {
     setEditingService(service);
     setIsEditModalOpen(true);
     setEditImageUrl(service.serviceImage || '');
+
     setTimeout(() => {
       editForm.setFieldsValue({
         serviceName: service.serviceName,
@@ -73,6 +74,7 @@ const ServicesManagements: React.FC = () => {
         categoryId: typeof service.categoryId === 'object' ? service.categoryId._id : service.categoryId,
         duration: service.duration,
         price: service.price,
+        serviceImage: service.serviceImage
       });
     }, 0);
   };
@@ -115,7 +117,6 @@ const ServicesManagements: React.FC = () => {
     setUrl(e.target.value);
   };
 
-  // YÊU CẦU 3: Thêm hiệu ứng loading toàn trang
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-teal-50">
@@ -128,9 +129,9 @@ const ServicesManagements: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    // THAY ĐỔI Ở ĐÂY: Thêm background gradient
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* YÊU CẦU 1: Header được cập nhật */}
         <div className="bg-white rounded-2xl shadow flex flex-col md:flex-row md:items-center md:justify-between p-8 mb-8 gap-6">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 bg-gradient-to-r from-teal-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
@@ -164,111 +165,141 @@ const ServicesManagements: React.FC = () => {
           </div>
         </div>
 
-        {/* YÊU CẦU 2: Thêm thanh trượt cho table */}
         <div className="bg-white rounded-lg shadow overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên dịch vụ</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mô tả</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Danh mục</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ảnh</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thời lượng (phút)</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giá (VNĐ)</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredServices.map((service) => {
-                  const category = categories.find((c) => c._id === (typeof service.categoryId === 'object' ? service.categoryId._id : service.categoryId));
-                  return (
-                    <tr key={service._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{service.serviceName}</div>
-                      </td>
-                      {/* YÊU CẦU 2: Giới hạn ký tự mô tả */}
-                      <td className="px-6 py-4 whitespace-nowrap max-w-[250px] overflow-hidden text-ellipsis">
-                        <div className="text-sm text-gray-500" title={service.serviceDescription || ''}>
-                          {service.serviceDescription}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{category?.categoryName || 'N/A'}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {service.serviceImage && (
-                          <img src={service.serviceImage} alt={service.serviceName} className="w-16 h-10 object-cover rounded" />
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {service.duration || ''}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {service.price ? Number(service.price).toLocaleString('vi-VN') : ''}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <Link to={`/admin/services/${service._id}`}>
-                            <Button
-                              type="link"
-                              className="text-gray-600"
-                              icon={<Eye className="w-5 h-5" />}
-                            />
-                          </Link>
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên dịch vụ</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mô tả</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Danh mục</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ảnh</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thời lượng (phút)</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giá (VNĐ)</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredServices.map((service) => {
+                const category = categories.find((c) => c._id === (typeof service.categoryId === 'object' ? service.categoryId._id : service.categoryId));
+                return (
+                  <tr key={service._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{service.serviceName}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap max-w-[250px] overflow-hidden text-ellipsis">
+                      <div className="text-sm text-gray-500" title={service.serviceDescription || ''}>
+                        {service.serviceDescription}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-500">{category?.categoryName || 'N/A'}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {service.serviceImage && (
+                        <img src={service.serviceImage} alt={service.serviceName} className="w-16 h-10 object-cover rounded" />
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {service.duration || ''}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {service.price ? Number(service.price).toLocaleString('vi-VN') : ''}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <div className="flex space-x-2">
+                        <Link to={`/admin/services/${service._id}`}>
                           <Button
                             type="link"
-                            className="text-blue-600"
-                            icon={<Edit className="w-5 h-5" />}
-                            onClick={() => handleEditService(service)}
+                            className="text-gray-600"
+                            icon={<Eye className="w-5 h-5" />}
                           />
-                          <Button
-                            type="link"
-                            className="text-red-600"
-                            icon={<Trash2 className="w-5 h-5" style={{ color: 'red' }} />}
-                            onClick={() => handleDeleteService(service)}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                        </Link>
+                        <Button
+                          type="link"
+                          className="text-blue-600"
+                          icon={<Edit className="w-5 h-5" />}
+                          onClick={() => handleEditService(service)}
+                        />
+                        <Button
+                          type="link"
+                          className="text-red-600"
+                          icon={<Trash2 className="w-5 h-5" style={{ color: 'red' }} />}
+                          onClick={() => handleDeleteService(service)}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-        
+
         {/* Modal for Add Service */}
         <Modal
           title="Thêm dịch vụ mới"
           open={isAddModalOpen}
-          onCancel={() => setIsAddModalOpen(false)}
+          onCancel={() => {
+            setIsAddModalOpen(false);
+            addForm.resetFields();
+            setImageUrl('');
+          }}
           footer={null}
           destroyOnClose
         >
           <Form form={addForm} layout="vertical" onFinish={handleAddService}>
-            <Form.Item label="Tên dịch vụ *" name="serviceName" rules={[{ required: true, message: 'Vui lòng nhập tên dịch vụ' }]}>
+            <Form.Item
+              label="Tên dịch vụ *"
+              name="serviceName"
+              rules={[{ required: true, message: 'Vui lòng nhập tên dịch vụ!' }]} // Thêm validation
+            >
               <Input />
             </Form.Item>
-            <Form.Item label="Mô tả" name="serviceDescription">
+            <Form.Item
+              label="Mô tả *"
+              name="serviceDescription"
+              rules={[{ required: true, message: 'Vui lòng nhập mô tả dịch vụ!' }]} // Thêm validation
+            >
               <Input.TextArea rows={3} />
             </Form.Item>
-            <Form.Item label="Danh mục *" name="categoryId" rules={[{ required: true, message: 'Vui lòng chọn danh mục' }]}> 
+            <Form.Item
+              label="Danh mục *"
+              name="categoryId"
+              rules={[{ required: true, message: 'Vui lòng chọn danh mục!' }]} // Thêm validation
+            >
               <Select placeholder="Chọn danh mục">
                 {categories.map((cat) => (
                   <Select.Option key={cat._id} value={cat._id}>{cat.categoryName}</Select.Option>
                 ))}
               </Select>
             </Form.Item>
-            <Form.Item label="Link ảnh (URL)" name="serviceImage">
+            <Form.Item
+              label="Link ảnh (URL) *"
+              name="serviceImage"
+              rules={[{ required: true, message: 'Vui lòng cung cấp link ảnh!' }]} // Thêm validation
+            >
               <Input placeholder="Dán link ảnh" value={imageUrl} onChange={(e) => handleImageChange(e, setImageUrl)} />
             </Form.Item>
-            <Form.Item label="Thời lượng (phút)" name="duration">
+            <Form.Item
+              label="Thời lượng (phút) *"
+              name="duration"
+              rules={[{ required: true, message: 'Vui lòng nhập thời lượng dịch vụ!' }]} // Thêm validation
+            >
               <Input type="number" min={1} />
             </Form.Item>
-            <Form.Item label="Giá (VNĐ)" name="price">
+            <Form.Item
+              label="Giá (VNĐ) *"
+              name="price"
+              rules={[{ required: true, message: 'Vui lòng nhập giá dịch vụ!' }]} // Thêm validation
+            >
               <Input type="number" min={0} />
             </Form.Item>
             <div className="flex justify-end space-x-2 mt-6">
-              <Button onClick={() => setIsAddModalOpen(false)} disabled={adding}> Hủy </Button>
+              <Button onClick={() => {
+                setIsAddModalOpen(false);
+                addForm.resetFields();
+                setImageUrl('');
+              }} disabled={adding}> Hủy </Button>
               <Button type="primary" htmlType="submit" loading={adding}> Thêm </Button>
             </div>
           </Form>
@@ -278,36 +309,70 @@ const ServicesManagements: React.FC = () => {
         <Modal
           title="Chỉnh sửa dịch vụ"
           open={isEditModalOpen}
-          onCancel={() => setIsEditModalOpen(false)}
+          onCancel={() => {
+            setIsEditModalOpen(false);
+            editForm.resetFields();
+            setEditingService(null);
+            setEditImageUrl('');
+          }}
           footer={null}
           destroyOnClose
         >
           <Form form={editForm} layout="vertical" onFinish={handleUpdateService}>
-            <Form.Item label="Tên dịch vụ *" name="serviceName" rules={[{ required: true, message: 'Vui lòng nhập tên dịch vụ' }]}>
+            <Form.Item
+              label="Tên dịch vụ *"
+              name="serviceName"
+              rules={[{ required: true, message: 'Vui lòng nhập tên dịch vụ!' }]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item label="Mô tả" name="serviceDescription">
+            <Form.Item
+              label="Mô tả"
+              name="serviceDescription"
+            >
               <Input.TextArea rows={3} />
             </Form.Item>
-            <Form.Item label="Danh mục *" name="categoryId" rules={[{ required: true, message: 'Vui lòng chọn danh mục' }]}> 
+            <Form.Item
+              label="Danh mục *"
+              name="categoryId"
+              rules={[{ required: true, message: 'Vui lòng chọn danh mục!' }]}
+            >
               <Select placeholder="Chọn danh mục">
                 {categories.map((cat) => (
                   <Select.Option key={cat._id} value={cat._id}>{cat.categoryName}</Select.Option>
                 ))}
               </Select>
             </Form.Item>
-            <Form.Item label="Link ảnh (URL)" name="serviceImage">
-              <Input placeholder="Dán link ảnh" value={editImageUrl} onChange={(e) => handleImageChange(e, setEditImageUrl)} />
+            <Form.Item
+              label="Link ảnh (URL)"
+              name="serviceImage"
+            >
+              <Input
+                placeholder="Dán link ảnh"
+                value={editImageUrl}
+                onChange={(e) => handleImageChange(e, setEditImageUrl)}
+              />
             </Form.Item>
-            <Form.Item label="Thời lượng (phút)" name="duration">
+            <Form.Item
+              label="Thời lượng (phút)"
+              name="duration"
+            >
               <Input type="number" min={1} />
             </Form.Item>
-            <Form.Item label="Giá (VNĐ)" name="price">
+            <Form.Item
+              label="Giá (VNĐ)"
+              name="price"
+            >
               <Input type="number" min={0} />
             </Form.Item>
             <div className="flex justify-end space-x-2 mt-6">
-              <Button onClick={() => setIsEditModalOpen(false)} disabled={saving}> Hủy </Button>
-              <Button type="primary" htmlType="submit" loading={saving}> Lưu thay đổi </Button>
+              <Button onClick={() => {
+                setIsEditModalOpen(false);
+                editForm.resetFields();
+                setEditingService(null);
+                setEditImageUrl('');
+              }} disabled={saving}> Hủy </Button>
+              <Button type="primary" htmlType="submit" loading={saving}> Lưu </Button>
             </div>
           </Form>
         </Modal>

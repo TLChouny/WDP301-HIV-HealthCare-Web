@@ -6,7 +6,7 @@ import {
   Edit,
   Trash2,
   User as UserIcon,
-  Eye, // Add Eye icon
+  Eye,
 } from 'lucide-react';
 import { getAllUsers, updateUser, deleteUser, createUser } from '../../api/authApi';
 import type { User } from '../../types/user';
@@ -22,22 +22,29 @@ const RoleManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<{ userName: string; role: string; phone_number: string }>({ userName: '', role: 'user', phone_number: '' });
   const [saving, setSaving] = useState(false);
-  const [form] = Form.useForm();
+  const [form] = Form.useForm(); // Form cho chỉnh sửa
+
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
-  const [addForm] = Form.useForm();
+  const [addForm] = Form.useForm(); // Form cho thêm mới
   const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
-      setError(null);
+      setError(null); // Reset lỗi mỗi khi fetch
       try {
         const data = await getAllUsers();
-        setUsers(data);
+        // Đảm bảo data là một mảng
+        if (Array.isArray(data)) {
+          setUsers(data);
+        } else {
+          console.error("Dữ liệu trả về không phải là mảng:", data);
+          setError("Dữ liệu người dùng không hợp lệ.");
+        }
       } catch (err: any) {
-        setError(err.message || 'Lỗi khi lấy danh sách người dùng');
+        console.error("Lỗi khi lấy danh sách người dùng:", err);
+        setError(err.message || 'Lỗi khi lấy danh sách người dùng từ server.');
       } finally {
         setLoading(false);
       }
@@ -48,17 +55,34 @@ const RoleManagement: React.FC = () => {
   // Map trạng thái từ isVerified
   const getStatus = (user: User) => (user.isVerified ? 'active' : 'inactive');
 
-  // Filter
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.userName?.toLowerCase().includes(search.toLowerCase()) ||
-      user.email?.toLowerCase().includes(search.toLowerCase());
-    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
-    const matchesStatus = selectedStatus === 'all' || getStatus(user) === selectedStatus;
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  // Filter và Sort
+  const filteredAndSortedUsers = [...users] // Tạo một bản sao để không làm thay đổi state 'users' trực tiếp
+    .filter((user) => {
+      const matchesSearch =
+        user.userName?.toLowerCase().includes(search.toLowerCase()) ||
+        user.email?.toLowerCase().includes(search.toLowerCase());
+      const matchesRole = selectedRole === 'all' || user.role === selectedRole;
+      const matchesStatus = selectedStatus === 'all' || getStatus(user) === selectedStatus;
+      return matchesSearch && matchesRole && matchesStatus;
+    })
+    .sort((a, b) => {
+      // Đảm bảo role tồn tại trước khi so sánh
+      const roleA = a.role || '';
+      const roleB = b.role || '';
 
-  const roles = ['all', 'admin', 'doctor', 'staff', 'user'];
+      if (roleA === 'admin' && roleB !== 'admin') {
+        return -1; // a (admin) đứng trước b
+      }
+      if (roleA !== 'admin' && roleB === 'admin') {
+        return 1; // b (admin) đứng trước a
+      }
+      // Giữ nguyên thứ tự ban đầu cho các trường hợp còn lại
+      return 0;
+    });
+
+  const allRoles = ['admin', 'doctor', 'staff', 'user']; // Thứ tự ưu tiên cho Selects
+  const rolesForFilter = ['all', ...allRoles]; // Dùng cho bộ lọc
+
   const statuses = ['all', 'active', 'inactive'];
 
   const getRoleColor = (role: string) => {
@@ -113,24 +137,17 @@ const RoleManagement: React.FC = () => {
     }
   };
 
-  // Khi mở modal chỉnh sửa, set giá trị form
   const handleEditUser = (user: User) => {
     setEditingUser(user);
-    setEditForm({
-      userName: user.userName || '',
-      role: user.role,
-      phone_number: user.phone_number || '',
-      // Thêm userDescription nếu là doctor
-      ...(user.role === 'doctor' ? { userDescription: user.userDescription || '' } : {})
-    });
     setIsModalOpen(true);
+    // Sử dụng setTimeout để đảm bảo form đã được render trước khi setFieldsValue
     setTimeout(() => {
       form.setFieldsValue({
         userName: user.userName || '',
         role: user.role,
         phone_number: user.phone_number || '',
-        // Thêm userDescription nếu là doctor
-        ...(user.role === 'doctor' ? { userDescription: user.userDescription || '' } : {})
+        // Đảm bảo userDescription chỉ được set nếu user.role là doctor, nếu không thì undefined
+        userDescription: user.role === 'doctor' ? (user.userDescription || '') : undefined,
       });
     }, 0);
   };
@@ -144,7 +161,7 @@ const RoleManagement: React.FC = () => {
     if (values.role === 'doctor') {
       payload.userDescription = values.userDescription;
     } else {
-      payload.userDescription = undefined; // Optional: clear nếu không phải doctor
+      payload.userDescription = undefined; // Đảm bảo gửi undefined hoặc null nếu không phải doctor
     }
     return payload;
   };
@@ -160,8 +177,28 @@ const RoleManagement: React.FC = () => {
     );
   }
 
+  // Hiển thị lỗi nếu có
+  if (error && !loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-white to-red-100">
+        <div className="text-center p-8 bg-white rounded-lg shadow-md">
+          <h2 className="text-2xl font-bold text-red-700 mb-4">Có lỗi xảy ra!</h2>
+          <p className="text-lg text-gray-700">{error}</p>
+          <Button
+            type="primary"
+            className="mt-6 bg-blue-600 hover:bg-blue-700"
+            onClick={() => window.location.reload()}
+          >
+            Thử lại
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    // THAY ĐỔI Ở ĐÂY: Thêm background gradient
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6"> 
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow flex flex-col md:flex-row md:items-center md:justify-between p-8 mb-8 gap-6">
@@ -179,9 +216,9 @@ const RoleManagement: React.FC = () => {
             icon={<Plus />}
             className="!h-12 !px-8 !text-base !font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow"
             onClick={() => {
-              setIsAddModalOpen(true);
+              setIsAddModalOpen(true); // Sử dụng setIsAddModalOpen
               addForm.resetFields();
-              addForm.setFieldsValue({ role: 'user' });
+              addForm.setFieldsValue({ role: 'user' }); // Mặc định vai trò là 'user'
             }}
           >
             Thêm người dùng
@@ -208,7 +245,7 @@ const RoleManagement: React.FC = () => {
               onChange={(e) => setSelectedRole(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              {roles.map((role) => (
+              {rolesForFilter.map((role) => (
                 <option key={role} value={role}>
                   {role === 'all' ? 'Tất cả vai trò' : getRoleText(role)}
                 </option>
@@ -230,10 +267,8 @@ const RoleManagement: React.FC = () => {
 
         {/* Users List */}
         <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
-          {loading ? (
-            <div className="p-8 text-center text-gray-500">Đang tải dữ liệu...</div>
-          ) : error ? (
-            <div className="p-8 text-center text-red-500">{error}</div>
+          {filteredAndSortedUsers.length === 0 ? (
+            <div className="p-8 text-center text-gray-500">Không tìm thấy người dùng nào.</div>
           ) : (
             <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: 900 }}>
               <thead className="bg-gray-50">
@@ -262,7 +297,7 @@ const RoleManagement: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredUsers.map((user) => (
+                {filteredAndSortedUsers.map((user) => (
                   <tr key={user._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -307,8 +342,9 @@ const RoleManagement: React.FC = () => {
                           className="text-red-600"
                           icon={<Trash2 className="w-5 h-5" style={{ color: 'red' }} />}
                           onClick={() => {
+                            // Không cho phép xóa tài khoản admin
                             if (user.role === 'admin') {
-                              message.error('Không thể xóa tài khoản admin!');
+                              message.error('Không thể xóa tài khoản quản trị viên!');
                               return;
                             }
                             Modal.confirm({
@@ -321,7 +357,7 @@ const RoleManagement: React.FC = () => {
                                 try {
                                   await deleteUser(user._id);
                                   const data = await getAllUsers();
-                                  setUsers(data);
+                                  setUsers(data); // Cập nhật lại danh sách sau khi xóa
                                   message.success('Xóa người dùng thành công!');
                                 } catch (err: any) {
                                   message.error(err.message || 'Xóa người dùng thất bại');
@@ -340,23 +376,26 @@ const RoleManagement: React.FC = () => {
         </div>
       </div>
       {/* Modal for Edit User */}
-      {/* Modal for Edit User */}
       <Modal
         title="Chỉnh sửa người dùng"
         open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => {
+          setIsModalOpen(false);
+          form.resetFields(); // Reset form khi đóng
+          setEditingUser(null);
+        }}
         footer={null}
-        destroyOnClose
+        destroyOnClose // Đảm bảo form được mount lại mỗi khi mở để initialValues hoạt động tốt
       >
         <Form
           form={form}
           layout="vertical"
-          initialValues={editForm}
           onFinish={async (values) => {
             if (!editingUser) return;
 
+            // Kiểm tra đặc biệt cho tài khoản admin
             if (editingUser.role === 'admin' && values.role !== 'admin') {
-              message.error('Không thể thay đổi quyền của tài khoản admin!');
+              message.error('Không thể thay đổi quyền của tài khoản quản trị viên!');
               return;
             }
 
@@ -366,7 +405,7 @@ const RoleManagement: React.FC = () => {
               await updateUser(editingUser._id, payload);
 
               const data = await getAllUsers();
-              setUsers(data);
+              setUsers(data); // Cập nhật lại danh sách sau khi sửa
 
               setIsModalOpen(false);
               message.success('Cập nhật người dùng thành công!');
@@ -391,17 +430,17 @@ const RoleManagement: React.FC = () => {
             rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
           >
             <Select
-              disabled={editingUser?.role === 'admin'}
+              disabled={editingUser?.role === 'admin'} // Vô hiệu hóa chọn nếu là admin
               onChange={role => {
+                // Nếu vai trò không phải doctor, reset userDescription
                 if (role !== 'doctor') {
                   form.setFieldsValue({ userDescription: undefined });
                 }
               }}
             >
-              <Select.Option value="admin">Quản trị viên</Select.Option>
-              <Select.Option value="doctor">Bác sĩ</Select.Option>
-              <Select.Option value="staff">Nhân viên</Select.Option>
-              <Select.Option value="user">Người dùng</Select.Option>
+              {allRoles.map((role) => (
+                <Select.Option key={role} value={role}>{getRoleText(role)}</Select.Option>
+              ))}
             </Select>
           </Form.Item>
 
@@ -427,11 +466,16 @@ const RoleManagement: React.FC = () => {
           </Form.Item>
 
           <Form.Item label="Trạng thái">
-            <Input value="Đang hoạt động" disabled />
+            {/* Hiển thị trạng thái dựa trên editingUser.isVerified */}
+            <Input value={editingUser ? getStatusText(getStatus(editingUser)) : ''} disabled />
           </Form.Item>
 
           <div className="flex justify-end space-x-2 mt-6">
-            <Button onClick={() => setIsModalOpen(false)} disabled={saving}>
+            <Button onClick={() => {
+              setIsModalOpen(false);
+              form.resetFields(); // Reset form khi hủy
+              setEditingUser(null);
+            }} disabled={saving}>
               Hủy
             </Button>
             <Button type="primary" htmlType="submit" loading={saving}>
@@ -444,21 +488,25 @@ const RoleManagement: React.FC = () => {
       {/* Modal for Add User */}
       <Modal
         title="Thêm người dùng mới"
-        open={isAddModalOpen}
-        onCancel={() => setIsAddModalOpen(false)}
+        open={isAddModalOpen} // Sử dụng isAddModalOpen
+        onCancel={() => {
+          setIsAddModalOpen(false); // Sử dụng setIsAddModalOpen
+          addForm.resetFields();
+        }}
         footer={null}
         destroyOnClose
       >
         <Form
           form={addForm}
           layout="vertical"
+          initialValues={{ role: 'user' }} // Mặc định vai trò là user khi thêm mới
           onFinish={async (values) => {
             setAdding(true);
             try {
               await createUser(values);
               const data = await getAllUsers();
-              setUsers(data);
-              setIsAddModalOpen(false);
+              setUsers(data); // Cập nhật lại danh sách sau khi thêm
+              setIsAddModalOpen(false); // Sử dụng setIsAddModalOpen
               addForm.resetFields();
               message.success('Thêm người dùng thành công!');
             } catch (err: any) {
@@ -471,21 +519,24 @@ const RoleManagement: React.FC = () => {
           <Form.Item
             label="Tên người dùng *"
             name="userName"
-            rules={[{ required: true, message: 'Vui lòng nhập tên người dùng' }]}
+            rules={[{ required: true, message: 'Vui lòng nhập tên người dùng!' }]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             label="Email *"
             name="email"
-            rules={[{ required: true, message: 'Vui lòng nhập email' }, { type: 'email', message: 'Email không hợp lệ' }]}
+            rules={[
+              { required: true, message: 'Vui lòng nhập email!' },
+              { type: 'email', message: 'Email không hợp lệ!' }
+            ]}
           >
             <Input />
           </Form.Item>
           <Form.Item
             label="Mật khẩu *"
             name="password"
-            rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}
+            rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}
           >
             <Input.Password />
           </Form.Item>
@@ -495,8 +546,43 @@ const RoleManagement: React.FC = () => {
           >
             <Input />
           </Form.Item>
+          <Form.Item
+            label="Vai trò *"
+            name="role"
+            rules={[{ required: true, message: 'Vui lòng chọn vai trò!' }]}
+          >
+            <Select
+              onChange={role => {
+                if (role !== 'doctor') {
+                  addForm.setFieldsValue({ userDescription: undefined });
+                }
+              }}
+            >
+              {allRoles.map((role) => (
+                <Select.Option key={role} value={role}>{getRoleText(role)}</Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item shouldUpdate={(prev, curr) => prev.role !== curr.role}>
+            {() =>
+              addForm.getFieldValue('role') === 'doctor' && (
+                <Form.Item
+                  label="Mô tả bác sĩ"
+                  name="userDescription"
+                  rules={[{ required: true, message: 'Vui lòng nhập mô tả cho bác sĩ!' }]}
+                >
+                  <Input.TextArea rows={3} />
+                </Form.Item>
+              )
+            }
+          </Form.Item>
+
           <div className="flex justify-end space-x-2 mt-6">
-            <Button onClick={() => setIsAddModalOpen(false)} disabled={adding}>
+            <Button onClick={() => {
+              setIsAddModalOpen(false); // Sử dụng setIsAddModalOpen
+              addForm.resetFields();
+            }} disabled={adding}>
               Hủy
             </Button>
             <Button type="primary" htmlType="submit" loading={adding}>
@@ -505,10 +591,8 @@ const RoleManagement: React.FC = () => {
           </div>
         </Form>
       </Modal>
-
-
     </div>
   );
 };
 
-export default RoleManagement; 
+export default RoleManagement;
