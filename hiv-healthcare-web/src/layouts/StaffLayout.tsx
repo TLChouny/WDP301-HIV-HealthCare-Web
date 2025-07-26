@@ -65,7 +65,7 @@ const StaffLayout: React.FC = () => {
       icon: <Users className="w-5 h-5" />
     },
     {
-      name: 'Quản lý gói dịch vụ',
+      name: 'Xem gói dịch vụ',
       path: '/staff/services',
       icon: <ClipboardList className="w-5 h-5" />
     },
