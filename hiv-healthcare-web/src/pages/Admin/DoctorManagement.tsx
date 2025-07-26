@@ -198,38 +198,44 @@ const DoctorManagement: React.FC = () => {
     >
       <Container maxWidth="xl">
         {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+        <Box
+          sx={{
+            mb: 4,
+            bgcolor: '#fff',
+            borderRadius: 4,
+            boxShadow: '0 4px 24px 0 rgba(16,30,54,0.08)',
+            p: { xs: 3, md: 5 },
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            alignItems: { md: 'center' },
+            justifyContent: 'space-between',
+            gap: 4,
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
             <Box
               sx={{
-                width: 38,
-                height: 38,
-                background: "linear-gradient(60deg, #0d9488 0%, #2563eb 100%)",
-                borderRadius: 1.5,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginLeft: "16px"
+                width: 64,
+                height: 64,
+                background: 'linear-gradient(60deg, #0d9488 0%, #2563eb 100%)',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: 2,
               }}
             >
-              <PersonAdd sx={{ color: "white", fontSize: 24 }} /> {/* Replaced UserCheck with PersonAdd */}
+              <PersonAdd sx={{ color: 'white', fontSize: 32 }} />
             </Box>
-            <Typography
-              variant="h4"
-              sx={{
-                fontWeight: 700,
-                color: "#1f2937",
-                padding: "2px",
-              }}
-            >
-              Quản lý bác sĩ
-            </Typography>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 700, color: '#1f2937', mb: 0.5 }}>
+                Quản lý bác sĩ
+              </Typography>
+              <Typography sx={{ color: '#6b7280', fontSize: 16 }}>
+                Quản lý và xác minh thông tin chứng chỉ, kinh nghiệm của các bác sĩ
+              </Typography>
+            </Box>
           </Box>
-          <Typography sx={{ color: "#6b7280",
-             marginLeft: "16px"
-           }}>
-            Quản lý và xác minh thông tin chứng chỉ, kinh nghiệm của các bác sĩ
-          </Typography>
         </Box>
 
         {/* Search */}

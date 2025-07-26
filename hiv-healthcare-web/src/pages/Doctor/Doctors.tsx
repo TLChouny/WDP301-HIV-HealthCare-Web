@@ -218,13 +218,6 @@ const Doctors = () => {
                       </div>
                     )}
                   </div>
-                  <Link
-                    to="/appointment"
-                    className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center transition-colors duration-300 mt-auto"
-                  >
-                    <Calendar className="w-5 h-5 mr-2" />
-                    Đặt lịch hẹn
-                  </Link>
                 </div>
               );
             })}

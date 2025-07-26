@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getAllCategories, createCategory, updateCategory, deleteCategory } from '../../api/categoryApi';
 import { Button, Modal, Form, Input, message } from 'antd';
-import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Folder } from 'lucide-react';
 import type { Category } from '../../types/category';
 
 const CategoryManagement: React.FC = () => {
@@ -16,6 +16,7 @@ const CategoryManagement: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
 
+  
   const fetchCategories = async () => {
     setLoading(true);
     try {
@@ -96,14 +97,32 @@ const CategoryManagement: React.FC = () => {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-teal-50">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-lg text-gray-600">Đang tải danh sách danh mục...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Quản lý Tin tức (Danh mục)</h1>
-          <p className="mt-2 text-sm text-gray-600">Quản lý các danh mục tin tức trong hệ thống</p>
-          <Button type="primary" icon={<Plus />} className="mt-4" onClick={() => setIsAddModalOpen(true)}>
+        <div className="bg-white rounded-2xl shadow flex flex-col md:flex-row md:items-center md:justify-between p-8 mb-8 gap-6">
+          <div className="flex items-center gap-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-teal-600 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+              <Folder className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-1">Quản lý danh mục (Dịch vụ và tin tức)</h1>
+              <p className="text-base text-gray-600">Quản lý các danh mục tin tức trong hệ thống</p>
+            </div>
+          </div>
+          <Button type="primary" icon={<Plus />} className="!h-12 !px-8 !text-base !font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow" onClick={() => setIsAddModalOpen(true)}>
             Thêm danh mục
           </Button>
         </div>
@@ -125,7 +144,7 @@ const CategoryManagement: React.FC = () => {
           </div>
         </div>
         {/* Category List */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-lg shadow overflow-x-auto">
           {loading ? (
             <div className="p-8 text-center text-gray-500">Đang tải dữ liệu...</div>
           ) : (
@@ -144,8 +163,12 @@ const CategoryManagement: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{cat.categoryName}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{cat.categoryDescription || ''}</div>
+                    <td className="px-6 py-4 whitespace-nowrap max-w-[180px] overflow-hidden text-ellipsis">
+                      <div className="text-sm text-gray-500" title={cat.categoryDescription || ''}>
+                        {cat.categoryDescription && cat.categoryDescription.length > 20
+                          ? cat.categoryDescription.slice(0, 20) + '...'
+                          : cat.categoryDescription || ''}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       {cat.createdAt ? new Date(cat.createdAt).toLocaleString('vi-VN') : ''}
