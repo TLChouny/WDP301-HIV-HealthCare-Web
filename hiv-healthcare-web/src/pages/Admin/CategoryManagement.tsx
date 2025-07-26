@@ -93,6 +93,7 @@ const CategoryManagement: React.FC = () => {
         } catch (err: any) {
           message.error(err.message || 'Xóa danh mục thất bại');
         }
+        return Promise.resolve(); // Thêm dòng này để xử lý Promise trong onOk
       },
     });
   };
@@ -109,7 +110,8 @@ const CategoryManagement: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    // THAY ĐỔI Ở ĐÂY: Thêm background gradient
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow flex flex-col md:flex-row md:items-center md:justify-between p-8 mb-8 gap-6">
@@ -199,9 +201,12 @@ const CategoryManagement: React.FC = () => {
         <Modal
           title="Thêm danh mục mới"
           open={isAddModalOpen}
-          onCancel={() => setIsAddModalOpen(false)}
+          onCancel={() => {
+            setIsAddModalOpen(false);
+            addForm.resetFields(); // Reset form khi đóng
+          }}
           footer={null}
-          destroyOnClose
+          destroyOnClose // Đảm bảo form được mount lại mỗi khi mở
         >
           <Form form={addForm} layout="vertical" onFinish={handleAddCategory}>
             <Form.Item
@@ -218,7 +223,10 @@ const CategoryManagement: React.FC = () => {
               <Input.TextArea rows={3} />
             </Form.Item>
             <div className="flex justify-end space-x-2 mt-6">
-              <Button onClick={() => setIsAddModalOpen(false)} disabled={adding}>
+              <Button onClick={() => {
+                setIsAddModalOpen(false);
+                addForm.resetFields(); // Reset form khi hủy
+              }} disabled={adding}>
                 Hủy
               </Button>
               <Button type="primary" htmlType="submit" loading={adding}>
@@ -231,9 +239,13 @@ const CategoryManagement: React.FC = () => {
         <Modal
           title="Chỉnh sửa danh mục"
           open={isEditModalOpen}
-          onCancel={() => setIsEditModalOpen(false)}
+          onCancel={() => {
+            setIsEditModalOpen(false);
+            editForm.resetFields(); // Reset form khi đóng
+            setEditingCategory(null);
+          }}
           footer={null}
-          destroyOnClose
+          destroyOnClose // Đảm bảo form được mount lại mỗi khi mở
         >
           <Form
             form={editForm}
@@ -254,7 +266,11 @@ const CategoryManagement: React.FC = () => {
               <Input.TextArea rows={3} />
             </Form.Item>
             <div className="flex justify-end space-x-2 mt-6">
-              <Button onClick={() => setIsEditModalOpen(false)} disabled={saving}>
+              <Button onClick={() => {
+                setIsEditModalOpen(false);
+                editForm.resetFields(); // Reset form khi hủy
+                setEditingCategory(null);
+              }} disabled={saving}>
                 Hủy
               </Button>
               <Button type="primary" htmlType="submit" loading={saving}>
@@ -268,4 +284,4 @@ const CategoryManagement: React.FC = () => {
   );
 };
 
-export default CategoryManagement; 
+export default CategoryManagement;

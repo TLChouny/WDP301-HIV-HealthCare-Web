@@ -20,6 +20,27 @@ import {
 import { useAuth } from "../../context/AuthContext"
 import type { User as UserType } from "../../types/user"
 
+// Hàm tiện ích để định dạng ngày thành YYYY-MM-DD
+const formatDateToYYYYMMDD = (dateString: string | undefined): string => {
+  if (!dateString) return ""
+  try {
+    const date = new Date(dateString);
+    // Kiểm tra xem ngày có hợp lệ không
+    if (isNaN(date.getTime())) {
+      console.warn("Invalid date string provided:", dateString);
+      return "";
+    }
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    const day = date.getDate().toString().padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  } catch (e) {
+    console.error("Error formatting date:", e);
+    return "";
+  }
+};
+
+
 const DoctorScheduleManagement: React.FC = () => {
   const { getAllUsers, getWorkSchedule, updateWorkSchedule, clearWorkSchedule, isAdmin } = useAuth()
   const [doctors, setDoctors] = useState<UserType[]>([])
@@ -64,6 +85,8 @@ const DoctorScheduleManagement: React.FC = () => {
             const schedule = await getWorkSchedule(doctor._id)
             schedulesData[doctor._id] = schedule || null
           } catch (error) {
+            // Log lỗi nhưng vẫn tiếp tục để không làm hỏng toàn bộ danh sách
+            console.error(`Error fetching schedule for doctor ${doctor._id}:`, error);
             schedulesData[doctor._id] = null
           }
         }
@@ -90,12 +113,16 @@ const DoctorScheduleManagement: React.FC = () => {
 
   const handleEditSchedule = (doctor: UserType) => {
     setSelectedDoctorId(doctor._id)
+    const currentSchedule = schedules[doctor._id]; // Lấy lịch trình hiện tại của bác sĩ
+    
     setNewSchedule({
-      dayOfWeek: schedules[doctor._id]?.dayOfWeek || [],
-      startTimeInDay: schedules[doctor._id]?.startTimeInDay || "08:00",
-      endTimeInDay: schedules[doctor._id]?.endTimeInDay || "17:00",
-      startDay: schedules[doctor._id]?.startDay || "",
-      endDay: schedules[doctor._id]?.endDay || "",
+      dayOfWeek: currentSchedule?.dayOfWeek || [],
+      startTimeInDay: currentSchedule?.startTimeInDay || "08:00",
+      endTimeInDay: currentSchedule?.endTimeInDay || "17:00",
+      // --- THAY ĐỔI Ở ĐÂY: Định dạng lại ngày để hiển thị đúng trong input type="date" ---
+      startDay: formatDateToYYYYMMDD(currentSchedule?.startDay),
+      endDay: formatDateToYYYYMMDD(currentSchedule?.endDay),
+      // --- KẾT THÚC THAY ĐỔI ---
     })
     setShowEditModal(true)
   }
@@ -116,13 +143,23 @@ const DoctorScheduleManagement: React.FC = () => {
       toast.error("Vui lòng chọn ngày bắt đầu và ngày kết thúc!", { position: "top-right", autoClose: 3000 })
       return
     }
+    
+    // Thêm kiểm tra logic ngày bắt đầu phải trước hoặc bằng ngày kết thúc
+    const startDate = new Date(newSchedule.startDay);
+    const endDate = new Date(newSchedule.endDay);
 
+    if (startDate > endDate) {
+      toast.error("Ngày bắt đầu phải trước hoặc bằng ngày kết thúc!", { position: "top-right", autoClose: 3000 });
+      return;
+    }
+    
     try {
       const scheduleData = {
         dayOfWeek: newSchedule.dayOfWeek,
         startTimeInDay: newSchedule.startTimeInDay,
         endTimeInDay: newSchedule.endTimeInDay,
-        startDay: newSchedule.startDay,
+        // Đảm bảo gửi định dạng ngày chuẩn về backend
+        startDay: newSchedule.startDay, 
         endDay: newSchedule.endDay,
       }
 
@@ -149,7 +186,15 @@ const DoctorScheduleManagement: React.FC = () => {
   }
 
   const hasSchedule = (doctorId: string) => {
-    return schedules[doctorId] && schedules[doctorId]?.dayOfWeek && schedules[doctorId]?.dayOfWeek!.length > 0
+    // Kiểm tra kỹ hơn để đảm bảo các trường cần thiết của schedule tồn tại
+    const schedule = schedules[doctorId];
+    return schedule && 
+           schedule.dayOfWeek && 
+           schedule.dayOfWeek.length > 0 &&
+           schedule.startDay &&
+           schedule.endDay &&
+           schedule.startTimeInDay &&
+           schedule.endTimeInDay;
   }
 
   const getScheduleStatus = (doctorId: string) => {
