@@ -3,6 +3,8 @@ import { getAllBlogs, createBlog, updateBlog, deleteBlog } from '../../api/blogA
 import { getAllCategories } from '../../api/categoryApi';
 import { Button, Modal, Form, Input, message, Select, Upload } from 'antd';
 import { Plus, Edit, Trash2, Search, Upload as UploadIcon, BookOpen } from 'lucide-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import type { Blog } from '../../types/blog';
 import type { Category } from '../../types/category';
 
@@ -72,11 +74,16 @@ const BlogManagement: React.FC = () => {
     setIsEditModalOpen(true);
     setEditImageUrl(blog.blogImage || '');
     setTimeout(() => {
+      const categoryId = typeof blog.categoryId === 'object' && blog.categoryId !== null
+        ? (blog.categoryId as any)._id
+        : blog.categoryId;
+        
       editForm.setFieldsValue({
         blogTitle: blog.blogTitle,
         blogContent: blog.blogContent,
         blogAuthor: blog.blogAuthor,
-        categoryId: blog.categoryId,
+        categoryId: categoryId,
+        blogImage: blog.blogImage,
       });
     }, 0);
   };
@@ -255,7 +262,21 @@ const BlogManagement: React.FC = () => {
               <Input />
             </Form.Item>
             <Form.Item label="Nội dung" name="blogContent">
-              <Input.TextArea rows={4} />
+              <ReactQuill
+                theme="snow"
+                modules={{
+                  toolbar: [
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'image'],
+                    ['clean']
+                  ],
+                }}
+                style={{ height: '200px', marginBottom: '50px' }}
+              />
             </Form.Item>
             <Form.Item label="Tác giả" name="blogAuthor">
               <Input />
@@ -314,7 +335,21 @@ const BlogManagement: React.FC = () => {
               <Input />
             </Form.Item>
             <Form.Item label="Nội dung" name="blogContent">
-              <Input.TextArea rows={4} />
+              <ReactQuill
+                theme="snow"
+                modules={{
+                  toolbar: [
+                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'align': [] }],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    ['link', 'image'],
+                    ['clean']
+                  ],
+                }}
+                style={{ height: '200px', marginBottom: '50px' }}
+              />
             </Form.Item>
             <Form.Item label="Tác giả" name="blogAuthor">
               <Input />

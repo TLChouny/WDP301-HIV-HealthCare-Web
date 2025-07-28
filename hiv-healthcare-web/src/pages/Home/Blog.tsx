@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Input, Select, Pagination, Tag, Spin, Empty } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { getAllBlogs } from '../../api/blogApi';
 import { getAllCategories } from '../../api/categoryApi';
 import type { Blog } from '../../types/blog';
@@ -11,6 +12,7 @@ const { Search } = Input;
 const { Option } = Select;
 
 const BlogPage: React.FC = () => {
+    const navigate = useNavigate();
     const [blogs, setBlogs] = useState<Blog[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -134,7 +136,8 @@ const BlogPage: React.FC = () => {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true, amount: 0.2 }}
                                     transition={{ duration: 0.6 }}
-                                    className="flex flex-col h-full bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                                    className="flex flex-col h-full bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+                                    onClick={() => navigate(`/blog/${post._id}`)}
                                 >
                                     {post.blogImage && (
                                         <img
