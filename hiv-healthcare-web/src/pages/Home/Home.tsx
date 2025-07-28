@@ -1,28 +1,17 @@
-// src/pages/Home.tsx
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  Search,
-  ArrowRight,
-  Phone,
-  Calendar,
-  FileText,
-  Shield,
-  Users,
-  Heart,
-  Info,
-  MapPin,
-} from "lucide-react";
+import { ArrowRight, Phone, Calendar, FileText, Shield, Users, Heart, Info, } from "lucide-react";
 import doingubacsi from "../../assets/doingubacsi.png";
 import doingubacsi2 from "../../assets/doingubacsi2.png";
 import doingubacsi3 from "../../assets/doingubacsi3.png";
-import { toast } from "react-toastify";
-// import ConsultationModal from "../../components/ConsultationModal";
 
-// Hàm tiện ích để kiểm tra nếu element trong viewport
+// Import thêm types và context
+import type { User } from '../../types/user'; 
+import { useAuth } from '../../context/AuthContext'; 
+
+
 const useInView = (ref: React.RefObject<HTMLElement>, threshold = 0.1) => {
   const [isVisible, setIsVisible] = useState(false);
-
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -49,21 +38,20 @@ const useInView = (ref: React.RefObject<HTMLElement>, threshold = 0.1) => {
   return isVisible;
 };
 
-// Component Animation để bọc các phần tử cần animation
 interface AnimatedElementProps {
   children: React.ReactNode;
   className?: string;
   delay?: number;
   duration?: number;
   animationType?:
-    | "fade-up"
-    | "fade-down"
-    | "fade-left"
-    | "fade-right"
-    | "zoom-in"
-    | "zoom-out"
-    | "flip"
-    | "bounce";
+  | "fade-up"
+  | "fade-down"
+  | "fade-left"
+  | "fade-right"
+  | "zoom-in"
+  | "zoom-out"
+  | "flip"
+  | "bounce";
 }
 
 const AnimatedElement: React.FC<AnimatedElementProps> = ({
@@ -141,7 +129,6 @@ const AnimatedElement: React.FC<AnimatedElementProps> = ({
   );
 };
 
-// Component để tạo hiệu ứng stagger cho các phần tử con
 interface StaggerContainerProps {
   children: React.ReactNode;
   className?: string;
@@ -181,7 +168,6 @@ const StaggerContainer: React.FC<StaggerContainerProps> = ({
   );
 };
 
-// Component tạo hiệu ứng parallax khi cuộn
 interface ParallaxSectionProps {
   children: React.ReactNode;
   speed?: number;
@@ -226,9 +212,11 @@ const ParallaxSection: React.FC<ParallaxSectionProps> = ({
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { getAllUsers } = useAuth(); // Lấy hàm getAllUsers từ AuthContext
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showNotification, setShowNotification] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal
+  const [doctors, setDoctors] = useState<User[]>([]); // State để lưu danh sách bác sĩ
 
   useEffect(() => {
     const handleScroll = () => {
@@ -240,6 +228,21 @@ const Home: React.FC = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Lấy danh sách bác sĩ khi component mount
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const users = await getAllUsers();
+        // Lọc ra các user có role là 'doctor' và chỉ lấy 3 người đầu tiên
+        setDoctors((users as User[]).filter(u => u.role === 'doctor').slice(0, 3));
+      } catch (err) {
+        console.error("Failed to fetch doctors:", err);
+        setDoctors([]);
+      }
+    };
+    fetchDoctors();
+  }, [getAllUsers]);
 
   // Handle navigation and open modal for consultation
   const handleBookConsultation = () => {
@@ -439,8 +442,7 @@ const Home: React.FC = () => {
                 delay={300}
                 duration={800}
               >
-                <p className="text-gray-600 mb-8 text-lg">
-                  Đừng để những lo lắng về HIV ảnh hưởng đến sức khỏe và chất
+                <p className="text-gray-600 mb-8 text-lg"> Đừng để những lo lắng về HIV ảnh hưởng đến sức khỏe và chất
                   lượng cuộc sống của bạn. Việc phát hiện và điều trị sớm là yếu
                   tố quan trọng giúp kiểm soát bệnh hiệu quả, bảo vệ chính bạn
                   và những người xung quanh. Tại HIV Care, đội ngũ bác sĩ chuyên
@@ -472,7 +474,6 @@ const Home: React.FC = () => {
         </div>
       </ParallaxSection>
 
-      {/* Experienced Staff Section */}
       <section className="py-16 bg-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-teal-50 rounded-full opacity-70 -z-10 transform translate-x-1/3 -translate-y-1/3"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-50 rounded-full opacity-70 -z-10 transform -translate-x-1/3 translate-y-1/3"></div>
@@ -729,157 +730,70 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Doctors Section */}
+      {/* Doctors Section - Đã được chỉnh sửa */}
       <ParallaxSection speed={0.1} className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <AnimatedElement
-            animationType="fade-up"
-            duration={800}
-            className="mb-4"
-          >
-            <h2 className="text-3xl font-bold text-center text-gray-800 relative inline-block mx-auto">
-              <span className="relative z-10">Đội Ngũ Chuyên Gia</span>
-              <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
-            </h2>
-          </AnimatedElement>
+          <div className="flex justify-between items-center mb-4"> {/* Flex container for title and "Xem thêm" */}
+            <AnimatedElement
+              animationType="fade-up"
+              duration={800}
+            >
+              <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
+                <span className="relative z-10">Đội Ngũ Chuyên Gia</span>
+                <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
+              </h2>
+            </AnimatedElement>
+            <AnimatedElement
+              animationType="fade-up"
+              delay={200}
+              duration={800}
+            >
+              <Link to="/doctors" className="inline-flex items-center text-teal-600 font-semibold hover:text-teal-700 transition-colors duration-300">
+                Xem thêm <ArrowRight className="h-5 w-5 ml-2" />
+              </Link>
+            </AnimatedElement>
+          </div>
 
-          <AnimatedElement
-            animationType="fade-up"
-            delay={200}
-            duration={800}
-            className="mb-12"
-          >
-            <p className="text-gray-600 text-center max-w-3xl mx-auto"></p>
-          </AnimatedElement>
+          
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { name: "BS. Nguyễn Văn A", role: "Chuyên Gia Điều Trị HIV" },
-              { name: "BS. Trần Thị B", role: "Chuyên Gia Tư Vấn Xét Nghiệm" },
-              { name: "ThS. Lê Văn C", role: "Chuyên Viên Tâm Lý" },
-              { name: "BS. Phạm Thị D", role: "Chuyên Gia Dinh Dưỡng" },
-            ].map((doctor, index) => (
-              <AnimatedElement
-                key={index}
-                animationType="fade-up"
-                delay={300 + index * 150}
-                duration={800}
-              >
-                <div className="group bg-white rounded-lg overflow-hidden shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-2 relative">
-                  <div className="overflow-hidden">
-                    <img
-                      src="/placeholder.svg?height=300&width=300"
-                      alt={doctor.name}
-                      className="w-full h-64 object-cover object-center transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-teal-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"> {/* Thay đổi lg:grid-cols-4 thành lg:grid-cols-3 */}
+            {doctors.length === 0 ? (
+              <div className="col-span-full text-center text-gray-500">
+                Đang tải danh sách bác sĩ hoặc chưa có bác sĩ nào được duyệt.
+              </div>
+            ) : (
+              doctors.map((doctor: User, index: number) => (
+                <AnimatedElement
+                  key={doctor._id || index}
+                  animationType="fade-up"
+                  delay={300 + index * 150}
+                  duration={800}
+                >
+                  <div className="group bg-white rounded-lg overflow-hidden shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-2 relative">
+                    <div className="overflow-hidden">
+                      <img
+                        src={doctor.avatar || "https://via.placeholder.com/300x300?text=Bác+sĩ"} // Sử dụng avatar của bác sĩ, nếu không có thì dùng placeholder
+                        alt={doctor.userName}
+                        className="w-full h-64 object-cover object-center transition-transform duration-700 group-hover:scale-110"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-teal-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    </div>
+
+                    <div className="p-6 relative">
+                      <h3 className="text-xl font-semibold mb-1 text-gray-800 transition-transform duration-300 group-hover:translate-y-[-2px]">
+                        {doctor.userName}
+                      </h3>
+                      {/* Có thể thêm vai trò hoặc chuyên khoa nếu có trong dữ liệu User */}
+                      <p className="text-teal-600 mb-4">{doctor.email || "Bác sĩ chuyên khoa"}</p>
+                      
+                    </div>
                   </div>
-
-                  <div className="p-6 relative">
-                    <h3 className="text-xl font-semibold mb-1 text-gray-800 transition-transform duration-300 group-hover:translate-y-[-2px]">
-                      {doctor.name}
-                    </h3>
-                    <p className="text-teal-600 mb-4">{doctor.role}</p>
-                    <button className="text-teal-600 font-medium flex items-center transition-all duration-300 group-hover:text-teal-700 relative">
-                      <span>Xem hồ sơ</span>
-                      <ArrowRight className="h-4 w-4 ml-1 transition-all duration-300 group-hover:ml-2" />
-                    </button>
-                  </div>
-                </div>
-              </AnimatedElement>
-            ))}
+                </AnimatedElement>
+              ))
+            )}
           </div>
         </div>
       </ParallaxSection>
-
-      {/* Blog Section */}
-      <section className="py-16 bg-white relative overflow-hidden">
-        <div className="container mx-auto px-4">
-          <AnimatedElement
-            animationType="fade-up"
-            duration={800}
-            className="mb-12"
-          >
-            <h2 className="text-3xl font-bold text-center text-gray-800 relative inline-block mx-auto">
-              <span className="relative z-10">Bài Viết Mới Nhất</span>
-              <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
-            </h2>
-          </AnimatedElement>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                title: "Hiểu đúng về HIV/AIDS trong thời đại mới",
-                excerpt:
-                  "Những thông tin cập nhật và chính xác về HIV/AIDS, giúp bạn hiểu đúng và phòng ngừa hiệu quả.",
-                date: "15/05/2025",
-                comments: 5,
-                author: "BS. Nguyễn Văn A",
-              },
-              {
-                title: "Sống khỏe mạnh với HIV - Những điều cần biết",
-                excerpt:
-                  "Chia sẻ kinh nghiệm và lời khuyên giúp người sống chung với HIV duy trì lối sống khỏe mạnh và tích cực.",
-                date: "10/05/2025",
-                comments: 8,
-                author: "ThS. Lê Văn C",
-              },
-              {
-                title: "Tiến bộ mới trong điều trị HIV",
-                excerpt:
-                  "Cập nhật những tiến bộ mới nhất trong điều trị HIV, mang lại hy vọng và cải thiện chất lượng cuộc sống.",
-                date: "05/05/2025",
-                comments: 3,
-                author: "BS. Trần Thị B",
-              },
-            ].map((article, index) => (
-              <AnimatedElement
-                key={index}
-                animationType="fade-up"
-                delay={300 + index * 150}
-                duration={800}
-              >
-                <div className="group border border-gray-200 rounded-lg overflow-hidden transition-all duration-500 hover:shadow-xl hover:-translate-y-2 bg-white relative">
-                  <div className="overflow-hidden">
-                    <img
-                      src="/placeholder.svg?height=200&width=400"
-                      alt={article.title}
-                      className="w-full h-48 object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                  </div>
-
-                  <div className="p-6 relative">
-                    <div className="flex items-center text-sm text-gray-500 mb-2">
-                      <span>{article.date}</span>
-                      <span className="mx-2">•</span>
-                      <span>{article.comments} bình luận</span>
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2 text-gray-800 transition-transform duration-300 group-hover:translate-y-[-2px]">
-                      {article.title}
-                    </h3>
-                    <p className="text-gray-600 mb-4">{article.excerpt}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">
-                        {article.author}
-                      </span>
-                      <Link
-                        to="/blog"
-                        className="text-teal-600 font-medium flex items-center transition-all duration-300 group-hover:text-teal-700 relative"
-                      >
-                        <span>Đọc tiếp</span>
-                        <ArrowRight className="h-4 w-4 ml-1 transition-all duration-300 group-hover:ml-2" />
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </AnimatedElement>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Consultation Modal */}
-      {/* <ConsultationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} /> */}
     </div>
   );
 };
