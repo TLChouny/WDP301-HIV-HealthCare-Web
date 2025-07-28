@@ -15,6 +15,7 @@ import ServiceByCategoryId from './pages/ServicesHome/ServiceByCategoryId';
 import ServiceDetail from './pages/ServicesHome/ServiceDetail';
 import About from './pages/Home/About';
 import Blog from './pages/Home/Blog';
+import BlogDetail from './pages/Home/BlogDetail';
 import Contact from './pages/Home/Contact';
 import Appointment from './pages/Appointment/Appointment';
 import PaymentSuccess from './pages/Appointment/PaymentSuccess';
@@ -159,6 +160,7 @@ const App: React.FC = () => {
                         <Route index element={<Home />} />
                         <Route path="about" element={<About />} />
                         <Route path="blog" element={<Blog />} />
+                        <Route path="blog/:id" element={<BlogDetail />} />
                         <Route path="contact" element={<Contact />} />
                         <Route path="services/category/:id" element={<ServiceByCategoryId />} />
                         <Route path="services/detail/:id" element={<ServiceDetail />} />
