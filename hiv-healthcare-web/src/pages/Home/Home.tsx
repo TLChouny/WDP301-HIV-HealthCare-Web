@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Phone, Calendar, FileText, Shield, Users, Heart, Info, } from "lucide-react";
+import { ArrowRight, Phone, Calendar, FileText, Shield, Users, Heart, Info,UserIcon } from "lucide-react";
+import { Button } from 'antd';
 import doingubacsi from "../../assets/doingubacsi.png";
 import doingubacsi2 from "../../assets/doingubacsi2.png";
 import doingubacsi3 from "../../assets/doingubacsi3.png";
@@ -730,70 +731,78 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Doctors Section - Đã được chỉnh sửa */}
       <ParallaxSection speed={0.1} className="py-16 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-4"> {/* Flex container for title and "Xem thêm" */}
-            <AnimatedElement
-              animationType="fade-up"
-              duration={800}
-            >
-              <h2 className="text-3xl font-bold text-gray-800 relative inline-block">
-                <span className="relative z-10">Đội Ngũ Chuyên Gia</span>
-                <span className="absolute bottom-0 left-0 w-full h-2 bg-teal-100 -z-10 transform -rotate-1"></span>
-              </h2>
-            </AnimatedElement>
-            <AnimatedElement
-              animationType="fade-up"
-              delay={200}
-              duration={800}
-            >
-              <Link to="/doctors" className="inline-flex items-center text-teal-600 font-semibold hover:text-teal-700 transition-colors duration-300">
-                Xem thêm <ArrowRight className="h-5 w-5 ml-2" />
-              </Link>
-            </AnimatedElement>
-          </div>
+  <div className="container mx-auto px-4">
+    <AnimatedElement
+      animationType="fade-up"
+      duration={800}
+      className="text-center mb-12"
+    >
+      <h2 className="text-3xl font-bold text-gray-800 mb-4">Đội Ngũ Chuyên Gia</h2>
+      <p className="text-gray-600 max-w-2xl mx-auto">
+        Các bác sĩ của chúng tôi là những chuyên gia hàng đầu với nhiều năm kinh nghiệm trong lĩnh vực điều trị và chăm sóc HIV.
+      </p>
+    </AnimatedElement>
 
-          
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"> {/* Thay đổi lg:grid-cols-4 thành lg:grid-cols-3 */}
-            {doctors.length === 0 ? (
-              <div className="col-span-full text-center text-gray-500">
-                Đang tải danh sách bác sĩ hoặc chưa có bác sĩ nào được duyệt.
-              </div>
-            ) : (
-              doctors.map((doctor: User, index: number) => (
-                <AnimatedElement
-                  key={doctor._id || index}
-                  animationType="fade-up"
-                  delay={300 + index * 150}
-                  duration={800}
-                >
-                  <div className="group bg-white rounded-lg overflow-hidden shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-2 relative">
-                    <div className="overflow-hidden">
-                      <img
-                        src={doctor.avatar || "https://via.placeholder.com/300x300?text=Bác+sĩ"} // Sử dụng avatar của bác sĩ, nếu không có thì dùng placeholder
-                        alt={doctor.userName}
-                        className="w-full h-64 object-cover object-center transition-transform duration-700 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-teal-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    </div>
-
-                    <div className="p-6 relative">
-                      <h3 className="text-xl font-semibold mb-1 text-gray-800 transition-transform duration-300 group-hover:translate-y-[-2px]">
-                        {doctor.userName}
-                      </h3>
-                      {/* Có thể thêm vai trò hoặc chuyên khoa nếu có trong dữ liệu User */}
-                      <p className="text-teal-600 mb-4">{doctor.email || "Bác sĩ chuyên khoa"}</p>
-                      
-                    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+      {doctors.map((doctor) => {
+        // Lấy kinh nghiệm đã được phê duyệt và mới nhất
+        const approvedExp = doctor.experiences?.filter(exp => exp.status === 'approved')?.[0];
+        
+        return (
+          <AnimatedElement
+            key={doctor._id}
+            animationType="fade-up"
+            delay={300}
+            duration={800}
+            className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-center mb-4">
+                {doctor.avatar ? (
+                  <img
+                    src={doctor.avatar}
+                    alt={doctor.userName}
+                    className="w-24 h-24 rounded-full object-cover border-4 border-teal-50"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-teal-50 flex items-center justify-center">
+                    <UserIcon className="w-12 h-12 text-teal-500" />
                   </div>
-                </AnimatedElement>
-              ))
-            )}
-          </div>
-        </div>
-      </ParallaxSection>
+                )}
+              </div>
+              <div className="text-center">
+                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                  {doctor.userName}
+                </h3>
+                {approvedExp && (
+                  <>
+                    <p className="text-teal-600 font-medium mb-2">
+                      {approvedExp.position}
+                    </p>
+                    <p className="text-gray-600 text-sm line-clamp-2">
+                      {approvedExp.description || `${approvedExp.hospital || 'Chuyên gia'}`}
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </AnimatedElement>
+        );
+      })}
+    </div>
+
+    <div className="text-center mt-8">
+      <Button
+        onClick={() => navigate('/doctors')}
+        style={{ backgroundColor: '#0d9488', borderColor: '#0d9488' }}
+        className="!text-white h-12 px-8 rounded-lg hover:!bg-teal-700 hover:!border-teal-700"
+      >
+        Xem tất cả bác sĩ
+      </Button>
+    </div>
+  </div>
+</ParallaxSection>
     </div>
   );
 };
