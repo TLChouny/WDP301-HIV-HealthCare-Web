@@ -88,6 +88,7 @@ const ConsultationModal: React.FC<ConsultationModalProps> = ({ isOpen, onClose }
         updatedAt: user.updatedAt || new Date().toISOString(),
         phone_number: user.phone_number,
         dateOfBirth: user.dateOfBirth,
+        gender: user.gender ,
         avatar: user.avatar,
         userDescription: user.userDescription,
       } : null;

@@ -170,7 +170,11 @@ const StaffDashboard: React.FC = () => {
 
   const recentBlogs = Array.isArray(blogs)
     ? blogs
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+         .sort(
+        (a, b) =>
+          new Date(b.createdAt ?? "").getTime() -
+          new Date(a.createdAt ?? "").getTime()
+      )
         .slice(0, 5)
         .map((blog) => ({
           id: blog._id || Math.random(),

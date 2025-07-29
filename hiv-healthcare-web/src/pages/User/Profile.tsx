@@ -71,7 +71,9 @@ const [formData, setFormData] = useState<{
         setFormData({
           userName: detailedUser.userName || "",
           phone_number: detailedUser.phone_number || "",
-          gender: detailedUser.gender || "",
+          gender: ["male", "female", "other"].includes(detailedUser.gender || "")
+  ? detailedUser.gender
+  : "",
           address: detailedUser.address || "",
           dateOfBirth: detailedUser.dateOfBirth || "",
           userDescription: detailedUser.userDescription || "",
