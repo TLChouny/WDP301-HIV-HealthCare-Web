@@ -67,7 +67,7 @@ const UserDashboard: React.FC = () => {
     },
     {
       title: "Lịch hẹn tháng này",
-      value: "5", // bạn có thể tùy chỉnh số liệu từ API
+      value: upcomingAppointments.length.toString(), //chưa xử lý lịch hẹn tháng này
       icon: Clock,
       bg: "bg-teal-50",
       iconColor: "text-teal-600",

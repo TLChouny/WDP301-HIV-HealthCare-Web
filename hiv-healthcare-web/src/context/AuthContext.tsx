@@ -15,6 +15,7 @@ import {
   resetPassword as apiResetPassword,
   getUserById as apiGetUserById,
   updateUser as apiUpdateUser,
+  uploadAvatar as apiUploadAvatar,
   deleteUser as apiDeleteUser,
   getWorkSchedule as apiGetWorkSchedule,
   updateWorkSchedule as apiUpdateWorkSchedule,
@@ -25,7 +26,7 @@ import {
   deleteCertification as apiDeleteCertification,
   approveCertification as apiApproveCertification,
   rejectCertification as apiRejectCertification,
-  
+
   addExperience as apiAddExperience,
   updateExperience as apiUpdateExperience,
   deleteExperience as apiDeleteExperience,
@@ -75,12 +76,13 @@ interface AuthContextType {
   resetPassword: (data: { resetToken: string; newPassword: string }) => Promise<void>;
   getUserById: (id: string) => Promise<User>;
   updateUser: (id: string, data: any) => Promise<void>;
+  uploadAvatar: (userId: string, file: File) => Promise<void>;
   deleteUser: (id: string) => Promise<void>;
   getWorkSchedule: (id: string) => Promise<any>;
   updateWorkSchedule: (id: string, data: any) => Promise<void>;
   clearWorkSchedule: (id: string) => Promise<void>;
   addCertification: (userId: string, data: { title: string; issuer: string; issueDate: string; expiryDate?: string, description?: string, fileUrl?: string, status?: string }) => Promise<void>;
-  updateCertification: (userId: string, certId: string, data: {  title: string; issuer: string; issueDate: string; expiryDate?: string, description?: string, fileUrl?: string, status?: string  }) => Promise<void>;
+  updateCertification: (userId: string, certId: string, data: { title: string; issuer: string; issueDate: string; expiryDate?: string, description?: string, fileUrl?: string, status?: string }) => Promise<void>;
   deleteCertification: (userId: string, certId: string) => Promise<void>;
   approveCertification: (userId: string, certId: string) => Promise<void>;
   rejectCertification: (userId: string, certId: string) => Promise<void>;
@@ -171,11 +173,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (userData.role === "admin") {
         navigate("/admin/dashboard");
       } else if (userData.role === "doctor") {
-        navigate("/doctor/dashboard");
+        navigate("/doctor/schedule");
       } else if (userData.role === "staff") {
         navigate("/staff/dashboard");
       } else {
-        navigate("/user/dashboard");
+        navigate("/");
       }
     } catch (error: any) {
       console.error("Lỗi đăng nhập:", error.message);
@@ -325,6 +327,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+const uploadAvatar = async (userId: string, avatar: File | string) => {
+  try {
+    let data;
+    if (typeof avatar === "string") {
+      data = { avatarUrl: avatar };
+    } else {
+      data = new FormData();
+      data.append("avatar", avatar);
+    }
+
+    const response = await apiUploadAvatar(userId, data);
+    if (user && user._id === userId) {
+      setUser(response.data);
+    }
+
+    toast.success("Cập nhật ảnh đại diện thành công!");
+  } catch (error: any) {
+    console.error("❌ Lỗi upload avatar:", error.message);
+    toast.error(error.message || "Cập nhật ảnh đại diện thất bại.");
+    throw error;
+  }
+};
+
+
   const deleteUser = async (id: string) => {
     try {
       await apiDeleteUser(id);
@@ -356,7 +382,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const res = await apiUpdateWorkSchedule(id, data);
       if (user && user._id === id) setUser(res);
-      toast.success("Cập nhật lịch làm việc thành công!", { position: "top-right", autoClose: 3000 });
+      // toast.success("Cập nhật lịch làm việc thành công!", { position: "top-right", autoClose: 3000 });
     } catch (error: any) {
       console.error("Lỗi cập nhật lịch làm việc:", error.message);
       toast.error(error.message || "Cập nhật lịch làm việc thất bại.", { position: "top-right", autoClose: 3000 });
@@ -390,7 +416,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-    const updateCertification = async (userId: string, certId: string, data: {  title: string; issuer: string; issueDate: string; expiryDate?: string, description?: string, fileUrl?: string, status?: string }) => {
+  const updateCertification = async (userId: string, certId: string, data: { title: string; issuer: string; issueDate: string; expiryDate?: string, description?: string, fileUrl?: string, status?: string }) => {
     try {
       await apiUpdateCertification(userId, certId, data);
       // toast.success("Cập nhật chứng chỉ thành công!", { position: "top-right", autoClose: 3000 });
@@ -401,7 +427,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-    const deleteCertification = async (userId: string, certId: string) => {
+  const deleteCertification = async (userId: string, certId: string) => {
     try {
       await apiDeleteCertification(userId, certId);
       // toast.success("Xoá chứng chỉ thành công!", { position: "top-right", autoClose: 3000 });
@@ -509,6 +535,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         resetPassword,
         getUserById,
         updateUser,
+        uploadAvatar,
         deleteUser,
         getWorkSchedule,
         updateWorkSchedule,

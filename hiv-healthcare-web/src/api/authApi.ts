@@ -181,6 +181,25 @@ export const updateUser = async (id: string, data: any) => {
   }
 };
 
+export const uploadAvatar = async (
+  userId: string,
+  data: FormData | { avatarUrl: string }
+) => {
+  const isFileUpload = data instanceof FormData;
+
+  return apiClient.put(
+    API_ENDPOINTS.UPLOAD_AVATAR(userId), // chuẩn hóa endpoint
+    data,
+    {
+      headers: {
+        "Content-Type": isFileUpload
+          ? "multipart/form-data"
+          : "application/json",
+      },
+    }
+  );
+};
+
 export const deleteUser = async (id: string) => {
   try {
     const token = localStorage.getItem("token");

@@ -202,17 +202,6 @@ const Layout: React.FC = () => {
                   )}
                 </div>
               </div>
-
-              <Link
-                to="/doctors"
-                className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
-                  location.pathname === "/doctors"
-                    ? "text-teal-100 after:w-full"
-                    : "text-white hover:text-teal-100 transition-colors duration-300"
-                }`}
-              >
-                Bác sĩ
-              </Link>
               <Link
                 to="/blog"
                 className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
@@ -264,14 +253,14 @@ const Layout: React.FC = () => {
                   {/* User Dropdown */}
                   <div
                     ref={userDropdownRef}
-                    className={`absolute left-1/2 top-full -translate-x-1/2 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-20 transition-all duration-300 ${
+                    className={`absolute left-36 top-full -translate-x-1/2 mt-2 w-56 bg-white rounded-xl shadow-2xl border border-gray-100 py-2 z-20 transition-all duration-300 ${
                       activeDropdown === "userDesktop"
                         ? "opacity-100 visible translate-y-0"
                         : "opacity-0 invisible -translate-y-2"
                     }`}
                   >
                     <Link
-                      to="/user/profile"
+                      to="/user"
                       className="block px-5 py-3 text-gray-800 font-medium hover:bg-teal-50 hover:text-teal-700 rounded-lg transition-colors duration-200"
                       onClick={() => setActiveDropdown(null)}
                     >
@@ -402,18 +391,6 @@ const Layout: React.FC = () => {
                   )}
                 </div>
               </div>
-
-              <Link
-                to="/doctors"
-                className={`py-2.5 font-medium transition-colors duration-200 rounded-md px-3 ${
-                  location.pathname === "/doctors"
-                    ? "bg-teal-700 text-white"
-                    : "text-white hover:bg-teal-700/50 hover:shadow-md"
-                }`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Bác sĩ
-              </Link>
               <Link
                 to="/blog"
                 className={`py-2.5 font-medium transition-colors duration-200 rounded-md px-3 ${
@@ -603,7 +580,6 @@ const Layout: React.FC = () => {
               <ul className="space-y-3">
                 {[
                   { name: "Giới thiệu", path: "/about" },
-                  { name: "Đội ngũ bác sĩ", path: "/doctors" },
                   { name: "Blog", path: "/blog" },
                   { name: "Câu hỏi thường gặp", path: "/faq" },
                   { name: "Liên hệ", path: "/contact" },

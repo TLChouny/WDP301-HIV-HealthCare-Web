@@ -1,5 +1,4 @@
-import React from "react"
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { toast, ToastContainer } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import DatePicker from "react-datepicker"
@@ -54,7 +53,6 @@ const DoctorSchedule: React.FC = () => {
         setLoading(false)
         return
       }
-
       try {
         const doctorDetails = await getUserById(user._id)
         setDoctor(doctorDetails)
@@ -68,7 +66,6 @@ const DoctorSchedule: React.FC = () => {
         })
       }
     }
-
     fetchDoctorSchedule()
   }, [user, isDoctor])
 
@@ -79,13 +76,11 @@ const DoctorSchedule: React.FC = () => {
         setBookings(data)
       }
     }
-
     fetchBookings()
   }, [doctor, getByDoctorName])
 
   const getBookingForSlot = (date: Date, time: string) => {
     const dateString = date.toLocaleDateString("en-CA") // yyyy-mm-dd local timezone
-
     return bookings.find((b) => {
       if (!b.bookingDate.startsWith(dateString)) return false
       if (!b.startTime || !b.serviceId || !b.serviceId.duration) return false
@@ -137,14 +132,12 @@ const DoctorSchedule: React.FC = () => {
   // Generate time slots
   const generateTimeSlots = () => {
     if (!doctor?.startTimeInDay || !doctor?.endTimeInDay) return []
-
     const slots = []
     const [startHour, startMinute] = doctor.startTimeInDay.split(":").map(Number)
     const [endHour, endMinute] = doctor.endTimeInDay.split(":").map(Number)
 
     const current = new Date()
     current.setHours(startHour, startMinute, 0, 0)
-
     const endTime = new Date()
     endTime.setHours(endHour, endMinute, 0, 0)
 
@@ -154,12 +147,10 @@ const DoctorSchedule: React.FC = () => {
       )
       current.setMinutes(current.getMinutes() + 30) // 30-minute intervals
     }
-
     return slots
   }
 
   // Sử dụng trực tiếp hàm import từ utils/status
-
   const getBookingStatusIcon = (status: string) => {
     switch (status) {
       case "confirmed":
@@ -223,11 +214,11 @@ const DoctorSchedule: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
-      <div className="w-full">
+      <div className="w-full max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
               <CalendarDays className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-gray-800">Lịch Làm Việc</h1>
@@ -239,7 +230,7 @@ const DoctorSchedule: React.FC = () => {
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8 overflow-hidden">
           <div className="bg-gradient-to-r from-teal-600 to-blue-600 px-8 py-6">
             <div className="flex items-center gap-6">
-              <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center">
+              <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center shadow-inner">
                 {doctor.avatar ? (
                   <img
                     src={doctor.avatar || "/placeholder.svg"}
@@ -252,8 +243,7 @@ const DoctorSchedule: React.FC = () => {
               </div>
               <div className="flex-1">
                 <h2 className="text-2xl font-bold text-white mb-1">{doctor.userName}</h2>
-                {/* <p className="text-blue-100 mb-3">{doctor.userDescription || "Bác sĩ chuyên khoa"}</p> */}
-                <div className="flex flex-wrap gap-4 text-sm text-blue-100">
+                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-blue-100">
                   {doctor.email && (
                     <div className="flex items-center gap-1">
                       <Mail className="h-4 w-4" />
@@ -276,11 +266,10 @@ const DoctorSchedule: React.FC = () => {
               </div>
             </div>
           </div>
-
           {/* Working Hours Summary */}
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-teal-50 rounded-xl p-4">
+              <div className="bg-teal-50 rounded-xl p-4 border border-teal-200 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
                     <Clock className="h-5 w-5 text-teal-600" />
@@ -293,8 +282,7 @@ const DoctorSchedule: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              <div className="bg-blue-50 rounded-xl p-4">
+              <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                     <Calendar className="h-5 w-5 text-blue-600" />
@@ -305,8 +293,7 @@ const DoctorSchedule: React.FC = () => {
                   </div>
                 </div>
               </div>
-
-              <div className="bg-purple-50 rounded-xl p-4">
+              <div className="bg-purple-50 rounded-xl p-4 border border-purple-200 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                     <CalendarDays className="h-5 w-5 text-purple-600" />
@@ -335,7 +322,6 @@ const DoctorSchedule: React.FC = () => {
                 </h3>
                 <p className="text-gray-600">Lịch làm việc chi tiết theo tuần</p>
               </div>
-
               <div className="flex items-center gap-2">
                 {/* Date Picker filter */}
                 <DatePicker
@@ -345,32 +331,31 @@ const DoctorSchedule: React.FC = () => {
                       setCurrentWeek(date)
                     }
                   }}
-                  className="border border-gray-300 rounded-lg py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="border border-gray-300 rounded-lg py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm"
                   dateFormat="dd/MM/yyyy"
                   placeholderText="Chọn ngày"
                 />
                 <button
                   onClick={() => navigateWeek("prev")}
-                  className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                  className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 shadow-sm"
                 >
                   <ChevronLeft className="h-5 w-5 text-gray-600" />
                 </button>
                 <button
                   onClick={() => setCurrentWeek(new Date())}
-                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 font-medium"
+                  className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors duration-200 font-medium shadow-md"
                 >
                   Hôm nay
                 </button>
                 <button
                   onClick={() => navigateWeek("next")}
-                  className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                  className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200 shadow-sm"
                 >
                   <ChevronRight className="h-5 w-5 text-gray-600" />
                 </button>
               </div>
             </div>
           </div>
-
           {/* Calendar Grid */}
           <div className="p-6">
             {/* Days Header */}
@@ -382,11 +367,10 @@ const DoctorSchedule: React.FC = () => {
                 const currentDate = weekDates[index]
                 const isAvailable = isDoctorAvailable(day.en)
                 const isToday = currentDate.toDateString() === new Date().toDateString()
-
                 return (
                   <div
                     key={day.en}
-                    className={`text-center py-3 px-2 rounded-xl font-semibold transition-all duration-200 ${
+                    className={`text-center py-3 px-2 rounded-xl font-semibold transition-all duration-200 shadow-sm ${
                       isAvailable
                         ? isToday
                           ? "bg-gradient-to-r from-teal-600 to-blue-600 text-white shadow-lg"
@@ -403,14 +387,13 @@ const DoctorSchedule: React.FC = () => {
                 )
               })}
             </div>
-
             {/* Time Slots */}
             {timeSlots.length > 0 ? (
               <div className="space-y-3">
                 {timeSlots.map((timeSlot) => {
                   return (
                     <div key={timeSlot} className="grid grid-cols-8 gap-4">
-                      <div className="text-center py-4 px-2 font-semibold text-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                      <div className="text-center py-4 px-2 font-semibold text-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl border border-gray-200 shadow-sm">
                         <div className="flex items-center justify-center">
                           <Clock className="h-4 w-4 mr-2 text-gray-500" />
                           {timeSlot}
@@ -429,9 +412,9 @@ const DoctorSchedule: React.FC = () => {
                             <div
                               key={`${day.en}-${timeSlot}`}
                               onClick={() => setSelectedBooking(booking)}
-                              className={`py-3 px-3 rounded-xl text-center text-sm font-medium transition-all duration-200 cursor-pointer hover:shadow-lg transform hover:scale-105 bg-gradient-to-r ${getBookingStatusColor(
-                                booking.status,
-                              )} text-white shadow-md`}
+                              className={`py-3 px-3 rounded-xl text-center text-sm font-medium transition-all duration-200 cursor-pointer hover:shadow-lg transform hover:scale-105 
+                                bg-gradient-to-r ${getBookingStatusColor(booking.status)} text-white shadow-md
+                              `}
                             >
                               <div className="flex flex-col items-center justify-center space-y-1">
                                 <StatusIcon className="h-4 w-4" />
@@ -444,14 +427,13 @@ const DoctorSchedule: React.FC = () => {
                             </div>
                           )
                         }
-
                         return (
                           <div
                             key={`${day.en}-${timeSlot}`}
-                            className={`py-4 px-3 rounded-xl text-center text-sm font-medium transition-all duration-200 ${
+                            className={`py-4 px-3 rounded-xl text-center text-sm font-medium transition-all duration-200 shadow-sm ${
                               isAvailable && !isPast
                                 ? isToday
-                                  ? "bg-gradient-to-r from-teal-100 to-blue-100 text-teal-700 border-2 border-teal-300 shadow-sm"
+                                  ? "bg-gradient-to-r from-teal-100 to-blue-100 text-teal-700 border-2 border-teal-300"
                                   : "bg-teal-50 text-teal-600 hover:bg-teal-100 cursor-pointer border border-teal-200"
                                 : isPast
                                   ? "bg-gray-50 text-gray-300 border border-gray-200"
@@ -460,18 +442,18 @@ const DoctorSchedule: React.FC = () => {
                           >
                             {isAvailable && !isPast ? (
                               <div className="flex flex-col items-center justify-center space-y-1">
-                                <Clock className="h-4 w-4" />
+                                <Clock className="h-4 w-4 text-teal-500" />
                                 <span className="text-xs font-semibold">Có thể đặt</span>
                               </div>
                             ) : isPast ? (
                               <div className="flex flex-col items-center justify-center space-y-1">
-                                <X className="h-4 w-4" />
-                                <span className="text-xs">Đã qua</span>
+                                <X className="h-4 w-4 text-gray-400" />
+                                <span className="text-xs text-gray-500">Đã qua</span>
                               </div>
                             ) : (
                               <div className="flex flex-col items-center justify-center space-y-1">
-                                <X className="h-4 w-4" />
-                                <span className="text-xs">Không làm việc</span>
+                                <X className="h-4 w-4 text-gray-400" />
+                                <span className="text-xs text-gray-500">Không làm việc</span>
                               </div>
                             )}
                           </div>
@@ -496,20 +478,24 @@ const DoctorSchedule: React.FC = () => {
           <h3 className="text-lg font-bold text-gray-800 mb-4">Chú thích</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-4 h-4 bg-gradient-to-r from-green-500 to-green-600 rounded"></div>
+              <div className="w-4 h-4 bg-gradient-to-r from-green-500 to-green-600 rounded shadow-sm"></div>
               <span className="text-sm text-gray-600">Lịch hẹn đã xác nhận</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-4 h-4 bg-gradient-to-r from-amber-500 to-amber-600 rounded"></div>
+              <div className="w-4 h-4 bg-gradient-to-r from-amber-500 to-amber-600 rounded shadow-sm"></div>
               <span className="text-sm text-gray-600">Lịch hẹn chờ xác nhận</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-4 h-4 bg-gradient-to-r from-teal-100 to-blue-100 border-2 border-teal-300 rounded"></div>
+              <div className="w-4 h-4 bg-gradient-to-r from-teal-100 to-blue-100 border-2 border-teal-300 rounded shadow-sm"></div>
               <span className="text-sm text-gray-600">Hôm nay - Có thể đặt lịch</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-4 h-4 bg-teal-50 border border-teal-200 rounded"></div>
+              <div className="w-4 h-4 bg-teal-50 border border-teal-200 rounded shadow-sm"></div>
               <span className="text-sm text-gray-600">Ngày làm việc</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-4 h-4 bg-gray-50 border border-gray-200 rounded shadow-sm"></div>
+              <span className="text-sm text-gray-600">Không làm việc / Đã qua</span>
             </div>
           </div>
         </div>
@@ -523,7 +509,7 @@ const DoctorSchedule: React.FC = () => {
                   <div
                     className={`w-16 h-16 bg-gradient-to-r ${getBookingStatusColor(
                       selectedBooking.status,
-                    )} rounded-2xl flex items-center justify-center mx-auto mb-4`}
+                    )} rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md`}
                   >
                     {React.createElement(getBookingStatusIcon(selectedBooking.status), {
                       className: "h-8 w-8 text-white",
@@ -532,13 +518,11 @@ const DoctorSchedule: React.FC = () => {
                   <h2 className="text-2xl font-bold text-gray-800">Chi tiết lịch hẹn</h2>
                   <p className="text-gray-600">#{selectedBooking.bookingCode}</p>
                 </div>
-
                 <div className="space-y-4">
-                  <div className="bg-gray-50 rounded-xl p-4">
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 shadow-sm">
                     <h3 className="font-semibold text-gray-800 mb-2">Thông tin dịch vụ</h3>
                     <p className="text-gray-600">{selectedBooking.serviceId?.serviceName || "Không xác định"}</p>
                   </div>
-
                   <div className="space-y-3">
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600">Khách hàng:</span>
@@ -565,11 +549,11 @@ const DoctorSchedule: React.FC = () => {
                             ? "Đã thanh toán"
                             : selectedBooking.status === "checked-in"
                               ? "Đã xác nhận"
-                          : selectedBooking.status === "pending"
-                            ? "Chờ xác nhận"
-                          : selectedBooking.status === "re-examination"
-                            ? "Tái khám"
-                          : "Đã hủy"}
+                              : selectedBooking.status === "pending"
+                                ? "Chờ xác nhận"
+                                : selectedBooking.status === "re-examination"
+                                  ? "Tái khám"
+                                  : "Đã hủy"}
                       </span>
                     </div>
                     {selectedBooking.notes && (
@@ -580,11 +564,10 @@ const DoctorSchedule: React.FC = () => {
                     )}
                   </div>
                 </div>
-
                 <div className="flex gap-3 mt-8">
                   <button
                     onClick={() => setSelectedBooking(null)}
-                    className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors duration-200"
+                    className="flex-1 px-4 py-3 border-2 border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors duration-200 shadow-sm"
                   >
                     Đóng
                   </button>
@@ -594,7 +577,6 @@ const DoctorSchedule: React.FC = () => {
           </div>
         )}
       </div>
-
       <ToastContainer />
     </div>
   )

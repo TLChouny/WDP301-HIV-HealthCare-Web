@@ -1,41 +1,45 @@
-import React, { useEffect, useState } from 'react';
-import { 
-  Users, 
-  Calendar, 
-  FileText, 
+import type React from "react";
+import { useEffect, useState } from "react";
+import {
+  Users,
+  Calendar,
   MessageSquare,
   ClipboardList,
   Clock,
   AlertCircle,
   CheckCircle2,
-  XCircle
-} from 'lucide-react';
-import { useBooking } from '../../context/BookingContext';
-import { useServiceContext } from '../../context/ServiceContext';
-import { useAuth } from '../../context/AuthContext';
-import { getAllPayments } from '../../api/paymentApi';
-import { getNotificationsByUserId } from '../../api/notificationApi';
+  XCircle,
+  TrendingUp,
+  Activity,
+  DollarSign,
+  UserCheck,
+  Bell,
+  BarChart3,
+  RefreshCw,
+} from "lucide-react";
+import { useBooking } from "../../context/BookingContext";
+import { useServiceContext } from "../../context/ServiceContext";
+import { useAuth } from "../../context/AuthContext";
+import { getAllPayments } from "../../api/paymentApi";
+import { getNotificationsByUserId } from "../../api/notificationApi";
+import { getAllBlogs } from "../../api/blogApi"; // Import getAllBlogs
+import { Blog } from "../../types/blog"; // Import type Blog
 
 const StaffDashboard: React.FC = () => {
-  // Contexts
   const { getAll } = useBooking();
   const { services } = useServiceContext();
   const { getAllUsers, user } = useAuth();
-
-  // State
   const [bookings, setBookings] = useState<any[]>([]);
-  const [serviceStats, setServiceStats] = useState<{serviceName: string, count: number}[]>([]);
+  const [serviceStats, setServiceStats] = useState<{ serviceName: string; count: number }[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [blogs, setBlogs] = useState<Blog[]>([]); // Thay notifications bằng blogs
   const [loading, setLoading] = useState(true);
 
-  // Fetch all data
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Bookings
         let bookingsData: any[] = [];
         try {
           bookingsData = await getAll();
@@ -43,15 +47,15 @@ const StaffDashboard: React.FC = () => {
           bookingsData = [];
         }
         setBookings(Array.isArray(bookingsData) ? bookingsData : []);
-        // Users (patients)
+
         let usersData: any[] = [];
         try {
           usersData = await getAllUsers();
         } catch (e) {
           usersData = [];
         }
-        setPatients(Array.isArray(usersData) ? usersData.filter((u: any) => u && u.role === 'user') : []);
-        // Payments
+        setPatients(Array.isArray(usersData) ? usersData.filter((u: any) => u && u.role === "user") : []);
+
         let paymentsData: any[] = [];
         try {
           paymentsData = await getAllPayments();
@@ -59,53 +63,50 @@ const StaffDashboard: React.FC = () => {
           paymentsData = [];
         }
         setPayments(Array.isArray(paymentsData) ? paymentsData : []);
-        // Notifications (recent activities)
-        if (user && user._id) {
-          try {
-            const notiRes = await getNotificationsByUserId(user._id);
-            setNotifications(Array.isArray(notiRes?.data) ? notiRes.data : []);
-          } catch (e) {
-            setNotifications([]);
-          }
-        } else {
-          setNotifications([]);
+
+        // Lấy danh sách blog thay vì notifications
+        try {
+          const blogsData = await getAllBlogs();
+          setBlogs(Array.isArray(blogsData) ? blogsData : []);
+        } catch (e) {
+          setBlogs([]);
         }
       } catch (err) {
         setBookings([]);
         setPatients([]);
         setPayments([]);
-        setNotifications([]);
+        setBlogs([]);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-    // eslint-disable-next-line
-  }, []);
 
-  // Service stats (booking theo dịch vụ)
+    fetchData();
+  }, [user]);
+
   useEffect(() => {
     const stats: { [serviceId: string]: Set<string> } = {};
-    bookings.forEach(b => {
+    bookings.forEach((b) => {
       if (b.serviceId && b.userId && b.userId._id) {
-        const id = typeof b.serviceId === 'object' ? b.serviceId._id : b.serviceId;
+        const id = typeof b.serviceId === "object" ? b.serviceId._id : b.serviceId;
         if (!stats[id]) stats[id] = new Set();
         stats[id].add(b.userId._id);
       }
     });
+
     const result = Object.entries(stats).map(([serviceId, userSet]) => {
-      const service = services.find(s => s._id === serviceId);
+      const service = services.find((s) => s._id === serviceId);
       return {
         serviceName: service ? service.serviceName : serviceId,
-        count: userSet.size
+        count: userSet.size,
       };
     });
+
     setServiceStats(result);
   }, [bookings, services]);
 
-  // Lấy danh sách booking hôm nay
   const today = new Date();
-  const todayBookings = bookings.filter(b => {
+  const todayBookings = bookings.filter((b) => {
     const bookingDate = new Date(b.bookingDate);
     return (
       bookingDate.getFullYear() === today.getFullYear() &&
@@ -113,227 +114,381 @@ const StaffDashboard: React.FC = () => {
       bookingDate.getDate() === today.getDate()
     );
   });
+
   const todayUsers = Array.from(
-    new Map(
-      todayBookings
-        .filter(b => b.userId && b.userId._id)
-        .map(b => [b.userId._id, b.userId])
-    ).values()
+    new Map(todayBookings.filter((b) => b.userId && b.userId._id).map((b) => [b.userId._id, b.userId])).values(),
   );
+
   const todayUserCount = todayUsers.length;
 
-  // Tổng doanh thu
   const totalRevenue = payments
-    .filter((p: any) => p.status === 'success')
-    .reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+    .filter((p: any) => p.status === "success")
+    .reduce((sum: number, p: any) => sum + (Number(p.amount) || 0), 0);
 
-  // Thống kê
   const stats = [
     {
-      name: 'Tổng số bệnh nhân',
+      name: "Tổng số bệnh nhân",
       value: patients.length,
-      icon: <Users className="w-6 h-6 text-blue-600" />,
-      change: '',
-      changeType: 'increase'
+      icon: <Users className="w-8 h-8" />,
+      change: "",
+      changeType: "increase",
+      bgColor: "bg-gradient-to-br from-blue-500 to-blue-600",
+      lightBg: "bg-blue-50",
+      textColor: "text-blue-600",
     },
     {
-      name: 'Lịch hẹn hôm nay',
-      value: todayUserCount,
-      icon: <Calendar className="w-6 h-6 text-green-600" />,
-      change: '',
-      changeType: 'increase'
+      name: "Lịch hẹn hôm nay",
+      value: todayBookings.length,
+      icon: <Calendar className="w-8 h-8" />,
+      change: "",
+      changeType: "increase",
+      bgColor: "bg-gradient-to-br from-green-500 to-green-600",
+      lightBg: "bg-green-50",
+      textColor: "text-green-600",
     },
     {
-      name: 'Tổng doanh thu',
-      value: totalRevenue.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }),
-      icon: <FileText className="w-6 h-6 text-purple-600" />,
-      change: '',
-      changeType: 'increase'
+      name: "Tổng doanh thu",
+      value: totalRevenue.toLocaleString("vi-VN", { style: "currency", currency: "VND" }),
+      icon: <DollarSign className="w-8 h-8" />,
+      change: "",
+      changeType: "increase",
+      bgColor: "bg-gradient-to-br from-purple-500 to-purple-600",
+      lightBg: "bg-purple-50",
+      textColor: "text-purple-600",
     },
     {
-      name: 'Tư vấn đang chờ',
-      value: bookings.filter(b => b.status === 'pending').length,
-      icon: <MessageSquare className="w-6 h-6 text-yellow-600" />,
-      change: '',
-      changeType: 'increase'
-    }
+      name: "Tư vấn đang chờ",
+      value: bookings.filter((b) => b.status === "pending").length,
+      icon: <MessageSquare className="w-8 h-8" />,
+      change: "",
+      changeType: "increase",
+      bgColor: "bg-gradient-to-br from-orange-500 to-orange-600",
+      lightBg: "bg-orange-50",
+      textColor: "text-orange-600",
+    },
   ];
 
-  // Hoạt động gần đây (notifications)
-  const recentActivities = Array.isArray(notifications) ? notifications.slice(0, 5).map((noti: any) => ({
-    id: noti?._id || Math.random(),
-    type: 'notification',
-    title: noti?.notiName || 'Hoạt động',
-    description: noti?.notiDescription || '',
-    time: noti?.createdAt ? new Date(noti.createdAt).toLocaleString('vi-VN') : '',
-    icon: <Calendar className="w-5 h-5 text-blue-600" />
-  })) : [];
+  const recentBlogs = Array.isArray(blogs)
+    ? blogs
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5)
+        .map((blog) => ({
+          id: blog._id || Math.random(),
+          type: "blog",
+          title: blog.blogTitle || "Tin tức",
+          description: blog.blogContent || "",
+          time: blog.createdAt ? new Date(blog.createdAt).toLocaleString("vi-VN") : "",
+          icon: <ClipboardList className="w-5 h-5 text-purple-600" />, // Thay icon phù hợp
+        }))
+    : [];
 
   const getAppointmentStatus = (status: string) => {
     switch (status) {
-      case 'confirmed':
+      case "confirmed":
         return {
-          icon: <CheckCircle2 className="w-4 h-4 text-green-600" />,
-          text: 'Đã xác nhận',
-          color: 'bg-green-100 text-green-800'
+          icon: <CheckCircle2 className="w-4 h-4" />,
+          text: "Đã xác nhận",
+          color: "bg-green-100 text-green-800 border-green-200",
+          dotColor: "bg-green-500",
         };
-      case 'pending':
+      case "pending":
         return {
-          icon: <AlertCircle className="w-4 h-4 text-yellow-600" />,
-          text: 'Chờ xác nhận',
-          color: 'bg-yellow-100 text-yellow-800'
+          icon: <AlertCircle className="w-4 h-4" />,
+          text: "Chờ xác nhận",
+          color: "bg-yellow-100 text-yellow-800 border-yellow-200",
+          dotColor: "bg-yellow-500",
         };
-      case 'cancelled':
+      case "cancelled":
         return {
-          icon: <XCircle className="w-4 h-4 text-red-600" />,
-          text: 'Đã hủy',
-          color: 'bg-red-100 text-red-800'
+          icon: <XCircle className="w-4 h-4" />,
+          text: "Đã hủy",
+          color: "bg-red-100 text-red-800 border-red-200",
+          dotColor: "bg-red-500",
         };
       default:
         return {
           icon: null,
           text: status,
-          color: 'bg-gray-100 text-gray-800'
+          color: "bg-gray-100 text-gray-800 border-gray-200",
+          dotColor: "bg-gray-500",
         };
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Chào mừng trở lại! Đây là tổng quan về hoạt động của bạn
-          </p>
-          {loading && (
-            <div className="text-blue-600 mt-2">Đang tải dữ liệu...</div>
-          )}
-          {!loading && (bookings.length === 0 && patients.length === 0 && payments.length === 0) && (
-            <div className="text-red-600 mt-2">Không thể tải dữ liệu. Vui lòng thử lại hoặc kiểm tra kết nối.</div>
-          )}
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative">
+            <RefreshCw className="w-12 h-12 text-blue-600 animate-spin mx-auto" />
+            <div className="absolute inset-0 w-12 h-12 border-4 border-blue-200 rounded-full animate-pulse mx-auto"></div>
+          </div>
+          <h2 className="mt-4 text-xl font-semibold text-gray-700">Đang tải dữ liệu...</h2>
+          <p className="text-gray-500 mt-2">Vui lòng chờ trong giây lát</p>
         </div>
+      </div>
+    );
+  }
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat) => (
-            <div key={stat.name} className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.name}</p>
-                  <p className="text-2xl font-semibold text-gray-900 mt-2">{stat.value}</p>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Header Section */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Activity className="w-8 h-8 text-blue-600" />
                 </div>
-                <div className="p-3 bg-gray-50 rounded-full">
-                  {stat.icon}
+                Thống kê
+              </h1>
+              <p className="mt-2 text-gray-600">Chào mừng trở lại! Đây là tổng quan về hoạt động của bạn hôm nay</p>
+              <div className="flex items-center gap-2 mt-3">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm text-gray-500">Cập nhật lần cuối: {new Date().toLocaleString("vi-VN")}</span>
+              </div>
+            </div>
+            <div className="hidden md:flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Xin chào,</p>
+                <p className="font-semibold text-gray-900">{user?.userName || "Staff"}</p>
+              </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                {user?.userName?.charAt(0) || "S"}
+              </div>
+            </div>
+          </div>
+
+          {!loading && bookings.length === 0 && patients.length === 0 && payments.length === 0 && (
+            <div className="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-red-600" />
+                <div>
+                  <h3 className="font-medium text-red-800">Không thể tải dữ liệu</h3>
+                  <p className="text-sm text-red-600">Vui lòng thử lại hoặc kiểm tra kết nối mạng</p>
                 </div>
               </div>
-              <div className="mt-4">
-                <span className={`text-sm font-medium ${
-                  stat.changeType === 'increase' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {stat.change}
-                </span>
-                <span className="text-sm text-gray-600 ml-2">so với tuần trước</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {stats.map((stat, index) => (
+            <div
+              key={stat.name}
+              className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden group"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div
+                    className={`p-3 rounded-lg ${stat.lightBg} group-hover:scale-110 transition-transform duration-300`}
+                  >
+                    <div className={stat.textColor}>{stat.icon}</div>
+                  </div>
+                  <div className="text-right">
+                    <TrendingUp className="w-4 h-4 text-green-500" />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600 mb-1">{stat.name}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+                </div>
+                <div className="mt-4 flex items-center">
+                  <div className="flex-1 bg-gray-200 rounded-full h-1">
+                    <div
+                      className={`h-1 rounded-full ${stat.bgColor} transition-all duration-1000`}
+                    ></div>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Thống kê booking dịch vụ */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Thống kê số lượng bệnh nhân đã đặt lịch từng gói dịch vụ</h2>
+        {/* Service Stats Table */}
+        <div className="bg-white rounded-xl shadow-sm mb-8 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4">
+            <div className="flex items-center gap-3">
+              <BarChart3 className="w-6 h-6 text-white" />
+              <h2 className="text-xl font-semibold text-white">Thống kê dịch vụ</h2>
+            </div>
+            <p className="text-blue-100 mt-1">Số lượng bệnh nhân đã đặt lịch từng gói dịch vụ</p>
+          </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+            <table className="min-w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên dịch vụ</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số lượng user đã booking</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Tên dịch vụ
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Số lượng user đã booking
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    Tỷ lệ
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {serviceStats.length === 0 ? (
                   <tr>
-                    <td colSpan={2} className="text-center py-8 text-gray-400">Chưa có dữ liệu booking.</td>
+                    <td colSpan={3} className="text-center py-12">
+                      <div className="flex flex-col items-center">
+                        <ClipboardList className="w-12 h-12 text-gray-300 mb-3" />
+                        <p className="text-gray-500 font-medium">Chưa có dữ liệu booking</p>
+                        <p className="text-sm text-gray-400">Dữ liệu sẽ xuất hiện khi có booking mới</p>
+                      </div>
+                    </td>
                   </tr>
                 ) : (
-                  serviceStats.map(stat => (
-                    <tr key={stat.serviceName}>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900">{stat.serviceName}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{stat.count}</td>
-                    </tr>
-                  ))
+                  serviceStats.map((stat, index) => {
+                    const maxCount = Math.max(...serviceStats.map((s) => s.count));
+                    const percentage = maxCount > 0 ? (stat.count / maxCount) * 100 : 0;
+
+                    return (
+                      <tr key={stat.serviceName} className="hover:bg-gray-50 transition-colors duration-200">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                            <span className="text-sm font-medium text-gray-900">{stat.serviceName}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-semibold text-gray-900">{stat.count}</span>
+                            <span className="text-xs text-gray-500">người</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-24">
+                              <div
+                                className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full transition-all duration-1000"
+                                style={{ width: `${percentage}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-xs text-gray-500 min-w-12">{percentage.toFixed(0)}%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Lịch hẹn hôm nay */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-medium text-gray-900">Lịch hẹn hôm nay</h2>
+        {/* Bottom Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Today's Appointments */}
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-gradient-to-r from-green-500 to-teal-600 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-6 h-6 text-white" />
+                  <h2 className="text-xl font-semibold text-white">Lịch hẹn hôm nay</h2>
+                </div>
+                <div className="bg-white/20 px-3 py-1 rounded-full">
+                  <span className="text-white font-semibold">{todayBookings.length}</span>
+                </div>
+              </div>
             </div>
-            <div className="divide-y divide-gray-200">
+            <div className="max-h-96 overflow-y-auto">
               {todayBookings.length === 0 ? (
-                <div className="p-6 text-gray-500">Không có lịch hẹn nào hôm nay.</div>
+                <div className="p-8 text-center">
+                  <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">Không có lịch hẹn nào hôm nay</p>
+                  <p className="text-sm text-gray-400 mt-1">Hãy nghỉ ngơi hoặc chuẩn bị cho ngày mai</p>
+                </div>
               ) : (
-                todayBookings.map((booking) => (
-                  <div key={booking._id} className="p-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {booking.isAnonymous
-                            ? 'Ẩn danh'
-                            : (booking.userId?.userName || booking.customerName || 'Không xác định')}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Bác sĩ: {booking.doctorName || 'Chưa phân công'}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Giờ: {booking.startTime || 'N/A'} - {booking.endTime || 'N/A'}
-                        </p>
-                      </div>
-                      {(() => {
-                        const status = getAppointmentStatus(booking.status);
-                        return (
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${status.color}`}>
+                <div className="divide-y divide-gray-100">
+                  {todayBookings.map((booking, index) => {
+                    const status = getAppointmentStatus(booking.status);
+                    return (
+                      <div key={booking._id} className="p-6 hover:bg-gray-50 transition-colors duration-200">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <div className={`w-3 h-3 rounded-full ${status.dotColor}`}></div>
+                              <h3 className="font-semibold text-gray-900">
+                                {booking.isAnonymous
+                                  ? "Ẩn danh"
+                                  : booking.userId?.userName || booking.customerName || "Không xác định"}
+                              </h3>
+                            </div>
+                            <div className="ml-6 space-y-1">
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <UserCheck className="w-4 h-4" />
+                                <span>Bác sĩ: {booking.doctorName || "Chưa phân công"}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <Clock className="w-4 h-4" />
+                                <span>
+                                  Giờ: {booking.startTime || "N/A"} - {booking.endTime || "N/A"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <span
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${status.color}`}
+                          >
                             {status.icon}
                             <span className="ml-1">{status.text}</span>
                           </span>
-                        );
-                      })()}
-                    </div>
-                  </div>
-                ))
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
           </div>
 
-          {/* Recent Activities */}
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b">
-              <h2 className="text-lg font-medium text-gray-900">Hoạt động gần đây</h2>
+          {/* Recent Blogs */}
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-gradient-to-r from-purple-500 to-pink-600 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Activity className="w-6 h-6 text-white" />
+                  <h2 className="text-xl font-semibold text-white">Tin tức gần đây</h2>
+                </div>
+                <div className="bg-white/20 px-3 py-1 rounded-full">
+                  <span className="text-white font-semibold">{recentBlogs.length}</span>
+                </div>
+              </div>
             </div>
-            <div className="divide-y divide-gray-200">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="p-6">
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0">
-                      {activity.icon}
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                      <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                      <div className="mt-2 flex items-center text-sm text-gray-500">
-                        <Clock className="w-4 h-4 mr-1" />
-                        {activity.time}
+            <div className="max-h-96 overflow-y-auto">
+              {recentBlogs.length === 0 ? (
+                <div className="p-8 text-center">
+                  <ClipboardList className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">Chưa có tin tức nào</p>
+                  <p className="text-sm text-gray-400 mt-1">Các tin tức mới sẽ xuất hiện ở đây</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {recentBlogs.map((blog, index) => (
+                    <div key={blog.id} className="p-6 hover:bg-gray-50 transition-colors duration-200">
+                      <div className="flex items-start gap-4">
+                        <div className="flex-shrink-0 p-2 bg-purple-100 rounded-lg">{blog.icon}</div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 truncate">{blog.title}</h3>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">{blog.description}</p>
+                          <div className="mt-3 flex items-center text-xs text-gray-500">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {blog.time}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>
@@ -342,4 +497,4 @@ const StaffDashboard: React.FC = () => {
   );
 };
 
-export default StaffDashboard; 
+export default StaffDashboard;

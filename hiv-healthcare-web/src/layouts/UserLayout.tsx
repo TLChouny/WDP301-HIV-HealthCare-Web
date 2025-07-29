@@ -74,10 +74,11 @@ const UserLayout: React.FC = () => {
 
   const menuItems = [
     { text: 'Tổng quan', icon: <DashboardIcon />, path: '/user' },
-    { text: 'Thông tin cá nhân', icon: <PersonIcon />, path: '/user/profile' },
     { text: 'Lịch hẹn', icon: <EventIcon />, path: '/user/appointments' },
     // { text: 'Lịch sử khám', icon: <HistoryIcon />, path: '/user/history' },
     { text: 'Hồ sơ bệnh án', icon: <MedicalIcon />, path: '/user/medical-records' },
+    { text: 'Thông tin cá nhân', icon: <PersonIcon />, path: '/user/profile' },
+
   ];
 
   const drawer = (

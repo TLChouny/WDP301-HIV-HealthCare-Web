@@ -54,11 +54,11 @@ const DoctorLayout: React.FC = () => {
   };
 
   const navigation = [
-    {
-      name: 'Tổng quan',
-      path: '/doctor/dashboard',
-      icon: <User className="w-5 h-5" />
-    },
+    // {
+    //   name: 'Tổng quan',
+    //   path: '/doctor/dashboard',
+    //   icon: <User className="w-5 h-5" />
+    // },
     {
       name: 'Lịch làm',
       path: '/doctor/schedule',

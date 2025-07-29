@@ -20,45 +20,44 @@ import {
   ChevronLeft,
   ChevronRight,
   Heart,
-  Ruler,
-  Thermometer,
   TestTube,
+  User,
 } from "lucide-react";
 import { useResult } from "../../context/ResultContext";
 import { useAuth } from "../../context/AuthContext";
-import { User } from "../../types/user";
-import { Result } from "../../types/result";
-import { ARVRegimen } from "../../types/arvRegimen";
+import type { User as UserType } from "../../types/user";
+import type { Result } from "../../types/result";
 
 // Format frequency value (e.g., "2" → "2 lần/ngày")
 const formatFrequency = (freq: string | undefined): string => {
   if (!freq || freq.trim() === "") return "Chưa có";
-  const num = parseInt(freq, 10);
+  const num = Number.parseInt(freq, 10);
   return isNaN(num) ? freq : `${num} lần/ngày`;
 };
 
 // Format medication times based on medicationSlot
 const formatMedicationTimes = (medicationTime: string | undefined, medicationSlot: string | undefined): string => {
   if (!medicationTime || !medicationSlot) return "Chưa có";
-  const times = medicationTime.split(';').filter(t => t);
-  const slots = {
-    "Sáng": ["Sáng"],
-    "Trưa": ["Trưa"],
-    "Tối": ["Tối"],
-    "Sáng và Trưa": ["Sáng", "Trưa"],
-    "Trưa và Tối": ["Trưa", "Tối"],
-    "Sáng và Tối": ["Sáng", "Tối"],
-    "Sáng, Trưa và Tối": ["Sáng", "Trưa", "Tối"],
-  }[medicationSlot] || [];
-  if (times.length !== slots.length) return medicationTime; // Fallback if lengths don't match
-  return times.map((time, i) => `${slots[i]}: ${time}`).join(', ');
+  const times = medicationTime.split(";").filter((t) => t);
+  const slots =
+    {
+      Sáng: ["Sáng"],
+      Trưa: ["Trưa"],
+      Tối: ["Tối"],
+      "Sáng và Trưa": ["Sáng", "Trưa"],
+      "Trưa và Tối": ["Trưa", "Tối"],
+      "Sáng và Tối": ["Sáng", "Tối"],
+      "Sáng, Trưa và Tối": ["Sáng", "Trưa", "Tối"],
+    }[medicationSlot] || [];
+  if (times.length !== slots.length) return medicationTime;
+  return times.map((time, i) => `${slots[i]}: ${time}`).join(", ");
 };
 
 const MedicalRecords: React.FC = () => {
   const { getByUserId, loading } = useResult();
   const { getUserById, user } = useAuth();
   const [medicalRecords, setMedicalRecords] = useState<{ [key: string]: Result[] }>({});
-  const [userInfo, setUserInfo] = useState<User | null>(null);
+  const [userInfo, setUserInfo] = useState<UserType | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<Result | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -74,7 +73,6 @@ const MedicalRecords: React.FC = () => {
         const [userData, resultsData] = await Promise.all([getUserById(user._id), getByUserId(user._id)]);
         setUserInfo(userData);
         console.log("Fetched user:", userData);
-
         // Group results by serviceName
         const groupedResults: { [key: string]: Result[] } = {};
         resultsData.forEach((result: Result) => {
@@ -91,7 +89,6 @@ const MedicalRecords: React.FC = () => {
         setMedicalRecords({});
       }
     };
-
     fetchData();
   }, [getByUserId, getUserById, user?._id]);
 
@@ -103,21 +100,21 @@ const MedicalRecords: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "bg-green-50 text-green-700";
+        return "bg-green-100 text-green-700";
       case "confirmed":
-        return "bg-blue-50 text-blue-700";
+        return "bg-blue-100 text-blue-700";
       case "pending":
-        return "bg-yellow-50 text-yellow-700";
+        return "bg-amber-100 text-amber-700";
       case "cancelled":
-        return "bg-red-50 text-red-700";
+        return "bg-red-100 text-red-700";
       case "re-examination":
-        return "bg-purple-50 text-purple-700";
+        return "bg-purple-100 text-purple-700";
       case "checked-in":
-        return "bg-indigo-50 text-indigo-700";
+        return "bg-teal-100 text-teal-700";
       case "checked-out":
-        return "bg-gray-50 text-gray-700";
+        return "bg-gray-100 text-gray-700";
       default:
-        return "bg-gray-50 text-gray-700";
+        return "bg-gray-100 text-gray-700";
     }
   };
 
@@ -166,9 +163,9 @@ const MedicalRecords: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex justify-center items-center">
         <div className="flex items-center gap-3">
-          <Loader className="h-8 w-8 animate-spin text-gray-600" />
+          <Loader className="h-8 w-8 animate-spin text-teal-600" />
           <span className="text-lg text-gray-600">Đang tải dữ liệu...</span>
         </div>
       </div>
@@ -176,62 +173,70 @@ const MedicalRecords: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-gray-100 rounded-lg">
-              <FileText className="h-8 w-8 text-gray-600" />
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
+              <FileText className="h-6 w-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Hồ Sơ Bệnh Án Điện Tử</h1>
-              <p className="text-gray-600 mt-1">Quản lý và theo dõi lịch sử khám bệnh</p>
-            </div>
+            <h1 className="text-3xl font-bold text-gray-800">Hồ Sơ Bệnh Án Điện Tử</h1>
           </div>
+          <p className="text-gray-600">Quản lý và theo dõi lịch sử khám bệnh của bạn</p>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-6 min-h-[600px]">
-          {/* Left Panel - Patient Info (3/12) */}
-          <div className="lg:w-1/3 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Panel - Patient Info */}
+          <div className="lg:col-span-1">
             {userInfo && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex flex-col">
+              <div className="bg-white rounded-2xl shadow border p-6 h-fit">
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <div className="h-5 w-5 text-gray-600" />
+                  <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
+                    <User className="h-5 w-5 text-white" />
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900">Thông Tin Bệnh Nhân</h2>
+                  <h2 className="text-xl font-semibold text-gray-800">Thông Tin Bệnh Nhân</h2>
                 </div>
 
                 <div className="text-center mb-6">
-                  <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 text-3xl font-bold shadow-sm mx-auto mb-4">
-                    {userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : "?"}
+                  <div className="w-20 h-20 bg-gradient-to-r from-teal-600 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden">
+                    {userInfo.avatar ? (
+                      <img
+                        src={userInfo.avatar}
+                        alt={userInfo.userName || "Avatar"}
+                        className="w-full h-full object-cover rounded-2xl"
+                      />
+                    ) : (
+                      <span className="text-white text-2xl font-bold">
+                        {userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : "?"}
+                      </span>
+                    )}
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900">{userInfo.userName || "Chưa cập nhật"}</h3>
+                  <h3 className="text-xl font-bold text-gray-800">{userInfo.userName || "Chưa cập nhật"}</h3>
                 </div>
 
-                <div className="space-y-4 flex-1">
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Mail className="h-5 w-5 text-gray-500" />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                    <Mail className="h-5 w-5 text-teal-600" />
                     <div className="flex-1">
                       <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-medium text-gray-900">{userInfo.email || "Chưa cập nhật"}</p>
+                      <p className="font-medium text-gray-800">{userInfo.email || "Chưa cập nhật"}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Phone className="h-5 w-5 text-gray-500" />
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                    <Phone className="h-5 w-5 text-teal-600" />
                     <div className="flex-1">
                       <p className="text-sm text-gray-500">Số điện thoại</p>
-                      <p className="font-medium text-gray-900">{userInfo.phone_number || "Chưa cập nhật"}</p>
+                      <p className="font-medium text-gray-800">{userInfo.phone_number || "Chưa cập nhật"}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <Calendar className="h-5 w-5 text-gray-500" />
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                    <Calendar className="h-5 w-5 text-teal-600" />
                     <div className="flex-1">
                       <p className="text-sm text-gray-500">Ngày sinh</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="font-medium text-gray-800">
                         {userInfo.dateOfBirth
                           ? new Date(userInfo.dateOfBirth).toLocaleDateString("vi-VN")
                           : "Chưa cập nhật"}
@@ -239,110 +244,124 @@ const MedicalRecords: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
                     <div className="h-5 w-5 flex items-center justify-center">
-                      <span className="text-gray-500 text-lg">⚥</span>
+                      <span className="text-teal-600 text-lg">⚥</span>
                     </div>
                     <div className="flex-1">
                       <p className="text-sm text-gray-500">Giới tính</p>
-                      <p className="font-medium text-gray-900">{userInfo.gender || "Chưa cập nhật"}</p>
+                      <p className="font-medium text-gray-800">{userInfo.gender || "Chưa cập nhật"}</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <MapPin className="h-5 w-5 text-gray-500" />
+                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                    <MapPin className="h-5 w-5 text-teal-600" />
                     <div className="flex-1">
                       <p className="text-sm text-gray-500">Địa chỉ</p>
-                      <p className="font-medium text-gray-900">{userInfo.address || "Chưa cập nhật"}</p>
+                      <p className="font-medium text-gray-800">{userInfo.address || "Chưa cập nhật"}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6 p-4 bg-gray-100 rounded-lg">
+                <div className="mt-6 p-4 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl text-white">
                   <div className="flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-gray-600" />
-                    <span className="font-medium text-gray-900">Tổng số lần khám</span>
+                    <Activity className="h-5 w-5" />
+                    <span className="font-medium">Tổng số lần khám</span>
                   </div>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">{totalRecords}</p>
+                  <p className="text-2xl font-bold mt-1">{totalRecords}</p>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Right Panel - Medical Records (7/12) */}
-          <div className="lg:w-2/3 w-full">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 h-full flex flex-col">
-              <div className="p-6 border-b border-gray-200">
+          {/* Right Panel - Medical Records */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow border">
+              <div className="p-6 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <Stethoscope className="h-6 w-6 text-gray-600" />
+                  <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
+                    <Stethoscope className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-semibold text-gray-900">Lịch Sử Khám Bệnh</h2>
+                    <h2 className="text-xl font-semibold text-gray-800">Lịch Sử Khám Bệnh</h2>
                     <p className="text-gray-600">Chi tiết các lần khám và kết quả điều trị</p>
                   </div>
                 </div>
               </div>
 
-              <div className="p-6 flex-1 overflow-y-auto">
+              <div className="p-6">
                 {currentRecords.length > 0 ? (
                   <div className="space-y-6">
                     {currentRecords.map((record: Result) => (
-                      <div key={record._id} className="border border-gray-200 rounded-lg overflow-hidden">
-                        <div className="bg-gray-100 p-4">
+                      <div
+                        key={record._id}
+                        className="border border-gray-100 rounded-2xl overflow-hidden hover:shadow-md transition-all"
+                      >
+                        <div className="bg-gradient-to-r from-blue-50 to-teal-50 p-4">
                           <div className="flex items-center gap-3">
-                            <Stethoscope className="h-5 w-5 text-gray-600" />
-                            <h3 className="font-semibold text-gray-900 text-lg">
+                            <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
+                              <Stethoscope className="h-4 w-4 text-white" />
+                            </div>
+                            <h3 className="font-semibold text-gray-800 text-lg">
                               {record.bookingId?.serviceId?.serviceName || "Khác"}
                             </h3>
                           </div>
                         </div>
-                        <div className="p-4 hover:bg-gray-50 transition-colors">
+
+                        <div className="p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                                 <div className="flex items-center gap-2">
-                                  <Calendar className="h-4 w-4 text-gray-500" />
-                                  <span className="font-medium text-gray-900">
+                                  <Calendar className="h-4 w-4 text-teal-600" />
+                                  <span className="font-medium text-gray-800">
                                     {record.reExaminationDate
                                       ? new Date(record.reExaminationDate).toLocaleDateString("vi-VN")
                                       : "Chưa xác định"}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Stethoscope className="h-4 w-4 text-gray-500" />
+                                  <Stethoscope className="h-4 w-4 text-teal-600" />
                                   <span className="text-gray-700">
                                     {record.bookingId?.doctorName || "Chưa xác định"}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Activity className="h-4 w-4 text-gray-500" />
-                                  <span className="text-gray-700">
-                                    {record.resultName || "Chưa có tên"}
-                                  </span>
+                                  <Activity className="h-4 w-4 text-teal-600" />
+                                  <span className="text-gray-700">{record.resultName || "Chưa có tên"}</span>
                                 </div>
                                 {record.bookingId?.status && (
                                   <span
-                                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(record.bookingId.status)}`}
+                                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                                      record.bookingId.status
+                                    )}`}
                                   >
                                     {getStatusIcon(record.bookingId.status)}
                                     {record.bookingId.status}
                                   </span>
                                 )}
                               </div>
+
                               <p className="text-gray-600 text-sm line-clamp-2 mb-2">
                                 {record.resultDescription || "Không có mô tả"}
                               </p>
+
                               {record.arvregimenId?.drugs && record.arvregimenId.drugs.length > 0 && (
-                                <div className="mt-2">
+                                <div className="mt-4">
                                   <label className="block text-sm font-medium text-gray-700 mb-2">Thông tin thuốc</label>
                                   <div className="overflow-x-auto">
-                                    <table className="min-w-full border border-gray-200">
-                                      <thead className="bg-gray-50">
+                                    <table className="min-w-full border border-gray-200 rounded-xl">
+                                      <thead className="bg-gradient-to-r from-blue-50 to-teal-50">
                                         <tr>
-                                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Tên thuốc</th>
-                                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Liều dùng</th>
-                                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Tần suất</th>
+                                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+                                            Tên thuốc
+                                          </th>
+                                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+                                            Liều dùng
+                                          </th>
+                                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+                                            Tần suất
+                                          </th>
                                         </tr>
                                       </thead>
                                       <tbody className="bg-white">
@@ -351,12 +370,12 @@ const MedicalRecords: React.FC = () => {
                                             ? record.arvregimenId.frequency.split(";")
                                             : [];
                                           return (
-                                            <tr key={index} className="border-t border-gray-200">
-                                              <td className="px-4 py-2 text-sm text-gray-900">{drug}</td>
-                                              <td className="px-4 py-2 text-sm text-gray-900">
+                                            <tr key={index} className="border-t border-gray-100">
+                                              <td className="px-4 py-2 text-sm text-gray-800">{drug}</td>
+                                              <td className="px-4 py-2 text-sm text-gray-800">
                                                 {record.arvregimenId?.dosages[index] || "Chưa có"}
                                               </td>
-                                              <td className="px-4 py-2 text-sm text-gray-900">
+                                              <td className="px-4 py-2 text-sm text-gray-800">
                                                 {formatFrequency(frequencies[index])}
                                               </td>
                                             </tr>
@@ -371,7 +390,7 @@ const MedicalRecords: React.FC = () => {
 
                             <button
                               onClick={() => handleViewRecord(record)}
-                              className="ml-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all shadow-sm"
+                              className="ml-4 inline-flex items-center gap-2 px-4 py-2 mt-8 text-sm font-medium text-white bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl hover:from-teal-700 hover:to-blue-700 transition-all shadow-sm"
                             >
                               <Eye className="h-4 w-4" />
                               Chi tiết
@@ -383,10 +402,10 @@ const MedicalRecords: React.FC = () => {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <div className="p-4 bg-gray-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                      <FileText className="h-10 w-10 text-gray-400" />
+                    <div className="w-20 h-20 bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <FileText className="h-10 w-10 text-teal-600" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có hồ sơ khám bệnh</h3>
+                    <h3 className="text-lg font-medium text-gray-800 mb-2">Chưa có hồ sơ khám bệnh</h3>
                     <p className="text-gray-500">Hồ sơ khám bệnh sẽ được hiển thị tại đây sau khi bạn thực hiện khám</p>
                   </div>
                 )}
@@ -394,26 +413,32 @@ const MedicalRecords: React.FC = () => {
 
               {/* Pagination Controls */}
               {totalRecords > recordsPerPage && (
-                <div className="p-4 border-t border-gray-200 flex justify-between items-center">
+                <div className="p-4 border-t border-gray-100 flex justify-between items-center">
                   <button
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
-                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg ${
-                      currentPage === 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200"
-                    } transition-all`}
+                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${
+                      currentPage === 1
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700"
+                    }`}
                   >
                     <ChevronLeft className="h-4 w-4" />
                     Trang trước
                   </button>
-                  <span className="text-sm text-gray-600">
+
+                  <span className="text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-xl">
                     Trang {currentPage} / {totalPages}
                   </span>
+
                   <button
                     onClick={handleNextPage}
                     disabled={currentPage === totalPages}
-                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg ${
-                      currentPage === totalPages ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-200"
-                    } transition-all`}
+                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${
+                      currentPage === totalPages
+                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                        : "bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700"
+                    }`}
                   >
                     Trang sau
                     <ChevronRight className="h-4 w-4" />
@@ -427,15 +452,17 @@ const MedicalRecords: React.FC = () => {
         {/* Detailed Record Dialog */}
         {openDialog && selectedRecord && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-md max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-100">
+            <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-teal-50">
                 <div className="flex items-center gap-3">
-                  <FileText className="h-6 w-6 text-gray-600" />
-                  <h3 className="text-xl font-semibold text-gray-900">Chi Tiết Hồ Sơ Khám Bệnh</h3>
+                  <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
+                    <FileText className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-800">Chi Tiết Hồ Sơ Khám Bệnh</h3>
                 </div>
                 <button
                   onClick={() => setOpenDialog(false)}
-                  className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+                  className="p-2 hover:bg-white hover:bg-opacity-50 rounded-xl transition-colors"
                 >
                   <X className="h-6 w-6 text-gray-600" />
                 </button>
@@ -443,21 +470,21 @@ const MedicalRecords: React.FC = () => {
 
               <div className="p-6 space-y-6">
                 {/* General Information */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-gray-600" />
+                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6">
+                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-teal-600" />
                     Thông Tin Chung
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Tên kết quả</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.resultName || "Chưa có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Ngày tái khám</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.reExaminationDate
                           ? new Date(selectedRecord.reExaminationDate).toLocaleDateString("vi-VN")
                           : "Chưa xác định"}
@@ -465,13 +492,13 @@ const MedicalRecords: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Triệu chứng</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.symptoms || "Không có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả kết quả</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.resultDescription || "Không có"}
                       </p>
                     </div>
@@ -479,45 +506,43 @@ const MedicalRecords: React.FC = () => {
                 </div>
 
                 {/* Vital Signs */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <Heart className="h-5 w-5 text-gray-600" />
+                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6">
+                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-teal-600" />
                     Dấu Hiệu Sinh Tồn
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Cân nặng</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.weight ? `${selectedRecord.weight} kg` : "Chưa có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Chiều cao</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.height ? `${selectedRecord.height} cm` : "Chưa có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">BMI</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
-                        {selectedRecord.bmi || "Chưa có"}
-                      </p>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">{selectedRecord.bmi || "Chưa có"}</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Huyết áp</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.bloodPressure || "Chưa có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Mạch</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.pulse ? `${selectedRecord.pulse} lần/phút` : "Chưa có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Nhiệt độ</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.temperature ? `${selectedRecord.temperature} °C` : "Chưa có"}
                       </p>
                     </div>
@@ -525,45 +550,47 @@ const MedicalRecords: React.FC = () => {
                 </div>
 
                 {/* Lab Test Information */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <TestTube className="h-5 w-5 text-gray-600" />
+                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6">
+                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <TestTube className="h-5 w-5 text-teal-600" />
                     Xét Nghiệm
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Loại mẫu xét nghiệm</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.sampleType || "Chưa có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Phương pháp xét nghiệm</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.testMethod || "Chưa có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Loại kết quả xét nghiệm</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.resultType || "Chưa có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Kết quả xét nghiệm</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.testResult || "Chưa có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Giá trị xét nghiệm</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
-                        {selectedRecord.testValue ? `${selectedRecord.testValue} ${selectedRecord.unit || ""}` : "Chưa có"}
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.testValue
+                          ? `${selectedRecord.testValue} ${selectedRecord.unit || ""}`
+                          : "Chưa có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Khoảng tham chiếu</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.referenceRange || "Chưa có"}
                       </p>
                     </div>
@@ -572,50 +599,52 @@ const MedicalRecords: React.FC = () => {
 
                 {/* ARV Regimen Information */}
                 {selectedRecord.arvregimenId && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <Pill className="h-5 w-5 text-gray-600" />
+                  <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6">
+                    <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <Pill className="h-5 w-5 text-teal-600" />
                       Thông Tin Phác Đồ ARV
                     </h4>
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Tên phác đồ</label>
-                          <p className="text-gray-900 bg-white p-2 rounded border font-medium">
+                          <p className="text-gray-800 bg-white p-3 rounded-xl border font-medium">
                             {selectedRecord.arvregimenId.arvName || "Chưa có"}
                           </p>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Thời gian uống thuốc</label>
-                          <p className="text-gray-900 bg-white p-2 rounded border">
+                          <p className="text-gray-800 bg-white p-3 rounded-xl border">
                             {formatMedicationTimes(selectedRecord.medicationTime, selectedRecord.medicationSlot)}
                           </p>
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Khe thời gian uống thuốc</label>
-                          <p className="text-gray-900 bg-white p-2 rounded border">
+                          <p className="text-gray-800 bg-white p-3 rounded-xl border">
                             {selectedRecord.medicationSlot || "Chưa có"}
                           </p>
                         </div>
                       </div>
+
                       {selectedRecord.arvregimenId.arvDescription && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
-                          <p className="text-gray-900 bg-white p-3 rounded border leading-relaxed">
+                          <p className="text-gray-800 bg-white p-3 rounded-xl border leading-relaxed">
                             {selectedRecord.arvregimenId.arvDescription}
                           </p>
                         </div>
                       )}
+
                       {selectedRecord.arvregimenId.drugs && selectedRecord.arvregimenId.drugs.length > 0 && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-2">Thông tin thuốc</label>
                           <div className="overflow-x-auto">
-                            <table className="min-w-full border border-gray-200">
-                              <thead className="bg-gray-50">
+                            <table className="min-w-full border border-gray-200 rounded-xl">
+                              <thead className="bg-white">
                                 <tr>
-                                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Tên thuốc</th>
-                                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Liều dùng</th>
-                                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Tần suất</th>
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Tên thuốc</th>
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Liều dùng</th>
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Tần suất</th>
                                 </tr>
                               </thead>
                               <tbody className="bg-white">
@@ -624,12 +653,12 @@ const MedicalRecords: React.FC = () => {
                                     ? selectedRecord.arvregimenId.frequency.split(";")
                                     : [];
                                   return (
-                                    <tr key={index} className="border-t border-gray-200">
-                                      <td className="px-4 py-2 text-sm text-gray-900">{drug}</td>
-                                      <td className="px-4 py-2 text-sm text-gray-900">
+                                    <tr key={index} className="border-t border-gray-100">
+                                      <td className="px-4 py-3 text-sm text-gray-800">{drug}</td>
+                                      <td className="px-4 py-3 text-sm text-gray-800">
                                         {selectedRecord.arvregimenId?.dosages[index] || "Chưa có"}
                                       </td>
-                                      <td className="px-4 py-2 text-sm text-gray-900">
+                                      <td className="px-4 py-3 text-sm text-gray-800">
                                         {formatFrequency(frequencies[index])}
                                       </td>
                                     </tr>
@@ -640,6 +669,7 @@ const MedicalRecords: React.FC = () => {
                           </div>
                         </div>
                       )}
+
                       {selectedRecord.arvregimenId.contraindications &&
                         selectedRecord.arvregimenId.contraindications.length > 0 && (
                           <div>
@@ -647,53 +677,55 @@ const MedicalRecords: React.FC = () => {
                               <AlertTriangle className="h-4 w-4 text-red-500" />
                               Chống chỉ định
                             </label>
-                            <div className="bg-red-50 rounded border border-red-200">
+                            <div className="bg-red-50 rounded-xl border border-red-200">
                               {selectedRecord.arvregimenId.contraindications.map((item: string, index: number) => (
-                                <div key={index} className="p-2 border-b border-red-100 last:border-b-0">
+                                <div key={index} className="p-3 border-b border-red-100 last:border-b-0">
                                   <span className="text-red-700">{item}</span>
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
-                      {selectedRecord.arvregimenId.sideEffects &&
-                        selectedRecord.arvregimenId.sideEffects.length > 0 && (
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
-                              <AlertCircle className="h-4 w-4 text-yellow-500" />
-                              Tác dụng phụ
-                            </label>
-                            <div className="bg-yellow-50 rounded border border-yellow-200">
-                              {selectedRecord.arvregimenId.sideEffects.map((effect: string, index: number) => (
-                                <div key={index} className="p-2 border-b border-yellow-100 last:border-b-0">
-                                  <span className="text-yellow-700">{effect}</span>
-                                </div>
-                              ))}
-                            </div>
+
+                      {selectedRecord.arvregimenId.sideEffects && selectedRecord.arvregimenId.sideEffects.length > 0 && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                            <AlertCircle className="h-4 w-4 text-amber-500" />
+                            Tác dụng phụ
+                          </label>
+                          <div className="bg-amber-50 rounded-xl border border-amber-200">
+                            {selectedRecord.arvregimenId.sideEffects.map((effect: string, index: number) => (
+                              <div key={index} className="p-3 border-b border-amber-100 last:border-b-0">
+                                <span className="text-amber-700">{effect}</span>
+                              </div>
+                            ))}
                           </div>
-                        )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
 
                 {/* Booking Information */}
                 {selectedRecord.bookingId && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                      <Calendar className="h-5 w-5 text-gray-600" />
+                  <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6">
+                    <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <Calendar className="h-5 w-5 text-teal-600" />
                       Thông Tin Đặt Lịch
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Mã đặt lịch</label>
-                        <p className="text-gray-900 bg-white p-2 rounded border font-mono">
+                        <p className="text-gray-800 bg-white p-3 rounded-xl border font-mono">
                           {selectedRecord.bookingId.bookingCode || "Chưa có"}
                         </p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
                         <span
-                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedRecord.bookingId.status)}`}
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                            selectedRecord.bookingId.status
+                          )}`}
                         >
                           {getStatusIcon(selectedRecord.bookingId.status)}
                           {selectedRecord.bookingId.status}
@@ -701,7 +733,7 @@ const MedicalRecords: React.FC = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Ngày khám</label>
-                        <p className="text-gray-900 bg-white p-2 rounded border">
+                        <p className="text-gray-800 bg-white p-3 rounded-xl border">
                           {selectedRecord.bookingId.bookingDate
                             ? new Date(selectedRecord.bookingId.bookingDate).toLocaleDateString("vi-VN")
                             : "Chưa xác định"}
@@ -709,46 +741,46 @@ const MedicalRecords: React.FC = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Thời gian</label>
-                        <p className="text-gray-900 bg-white p-2 rounded border">
+                        <p className="text-gray-800 bg-white p-3 rounded-xl border">
                           {selectedRecord.bookingId.startTime} - {selectedRecord.bookingId.endTime || "Chưa xác định"}
                         </p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Bác sĩ</label>
-                        <p className="text-gray-900 bg-white p-2 rounded border">
+                        <p className="text-gray-800 bg-white p-3 rounded-xl border">
                           {selectedRecord.bookingId.doctorName || "Chưa xác định"}
                         </p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Thời lượng</label>
-                        <p className="text-gray-900 bg-white p-2 rounded border">
-                          {selectedRecord.bookingId.startTime && selectedRecord.bookingId.endTime ? (
-                            (() => {
-                              const bookingDate = selectedRecord.bookingId.bookingDate;
-                              const datePart = new Date(bookingDate).toISOString().split("T")[0];
-                              const start = new Date(`${datePart}T${selectedRecord.bookingId.startTime}:00`);
-                              const end = new Date(`${datePart}T${selectedRecord.bookingId.endTime}:00`);
-                              if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-                                return "Không hợp lệ";
-                              }
-                              const diffMs = end.getTime() - start.getTime();
-                              const diffMinutes = Math.round(diffMs / 60000);
-                              return `${diffMinutes} phút`;
-                            })()
-                          ) : (
-                            "Chưa xác định"
-                          )}
+                        <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                          {selectedRecord.bookingId.startTime && selectedRecord.bookingId.endTime
+                            ? (() => {
+                                const bookingDate = selectedRecord.bookingId.bookingDate;
+                                const datePart = new Date(bookingDate).toISOString().split("T")[0];
+                                const start = new Date(`${datePart}T${selectedRecord.bookingId.startTime}:00`);
+                                const end = new Date(`${datePart}T${selectedRecord.bookingId.endTime}:00`);
+                                if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                                  return "Không hợp lệ";
+                                }
+                                const diffMs = end.getTime() - start.getTime();
+                                const diffMinutes = Math.round(diffMs / 60000);
+                                return `${diffMinutes} phút`;
+                              })()
+                            : "Chưa xác định"}
                         </p>
                       </div>
                     </div>
+
                     {selectedRecord.bookingId.notes && (
                       <div className="mt-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-                        <p className="text-gray-900 bg-white p-3 rounded border leading-relaxed">
+                        <p className="text-gray-800 bg-white p-3 rounded-xl border leading-relaxed">
                           {selectedRecord.bookingId.notes}
                         </p>
                       </div>
                     )}
+
                     {selectedRecord.bookingId.meetLink && (
                       <div className="mt-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Link cuộc họp</label>
@@ -756,7 +788,7 @@ const MedicalRecords: React.FC = () => {
                           href={selectedRecord.bookingId.meetLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 bg-white p-2 rounded border block break-all"
+                          className="text-teal-600 hover:text-teal-800 bg-white p-3 rounded-xl border block break-all"
                         >
                           {selectedRecord.bookingId.meetLink}
                         </a>
@@ -766,15 +798,15 @@ const MedicalRecords: React.FC = () => {
                 )}
 
                 {/* Timestamps */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-gray-600" />
+                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6">
+                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-teal-600" />
                     Thông Tin Thời Gian
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Ngày tạo</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.createdAt
                           ? new Date(selectedRecord.createdAt).toLocaleString("vi-VN")
                           : "Chưa có"}
@@ -782,7 +814,7 @@ const MedicalRecords: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Ngày cập nhật</label>
-                      <p className="text-gray-900 bg-white p-2 rounded border">
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.updatedAt
                           ? new Date(selectedRecord.updatedAt).toLocaleString("vi-VN")
                           : "Chưa có"}
@@ -792,14 +824,14 @@ const MedicalRecords: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex justify-end gap-3 p-6 border-t border-gray-100 bg-gradient-to-r from-blue-50 to-teal-50">
                 <button
                   onClick={() => setOpenDialog(false)}
-                  className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="px-6 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
                 >
                   Đóng
                 </button>
-                <button className="px-6 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all">
+                <button className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl hover:from-teal-700 hover:to-blue-700 transition-all">
                   In hồ sơ
                 </button>
               </div>

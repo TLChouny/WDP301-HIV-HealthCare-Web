@@ -23,6 +23,7 @@ import type { User, Gender, Certification, Experience } from "../../types/user";
 import ReactDatePicker from "react-datepicker";
 import "react-toastify/dist/ReactToastify.css";
 import "react-datepicker/dist/react-datepicker.css";
+import { uploadAvatar } from "../../api/authApi";
 
 // Hàm định dạng ngày tháng để bỏ phần T00:00:00.000Z
 const formatDate = (dateString: string) => {
@@ -67,6 +68,8 @@ const DoctorProfile: React.FC = () => {
     dateOfBirth: "",
     userDescription: "",
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null); // Thêm state để lưu file ảnh
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null); // Thêm state để preview ảnh
   const [certifications, setCertifications] = useState<Certification[]>([]);
   const [experiences, setExperiences] = useState<Experience[]>([]);
 
@@ -122,6 +125,9 @@ const DoctorProfile: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "avatar" && value && !value.startsWith("data:")) {
+      setAvatarPreview(value); // Cập nhật preview khi nhập URL
+    }
   };
 
   // Add Certification
@@ -286,6 +292,7 @@ const DoctorProfile: React.FC = () => {
           dateOfBirth: detailedUser.dateOfBirth || "",
           userDescription: detailedUser.userDescription || "",
         });
+        setAvatarPreview(detailedUser.avatar || null); // Cập nhật preview từ avatar hiện tại
         setCertifications(detailedUser.certifications || []);
         setExperiences(detailedUser.experiences || []);
         setError(null);
@@ -340,9 +347,18 @@ const DoctorProfile: React.FC = () => {
         userDescription: formData.userDescription || undefined,
       };
       await updateUser(user._id, updatePayload);
+      if (avatarFile) {
+        const formDataFile = new FormData();
+        formDataFile.append("avatar", avatarFile);
+        await uploadAvatar(user._id, formDataFile);
+      } else if (formData.avatar.startsWith("http")) {
+        await uploadAvatar(user._id, { avatarUrl: formData.avatar });
+      }
       const refreshedUser: User = await getUserById(user._id);
       setUserData(refreshedUser);
       setIsEditing(false);
+      setAvatarFile(null); // Reset file sau khi upload
+      setAvatarPreview(refreshedUser.avatar || null); // Cập nhật preview sau khi lưu
       setError(null);
       showToast("Cập nhật thông tin thành công!", "success");
     } catch (error: any) {
@@ -376,6 +392,21 @@ const DoctorProfile: React.FC = () => {
       dateOfBirth: userData.dateOfBirth || "",
       userDescription: userData.userDescription || "",
     });
+    setAvatarFile(null); // Reset file khi hủy
+    setAvatarPreview(userData.avatar || null); // Reset preview khi hủy
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+        setFormData((prev) => ({ ...prev, avatar: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   if (loading || !userData) {
@@ -403,10 +434,10 @@ const DoctorProfile: React.FC = () => {
         </div>
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="bg-gradient-to-r from-teal-600 to-blue-600 px-8 py-6 flex items-center gap-6">
-            <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center">
-              {userData.avatar ? (
+            <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center overflow-hidden">
+              {avatarPreview || userData.avatar ? (
                 <img
-                  src={userData.avatar}
+                  src={avatarPreview || userData.avatar}
                   alt={userData.userName}
                   className="w-20 h-20 rounded-2xl object-cover border-2 border-white shadow"
                 />
@@ -450,27 +481,48 @@ const DoctorProfile: React.FC = () => {
           <div className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Avatar */}
             <div className="space-y-2 lg:col-span-2">
-              <label className="block text-sm font-semibold text-gray-700">Ảnh đại diện (URL)</label>
-              <div className="relative">
-                <input
-                  type="url"
-                  name="avatar"
-                  value={formData.avatar || ''}
-                  onChange={handleInputChange}
-                  readOnly={!isEditing}
-                  className={`w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg ${isEditing ? "border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100" : "bg-gray-50 border-gray-200 text-gray-600"}`}
-                  placeholder="Nhập url ảnh đại diện"
-                />
-                <UserIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              </div>
-              {formData.avatar && (
-                <div className="mt-2 flex items-center gap-3">
-                  <img
-                    src={formData.avatar}
-                    alt="Avatar preview"
-                    className="w-32 h-32 rounded-2xl object-cover border-2 border-teal-500 shadow"
+              <label className="block text-sm font-semibold text-gray-700">Ảnh đại diện</label>
+              {isEditing ? (
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="avatar"
+                      value={formData.avatar}
+                      onChange={handleInputChange}
+                      placeholder="Nhập URL ảnh hoặc tải lên"
+                      className="w-full rounded-xl border-2 py-3 px-4 pl-10 text-base border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+                    />
+                    <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  </div>
+                  <label className="cursor-pointer bg-teal-600 text-white px-4 py-2 rounded-xl hover:bg-teal-700 transition-colors">
+                    Tải lên
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+              ) : (
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={userData.avatar || ""}
+                    readOnly
+                    className="w-full rounded-xl border-2 py-3 px-4 pl-10 text-base bg-gray-50 border-gray-200 text-gray-600"
                   />
-                  <span className="text-gray-500 text-sm">Xem trước ảnh đại diện</span>
+                  <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                </div>
+              )}
+              {(avatarPreview || (userData.avatar && isEditing)) && (
+                <div className="mt-2">
+                  <img
+                    src={avatarPreview || userData.avatar}
+                    alt="Avatar preview"
+                    className="w-32 h-32 rounded-xl object-cover border-2 border-teal-500 shadow"
+                  />
                 </div>
               )}
             </div>

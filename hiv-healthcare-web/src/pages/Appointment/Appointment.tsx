@@ -224,30 +224,30 @@ const Appointment: React.FC = () => {
     }
   }, [selectedDate, doctors]);
 
-  useEffect(() => {
-    const fetchBookedSlots = async () => {
-      if (selectedDoctor && formattedDate) {
-        try {
-          const doctorObj = doctors.find((d) => d._id === selectedDoctor);
-          if (doctorObj) {
-            const booked = await checkExistingBookings(doctorObj.userName, formattedDate);
-            setBookedSlots(booked);
-          } else {
-            setBookedSlots([]);
-          }
-        } catch (err) {
-          console.error("Check bookings error:", err);
-          showToast("Không thể kiểm tra khung giờ khả dụng!");
+// 1. Fetch các slot đã đặt
+useEffect(() => {
+  const fetchBookedSlots = async () => {
+    if (selectedDoctor && formattedDate) {
+      try {
+        const doctorObj = doctors.find((d) => d._id === selectedDoctor);
+        if (doctorObj) {
+          const booked = await checkExistingBookings(doctorObj.userName, formattedDate);
+          setBookedSlots(booked);
+        } else {
           setBookedSlots([]);
         }
-      } else {
+      } catch (err) {
+        console.error("Check bookings error:", err);
+        showToast("Không thể kiểm tra khung giờ khả dụng!");
         setBookedSlots([]);
       }
-    };
+    } else {
+      setBookedSlots([]);
+    }
+  };
 
-    fetchBookedSlots();
-
-    const doctorObj = doctors.find((d) => d._id === selectedDoctor);
+  fetchBookedSlots();
+   const doctorObj = doctors.find((d) => d._id === selectedDoctor);
     if (doctorObj && doctorObj.startTimeInDay && doctorObj.endTimeInDay) {
       const slots = generateTimeSlots(doctorObj.startTimeInDay, doctorObj.endTimeInDay);
       const availableSlots = slots.filter((slot) => !bookedSlots.includes(slot));
@@ -255,7 +255,26 @@ const Appointment: React.FC = () => {
     } else {
       setTimeSlots([]);
     }
-  }, [selectedDoctor, formattedDate, doctors, checkExistingBookings]);
+}, [selectedDoctor, formattedDate,doctors, checkExistingBookings]);
+
+// 2. Generate timeSlots sau khi bookedSlots đã được cập nhật
+useEffect(() => {
+  const doctorObj = doctors.find((d) => d._id === selectedDoctor);
+  if (
+    doctorObj &&
+    doctorObj.startTimeInDay &&
+    doctorObj.endTimeInDay &&
+    formattedDate
+  ) {
+    const allSlots = generateTimeSlots(doctorObj.startTimeInDay, doctorObj.endTimeInDay);
+    const availableSlots = allSlots.filter((slot) => !bookedSlots.includes(slot));
+    setTimeSlots(availableSlots);
+  } else {
+    setTimeSlots([]);
+  }
+}, [bookedSlots, selectedDoctor, formattedDate, doctors]);
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50">

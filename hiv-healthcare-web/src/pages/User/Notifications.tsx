@@ -1,36 +1,12 @@
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Bell, BellRing, Trash2, Settings, Calendar, Pill, FileText, Newspaper } from "lucide-react"
+import { useAuth } from "../../context/AuthContext"
+import { useNotification } from "../../context/NotificationContext"
 
 const UserNotifications: React.FC = () => {
-  // Mock data - replace with actual data from your backend
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "Lịch hẹn mới",
-      message: "Lịch hẹn khám định kỳ đã được xác nhận",
-      time: "5 phút trước",
-      read: false,
-      type: "appointment",
-    },
-    {
-      id: 2,
-      title: "Nhắc nhở",
-      message: "Đừng quên uống thuốc ARV vào 8h sáng",
-      time: "1 giờ trước",
-      read: true,
-      type: "medication",
-    },
-    {
-      id: 3,
-      title: "Kết quả xét nghiệm",
-      message: "Kết quả xét nghiệm CD4 đã có sẵn",
-      time: "2 giờ trước",
-      read: true,
-      type: "test",
-    },
-  ])
-
+  const { user } = useAuth()
+  const { notifications, loading, error, getNotificationsByUserIdHandler, deleteNotificationByIdHandler } = useNotification()
   const [notificationSettings, setNotificationSettings] = useState([
     {
       id: "appointment",
@@ -62,44 +38,69 @@ const UserNotifications: React.FC = () => {
     },
   ])
 
-  const handleDeleteNotification = (id: number) => {
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id))
+  // Fetch notifications when userId is available
+  useEffect(() => {
+    if (user?._id) {
+      getNotificationsByUserIdHandler(user._id)
+    }
+  }, [user?._id, getNotificationsByUserIdHandler])
+
+  const handleDeleteNotification = (id: string) => {
+    if (user?._id && notifications.find((n) => n._id === id)) {
+      deleteNotificationByIdHandler(id)
+    }
   }
 
   const handleToggleSetting = (id: string) => {
     setNotificationSettings((prev) =>
-      prev.map((setting) => (setting.id === id ? { ...setting, enabled: !setting.enabled } : setting)),
+      prev.map((setting) => (setting.id === id ? { ...setting, enabled: !setting.enabled } : setting))
     )
   }
 
-  const handleMarkAsRead = (id: number) => {
-    setNotifications((prev) => prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif)))
-  }
-
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case "appointment":
+  const getNotificationIcon = (name: string) => {
+    switch (true) {
+      case /lịch hẹn/i.test(name):
         return Calendar
-      case "medication":
+      case /thuốc|nhắc nhở/i.test(name):
         return Pill
-      case "test":
+      case /xét nghiệm|kết quả/i.test(name):
         return FileText
+      case /tin tức|y tế/i.test(name):
+        return Newspaper
       default:
         return Bell
     }
   }
 
-  const getNotificationColor = (type: string) => {
-    switch (type) {
-      case "appointment":
+  const getNotificationColor = (name: string) => {
+    switch (true) {
+      case /lịch hẹn/i.test(name):
         return "from-blue-500 to-blue-600"
-      case "medication":
+      case /thuốc|nhắc nhở/i.test(name):
         return "from-green-500 to-green-600"
-      case "test":
+      case /xét nghiệm|kết quả/i.test(name):
         return "from-purple-500 to-purple-600"
+      case /tin tức|y tế/i.test(name):
+        return "from-orange-500 to-orange-600"
       default:
         return "from-gray-500 to-gray-600"
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6 flex items-center justify-center">
+        <p className="text-gray-600">Đang tải dữ liệu...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6 flex items-center justify-center">
+        <p className="text-red-600">{error}</p>
+      </div>
+    )
   }
 
   return (
@@ -122,7 +123,7 @@ const UserNotifications: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-gray-800">Thông báo gần đây</h2>
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <span>{notifications.filter((n) => !n.read).length} chưa đọc</span>
+                <span>{notifications.length} tổng số</span> {/* Vì không có read, chỉ đếm tổng số */}
               </div>
             </div>
 
@@ -135,39 +136,28 @@ const UserNotifications: React.FC = () => {
             ) : (
               <div className="space-y-4">
                 {notifications.map((notification) => {
-                  const IconComponent = getNotificationIcon(notification.type)
+                  const IconComponent = getNotificationIcon(notification.notiName)
                   return (
                     <div
-                      key={notification.id}
-                      className={`bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all duration-200 hover:shadow-xl ${
-                        !notification.read ? "border-l-4 border-l-teal-500" : ""
-                      }`}
+                      key={notification._id}
+                      className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 transition-all duration-200 hover:shadow-xl"
                     >
                       <div className="flex items-start gap-4">
                         <div
                           className={`w-12 h-12 bg-gradient-to-r ${getNotificationColor(
-                            notification.type,
+                            notification.notiName
                           )} rounded-xl flex items-center justify-center flex-shrink-0`}
                         >
                           <IconComponent className="h-6 w-6 text-white" />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
-                            <h3 className={`font-bold ${!notification.read ? "text-gray-800" : "text-gray-600"}`}>
-                              {notification.title}
+                            <h3 className="font-bold text-gray-800">
+                              {notification.notiName}
                             </h3>
                             <div className="flex items-center gap-2">
-                              {!notification.read && (
-                                <button
-                                  onClick={() => handleMarkAsRead(notification.id)}
-                                  className="text-teal-600 hover:text-teal-700 p-1"
-                                  title="Đánh dấu đã đọc"
-                                >
-                                  <BellRing className="h-4 w-4" />
-                                </button>
-                              )}
                               <button
-                                onClick={() => handleDeleteNotification(notification.id)}
+                                onClick={() => handleDeleteNotification(notification._id!)}
                                 className="text-red-500 hover:text-red-600 p-1"
                                 title="Xóa thông báo"
                               >
@@ -175,10 +165,17 @@ const UserNotifications: React.FC = () => {
                               </button>
                             </div>
                           </div>
-                          <p className={`mb-2 ${!notification.read ? "text-gray-700" : "text-gray-500"}`}>
-                            {notification.message}
+                          <p className="mb-2 text-gray-700">
+                            {notification.notiDescription || "Không có mô tả"}
                           </p>
-                          <p className="text-sm text-gray-400">{notification.time}</p>
+                          <p className="text-sm text-gray-400">
+                            {notification.createdAt
+                              ? new Date(notification.createdAt).toLocaleTimeString("vi-VN", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : "Không có thời gian"}
+                          </p>
                         </div>
                       </div>
                     </div>

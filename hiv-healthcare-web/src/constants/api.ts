@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
   VERIFY_RESET_OTP: "/users/verify-reset-otp",
   RESET_PASSWORD: "/users/reset-password",
   GET_ALL_USERS: "/users",
+  UPLOAD_AVATAR: (id: string) => `/users/${id}/avatar`,
   USER_BY_ID: (id: string) => `/users/${id}`,
   UPDATE_USER: (id: string) => `/users/${id}`,
   DELETE_USER: (id: string) => `/users/${id}`,

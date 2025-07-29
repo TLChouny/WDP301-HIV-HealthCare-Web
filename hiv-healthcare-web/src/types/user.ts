@@ -30,7 +30,7 @@ export interface User {
   userName: string;
   email?: string;
   phone_number?: string;
-  gender?: Gender;
+  gender: Gender | "",
   address?: string;
   dateOfBirth?: string;
   role: Role;
