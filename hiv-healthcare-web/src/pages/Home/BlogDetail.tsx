@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spin, Tag } from 'antd';
 import { motion } from 'framer-motion';
-import { getAllBlogs } from '../../api/blogApi';
+import { toast } from 'react-toastify';
+import { getBlogById } from '../../api/blogApi';
 import { getAllCategories } from '../../api/categoryApi';
 import type { Blog } from '../../types/blog';
 import type { Category } from '../../types/category';
@@ -18,25 +19,25 @@ const BlogDetail: React.FC = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
+                if (!id) return;
+                
                 const [blogData, categoryData] = await Promise.all([
-                    getAllBlogs(),
+                    getBlogById(id),
                     getAllCategories()
                 ]);
                 
-                const foundBlog = blogData.find(b => b._id === id);
-                if (foundBlog) {
-                    setBlog(foundBlog);
-                    
-                    // Get category name
-                    if (typeof foundBlog.categoryId === 'object' && foundBlog.categoryId !== null) {
-                        setCategoryName((foundBlog.categoryId as any).categoryName);
-                    } else {
-                        const found = categoryData.find((cat: Category) => cat._id === foundBlog.categoryId);
-                        setCategoryName(found ? found.categoryName : '');
-                    }
+                setBlog(blogData);
+                
+                // Get category name
+                if (typeof blogData.categoryId === 'object' && blogData.categoryId !== null) {
+                    setCategoryName((blogData.categoryId as any).categoryName);
+                } else {
+                    const found = categoryData.find((cat: Category) => cat._id === blogData.categoryId);
+                    setCategoryName(found ? found.categoryName : '');
                 }
             } catch (err) {
                 console.error('Error fetching blog details:', err);
+                toast.error('Không thể tải thông tin bài viết. Vui lòng thử lại sau.');
             } finally {
                 setLoading(false);
             }
