@@ -293,8 +293,8 @@ const DoctorManagement: React.FC = () => {
             <CardContent sx={{ textAlign: "center", py: 8 }}>
               <Box
                 sx={{
-                  width: 64,
-                  height: 64,
+                  width: 48,
+                  height: 48,
                   bgcolor: "#f3f4f6",
                   borderRadius: 2,
                   display: "flex",
@@ -411,9 +411,10 @@ const DoctorManagement: React.FC = () => {
                         gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' },
                         gap: 2,
                         alignItems: 'center',
+                        marginTop: 2
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2}}>
                         <Wc sx={{ fontSize: 20, color: '#0d9488' }} />
                         <Typography sx={{ color: '#222', fontWeight: 500, fontSize: 15 }}>
                           Giới tính: {doctor.gender === 'male' ? 'Nam' : doctor.gender === 'female' ? 'Nữ' : doctor.gender === 'other' ? 'Khác' : 'Chưa cập nhật'}
