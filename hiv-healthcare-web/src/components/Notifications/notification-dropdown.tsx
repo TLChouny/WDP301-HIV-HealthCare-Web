@@ -263,7 +263,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       {sortedNotifications.length > 0 && (
         <div className="px-6 py-3 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
           <Link
-            to="/user/profile"
+            to="/user/medical-records"
             className="block text-center text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors duration-200"
             onClick={onClose}
           >

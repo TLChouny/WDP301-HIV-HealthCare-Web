@@ -37,7 +37,6 @@ import UserDetail from './pages/Admin/UserDetail';
 import CategoryManagement from './pages/Admin/CategoryManagement';
 import BlogManagement from './pages/Admin/BlogManagement';
 import DoctorScheduleManagement from './pages/Admin/DoctorScheduleManagement';
-import DoctorManagement from './pages/Admin/DoctorManagement';
 import ServicesManagements from './pages/Admin/ServicesManagements';
 import AdminServiceDetail from './pages/Admin/ServiceDetail';
 import AdminProfile from './pages/Admin/AdminProfile';
@@ -135,7 +134,7 @@ const ProtectedRoute: React.FC<{ allowedRole: 'user' | 'admin' | 'doctor' | 'sta
     toast.error(`Bạn không có quyền truy cập trang này!`, toastConfig);
     const redirectPath =
       user?.role === 'admin' ? '/admin/dashboard' :
-        user?.role === 'doctor' ? '/doctor/dashboard' :
+        user?.role === 'doctor' ? '/doctor/schedule' :
           user?.role === 'staff' ? '/staff/dashboard' :
             '/user/dashboard';
     return <Navigate to={redirectPath} replace />;
@@ -204,8 +203,7 @@ const App: React.FC = () => {
                       {/* Doctor routes */}
                       <Route path="/doctor" element={<ProtectedRoute allowedRole="doctor" />}>
                         <Route element={<DoctorLayout />}>
-                          <Route index element={<DoctorDashboard />} />
-                          <Route path="dashboard" element={<DoctorDashboard />} />
+                          <Route index element={<DoctorSchedule />} />
                           <Route path="schedule" element={<DoctorSchedule />} />
                           <Route path="patients" element={<DoctorPatientManagement />} />
                           <Route path="appointments" element={<DoctorAppointmentManagement />} />

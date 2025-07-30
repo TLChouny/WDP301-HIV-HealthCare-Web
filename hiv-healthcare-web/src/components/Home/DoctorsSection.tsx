@@ -173,17 +173,17 @@ const DoctorsSection: React.FC = () => {
 
                                 return (
                                     <div key={doctor._id} className="w-full flex-shrink-0 px-4">
-                                        <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden group max-w-4xl mx-auto">
+                                        <div className="bg-white h-[450px] rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden group max-w-4xl mx-auto">
                                             <div className="md:flex">
                                                 {/* Image Section */}
-                                                <div className="md:w-2/5 relative overflow-hidden">
+                                                <div className="md:w-2/5 h-[450px] relative overflow-hidden">
                                                     <img
                                                         src={
                                                             doctor.avatar ||
-                                                            `/placeholder.svg?height=400&width=300&text=${encodeURIComponent(doctor.userName) || "/placeholder.svg"}`
+                                                            `/placeholder.svg?height=450&width=300&text=${encodeURIComponent(doctor.userName) || "/placeholder.svg"}`
                                                         }
                                                         alt={doctor.userName}
-                                                        className="w-full h-64 md:h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                        className="w-full md:h-full object-cover object-top transition-transform duration-700 group-hover:scale-110"
                                                     />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
 
@@ -196,7 +196,7 @@ const DoctorsSection: React.FC = () => {
                                                 </div>
 
                                                 {/* Content Section */}
-                                                <div className="md:w-3/5 p-8 flex flex-col justify-center">
+                                                <div className="md:w-3/5 p-8 flex flex-col justify-top">
                                                     <div className="flex items-center gap-3 mb-4">
                                                         <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-medium text-sm">
                                                             {yearsOfExperience > 0 ? `${yearsOfExperience} năm kinh nghiệm` : "Mới tham gia"}
@@ -256,7 +256,7 @@ const DoctorsSection: React.FC = () => {
 
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-2">
-                                                        
+
                                                         </div>
                                                     </div>
                                                 </div>

@@ -509,7 +509,7 @@ const DoctorProfile: React.FC = () => {
                 <div className="relative">
                   <input
                     type="text"
-                    value={userData.avatar || ""}
+                    // value={userData.avatar || ""}
                     readOnly
                     className="w-full rounded-xl border-2 py-3 px-4 pl-10 text-base bg-gray-50 border-gray-200 text-gray-600"
                   />
