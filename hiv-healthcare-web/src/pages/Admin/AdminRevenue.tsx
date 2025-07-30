@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { getAllPayments } from '../../api/paymentApi';
 import type { Payment } from '../../types/payment';
-import { Table, Tag, Select, message, Input, Button, Tooltip } from 'antd';
-import { Copy, Eye, DollarSign } from 'lucide-react';
+import { Table, Tag, Select, message, Input } from 'antd';
+import {  DollarSign, CheckCircle, Clock } from 'lucide-react';
 
 const { Option } = Select;
 
@@ -115,24 +115,75 @@ const AdminRevenue: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="flex flex-col md:flex-row md:items-center gap-4 mb-4">
-          <div>
-            <span className="font-semibold">Tổng doanh thu thành công: </span>
-            <span className="text-green-600 font-bold text-lg">{totalRevenue.toLocaleString('vi-VN')} VNĐ</span>
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium mb-1">Tổng doanh thu thành công</p>
+                <p className="text-3xl font-bold text-green-600">{totalRevenue.toLocaleString('vi-VN')} VNĐ</p>
+              </div>
+              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
           </div>
-          <div className="flex-1 flex gap-2 justify-end">
-            <Select value={statusFilter} onChange={setStatusFilter} style={{ width: 160 }}>
-              <Option value="all">Tất cả trạng thái</Option>
-              <Option value="success">Thành công</Option>
-              <Option value="pending">Chờ thanh toán</Option>
-            </Select>
-            <Input.Search
-              placeholder="Tìm kiếm mã đơn, tên đơn..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{ width: 240 }}
-              allowClear
-            />
+
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium mb-1">Đã thanh toán</p>
+                <p className="text-3xl font-bold text-blue-600">
+                  {payments.filter(p => p.status === 'success').length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                <CheckCircle className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium mb-1">Chờ thanh toán</p>
+                <p className="text-3xl font-bold text-amber-600">
+                  {payments.filter(p => p.status === 'pending').length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
+                <Clock className="h-6 w-6 text-amber-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter and Search Bar */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-6">
+          <div className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <Input.Search
+                  placeholder="Tìm kiếm theo mã đơn, tên đơn hàng..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full"
+                  size="large"
+                  allowClear
+                />
+              </div>
+              <Select
+                value={statusFilter}
+                onChange={setStatusFilter}
+                className="w-full md:w-[200px]"
+                size="large"
+                placeholder="Trạng thái"
+              >
+                <Option value="all">Tất cả trạng thái</Option>
+                <Option value="success">Thành công</Option>
+                <Option value="pending">Chờ thanh toán</Option>
+              </Select>
+            </div>
           </div>
         </div>
         <Table
