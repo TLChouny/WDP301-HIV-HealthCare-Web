@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getAllServices, createService, updateService, deleteService } from '../../api/serviceApi';
 import { getAllCategories } from '../../api/categoryApi';
-import { Button, Modal, Form, Input, message, Select } from 'antd';
+import { Button, Modal, Form, Input, message, Select, Pagination } from 'antd';
 import { Plus, Edit, Trash2, Search, Eye, Briefcase } from 'lucide-react';
 import type { Service } from '../../types/service';
 import type { Category } from '../../types/category';
@@ -21,6 +21,10 @@ const ServicesManagements: React.FC = () => {
   const [search, setSearch] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [editImageUrl, setEditImageUrl] = useState('');
+
+  // State cho phân trang
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const servicesPerPage = 10; // Số lượng dịch vụ mỗi trang
 
   const fetchServicesAndCategories = async () => {
     setLoading(true);
@@ -46,6 +50,13 @@ const ServicesManagements: React.FC = () => {
     service.serviceName.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Logic phân trang
+  const indexOfLastService = currentPage * servicesPerPage;
+  const indexOfFirstService = indexOfLastService - servicesPerPage;
+  const currentServices = filteredServices.slice(indexOfFirstService, indexOfLastService);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
   const handleAddService = async (values: Partial<Service>) => {
     setAdding(true);
     try {
@@ -55,6 +66,7 @@ const ServicesManagements: React.FC = () => {
       addForm.resetFields();
       setImageUrl('');
       fetchServicesAndCategories(); // Tải lại để cập nhật
+      setCurrentPage(1); // Quay về trang đầu tiên sau khi thêm
     } catch (err: any) {
       message.error(err.message || 'Thêm dịch vụ thất bại');
     } finally {
@@ -106,6 +118,7 @@ const ServicesManagements: React.FC = () => {
           await deleteService(service._id);
           message.success('Xóa dịch vụ thành công!');
           fetchServicesAndCategories(); // Tải lại để cập nhật
+          setCurrentPage(1); // Quay về trang đầu tiên sau khi xóa
         } catch (err: any) {
           message.error(err.message || 'Xóa dịch vụ thất bại');
         }
@@ -129,7 +142,6 @@ const ServicesManagements: React.FC = () => {
   }
 
   return (
-    // THAY ĐỔI Ở ĐÂY: Thêm background gradient
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-2xl shadow flex flex-col md:flex-row md:items-center md:justify-between p-8 mb-8 gap-6">
@@ -165,74 +177,89 @@ const ServicesManagements: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
+        {/* Thẻ div chứa bảng - bỏ overflow-x-auto, vì các cột đã được tối ưu width */}
+        <div className="bg-white rounded-lg shadow"> {/* Đã bỏ overflow-x-auto */}
+          <table className="min-w-full divide-y divide-gray-200 table-auto">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên dịch vụ</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mô tả</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Danh mục</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ảnh</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thời lượng (phút)</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Giá (VNĐ)</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[180px]">TÊN DỊCH VỤ</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[150px]">DANH MỤC</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[80px]">ẢNH</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]">THỜI LƯỢNG (PHÚT)</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[120px]">GIÁ (VNĐ)</th>
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap min-w-[100px]">THAO TÁC</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredServices.map((service) => {
-                const category = categories.find((c) => c._id === (typeof service.categoryId === 'object' ? service.categoryId._id : service.categoryId));
-                return (
-                  <tr key={service._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{service.serviceName}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap max-w-[250px] overflow-hidden text-ellipsis">
-                      <div className="text-sm text-gray-500" title={service.serviceDescription || ''}>
-                        {service.serviceDescription}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{category?.categoryName || 'N/A'}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {service.serviceImage && (
-                        <img src={service.serviceImage} alt={service.serviceName} className="w-16 h-10 object-cover rounded" />
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {service.duration || ''}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {service.price ? Number(service.price).toLocaleString('vi-VN') : ''}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <Link to={`/admin/services/${service._id}`}>
+              {currentServices.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                    Không tìm thấy dịch vụ nào.
+                  </td>
+                </tr>
+              ) : (
+                currentServices.map((service) => {
+                  const category = categories.find((c) => c._id === (typeof service.categoryId === 'object' ? service.categoryId._id : service.categoryId));
+                  return (
+                    <tr key={service._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900 max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap">
+                        {service.serviceName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {category?.categoryName || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {service.serviceImage && (
+                          <img src={service.serviceImage} alt={service.serviceName} className="w-16 h-10 object-cover rounded" />
+                        )}
+                      </td>
+                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center"> {/* Thêm text-center vào đây */}
+                        {service.duration || ''}
+                      </td>
+
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {service.price ? Number(service.price).toLocaleString('vi-VN') : ''}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <Link to={`/admin/services/${service._id}`}>
+                            <Button
+                              type="link"
+                              className="text-gray-600"
+                              icon={<Eye className="w-5 h-5" />}
+                            />
+                          </Link>
                           <Button
                             type="link"
-                            className="text-gray-600"
-                            icon={<Eye className="w-5 h-5" />}
+                            className="text-blue-600"
+                            icon={<Edit className="w-5 h-5" />}
+                            onClick={() => handleEditService(service)}
                           />
-                        </Link>
-                        <Button
-                          type="link"
-                          className="text-blue-600"
-                          icon={<Edit className="w-5 h-5" />}
-                          onClick={() => handleEditService(service)}
-                        />
-                        <Button
-                          type="link"
-                          className="text-red-600"
-                          icon={<Trash2 className="w-5 h-5" style={{ color: 'red' }} />}
-                          onClick={() => handleDeleteService(service)}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                          <Button
+                            type="link"
+                            className="text-red-600"
+                            icon={<Trash2 className="w-5 h-5" style={{ color: 'red' }} />}
+                            onClick={() => handleDeleteService(service)}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
+        </div> {/* Đóng thẻ div chứa bảng */}
+
+        {/* Phân trang - Đã di chuyển ra ngoài thẻ div chứa bảng */}
+        <div className="mt-6 flex justify-center">
+          <Pagination
+            current={currentPage}
+            pageSize={servicesPerPage}
+            total={filteredServices.length}
+            onChange={paginate}
+            showSizeChanger={false}
+          />
         </div>
 
         {/* Modal for Add Service */}
@@ -251,21 +278,21 @@ const ServicesManagements: React.FC = () => {
             <Form.Item
               label="Tên dịch vụ *"
               name="serviceName"
-              rules={[{ required: true, message: 'Vui lòng nhập tên dịch vụ!' }]} // Thêm validation
+              rules={[{ required: true, message: 'Vui lòng nhập tên dịch vụ!' }]}
             >
               <Input />
             </Form.Item>
             <Form.Item
               label="Mô tả *"
               name="serviceDescription"
-              rules={[{ required: true, message: 'Vui lòng nhập mô tả dịch vụ!' }]} // Thêm validation
+              rules={[{ required: true, message: 'Vui lòng nhập mô tả dịch vụ!' }]}
             >
               <Input.TextArea rows={3} />
             </Form.Item>
             <Form.Item
               label="Danh mục *"
               name="categoryId"
-              rules={[{ required: true, message: 'Vui lòng chọn danh mục!' }]} // Thêm validation
+              rules={[{ required: true, message: 'Vui lòng chọn danh mục!' }]}
             >
               <Select placeholder="Chọn danh mục">
                 {categories.map((cat) => (
@@ -276,21 +303,21 @@ const ServicesManagements: React.FC = () => {
             <Form.Item
               label="Link ảnh (URL) *"
               name="serviceImage"
-              rules={[{ required: true, message: 'Vui lòng cung cấp link ảnh!' }]} // Thêm validation
+              rules={[{ required: true, message: 'Vui lòng cung cấp link ảnh!' }]}
             >
               <Input placeholder="Dán link ảnh" value={imageUrl} onChange={(e) => handleImageChange(e, setImageUrl)} />
             </Form.Item>
             <Form.Item
               label="Thời lượng (phút) *"
               name="duration"
-              rules={[{ required: true, message: 'Vui lòng nhập thời lượng dịch vụ!' }]} // Thêm validation
+              rules={[{ required: true, message: 'Vui lòng nhập thời lượng dịch vụ!' }]}
             >
               <Input type="number" min={1} />
             </Form.Item>
             <Form.Item
               label="Giá (VNĐ) *"
               name="price"
-              rules={[{ required: true, message: 'Vui lòng nhập giá dịch vụ!' }]} // Thêm validation
+              rules={[{ required: true, message: 'Vui lòng nhập giá dịch vụ!' }]}
             >
               <Input type="number" min={0} />
             </Form.Item>

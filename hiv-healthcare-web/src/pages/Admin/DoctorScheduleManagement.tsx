@@ -8,6 +8,7 @@ import {
   Settings,
   Edit3,
   Trash2,
+  Search,
   Save,
   X,
   CheckCircle,
@@ -17,6 +18,7 @@ import {
   Stethoscope,
   Mail,
 } from "lucide-react"
+import { Pagination } from "antd"
 import { useAuth } from "../../context/AuthContext"
 import type { User as UserType } from "../../types/user"
 
@@ -55,7 +57,11 @@ const DoctorScheduleManagement: React.FC = () => {
   })
   const [loading, setLoading] = useState(true)
   const [showEditModal, setShowEditModal] = useState(false)
-
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filterStatus, setFilterStatus] = useState("all") // "all", "scheduled", "unscheduled"
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 9 // Số card hiển thị trên mỗi trang
+  
   const daysOfWeek = [
     { value: "Monday", label: "Thứ 2", short: "T2" },
     { value: "Tuesday", label: "Thứ 3", short: "T3" },
@@ -291,10 +297,33 @@ const DoctorScheduleManagement: React.FC = () => {
         {/* Doctors List */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
               <div>
                 <h2 className="text-xl font-bold text-gray-800">Danh sách bác sĩ</h2>
                 <p className="text-gray-600">Quản lý lịch làm việc cho từng bác sĩ</p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Search Input */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Tìm kiếm bác sĩ..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full sm:w-64 pl-10 pr-4 py-2 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 transition-all duration-200"
+                  />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                </div>
+                {/* Filter Dropdown */}
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="w-full sm:w-48 pl-4 pr-8 py-2 rounded-xl border-2 border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 transition-all duration-200 appearance-none bg-white"
+                >
+                  <option value="all">Tất cả trạng thái</option>
+                  <option value="scheduled">Đã thiết lập lịch</option>
+                  <option value="unscheduled">Chưa thiết lập lịch</option>
+                </select>
               </div>
             </div>
           </div>
@@ -308,7 +337,21 @@ const DoctorScheduleManagement: React.FC = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {doctors.map((doctor) => {
+                {doctors
+                  .filter((doctor) => {
+                    // Filter by search term
+                    const matchesSearch = doctor.userName.toLowerCase().includes(searchTerm.toLowerCase());
+                    
+                    // Filter by schedule status
+                    if (filterStatus === "all") return matchesSearch;
+                    const hasScheduleStatus = hasSchedule(doctor._id);
+                    return matchesSearch && (
+                      (filterStatus === "scheduled" && hasScheduleStatus) ||
+                      (filterStatus === "unscheduled" && !hasScheduleStatus)
+                    );
+                  })
+                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  .map((doctor) => {
                   const scheduleStatus = getScheduleStatus(doctor._id)
                   const schedule = schedules[doctor._id]
 
@@ -407,6 +450,27 @@ const DoctorScheduleManagement: React.FC = () => {
               </div>
             )}
           </div>
+          
+          {/* Pagination */}
+          {doctors.length > 0 && (
+            <div className="flex justify-end mt-4 pb-4 px-6">
+              <Pagination
+                current={currentPage}
+                pageSize={itemsPerPage}
+                total={doctors.filter((doctor) => {
+                  const matchesSearch = doctor.userName.toLowerCase().includes(searchTerm.toLowerCase());
+                  if (filterStatus === "all") return matchesSearch;
+                  const hasScheduleStatus = hasSchedule(doctor._id);
+                  return matchesSearch && (
+                    (filterStatus === "scheduled" && hasScheduleStatus) ||
+                    (filterStatus === "unscheduled" && !hasScheduleStatus)
+                  );
+                }).length}
+                onChange={(page) => setCurrentPage(page)}
+                showSizeChanger={false}
+              />
+            </div>
+          )}
         </div>
 
         {/* Edit Schedule Modal */}

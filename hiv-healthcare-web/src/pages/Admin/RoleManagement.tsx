@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { getAllUsers, updateUser, deleteUser, createUser } from '../../api/authApi';
 import type { User } from '../../types/user';
-import { Modal, message, Select, Input, Button, Form } from 'antd';
+import { Modal, message, Select, Input, Button, Form, Pagination } from 'antd'; // Đã thêm Pagination
 
 const RoleManagement: React.FC = () => {
   const navigate = useNavigate();
@@ -28,6 +28,10 @@ const RoleManagement: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [addForm] = Form.useForm(); // Form cho thêm mới
   const [adding, setAdding] = useState(false);
+
+  // State cho phân trang
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const usersPerPage = 10; // Số lượng người dùng mỗi trang
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -79,6 +83,14 @@ const RoleManagement: React.FC = () => {
       // Giữ nguyên thứ tự ban đầu cho các trường hợp còn lại
       return 0;
     });
+
+  // Logic phân trang
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredAndSortedUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
 
   const allRoles = ['admin', 'doctor', 'staff', 'user']; // Thứ tự ưu tiên cho Selects
   const rolesForFilter = ['all', ...allRoles]; // Dùng cho bộ lọc
@@ -197,8 +209,7 @@ const RoleManagement: React.FC = () => {
   }
 
   return (
-    // THAY ĐỔI Ở ĐÂY: Thêm background gradient
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6"> 
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow flex flex-col md:flex-row md:items-center md:justify-between p-8 mb-8 gap-6">
@@ -266,112 +277,117 @@ const RoleManagement: React.FC = () => {
         </div>
 
         {/* Users List */}
-        <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
+        <div className="bg-gray-50 rounded-xl shadow p-4">
           {filteredAndSortedUsers.length === 0 ? (
             <div className="p-8 text-center text-gray-500">Không tìm thấy người dùng nào.</div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: 900 }}>
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Người dùng
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Vai trò hiện tại
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Số điện thoại
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trạng thái
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ngày tạo
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mô tả bác sĩ
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredAndSortedUsers.map((user) => (
-                  <tr key={user._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <UserIcon className="w-6 h-6 text-blue-600" />
+            <>
+              <table className="min-w-full divide-y divide-gray-200 table-fixed">
+                <thead>
+                  <tr>
+                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                      Người dùng
+                    </th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                      Vai trò hiện tại
+                    </th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                      Số điện thoại
+                    </th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                      Trạng thái
+                    </th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                      Ngày tạo
+                    </th>
+                    <th className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                      Thao tác
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentUsers.map((user) => (
+                    <tr key={user._id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10">
+                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                              <UserIcon className="w-6 h-6 text-blue-600" />
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{user.userName}</div>
+                            <div className="text-sm text-gray-500">{user.email}</div>
                           </div>
                         </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{user.userName}</div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs rounded-full ${getRoleColor(user.role)}`}>{getRoleText(user.role)}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">{user.phone_number || ''}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(getStatus(user))}`}>{getStatusText(getStatus(user))}</span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.createdAt ? new Date(user.createdAt).toLocaleString('vi-VN') : ''}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <Button
+                            type="link"
+                            className="text-blue-600"
+                            icon={<Eye className="w-5 h-5" />}
+                            onClick={() => navigate(`/admin/user-detail/${user._id}`)}
+                          />
+                          <Button
+                            type="link"
+                            className="text-blue-600"
+                            icon={<Edit className="w-5 h-5" />}
+                            onClick={() => handleEditUser(user)}
+                          />
+                          <Button
+                            type="link"
+                            className="text-red-600"
+                            icon={<Trash2 className="w-5 h-5" style={{ color: 'red' }} />}
+                            onClick={() => {
+                              // Không cho phép xóa tài khoản admin
+                              if (user.role === 'admin') {
+                                message.error('Không thể xóa tài khoản quản trị viên!');
+                                return;
+                              }
+                              Modal.confirm({
+                                title: 'Xác nhận xóa',
+                                content: 'Bạn có chắc chắn muốn xóa người dùng này?',
+                                okText: 'Xóa',
+                                okType: 'danger',
+                                cancelText: 'Hủy',
+                                onOk: async () => {
+                                  try {
+                                    await deleteUser(user._id);
+                                    const data = await getAllUsers();
+                                    setUsers(data); // Cập nhật lại danh sách sau khi xóa
+                                    message.success('Xóa người dùng thành công!');
+                                  } catch (err: any) {
+                                    message.error(err.message || 'Xóa người dùng thất bại');
+                                  }
+                                },
+                              });
+                            }}
+                          />
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs rounded-full ${getRoleColor(user.role)}`}>{getRoleText(user.role)}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">{user.phone_number || ''}</td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(getStatus(user))}`}>{getStatusText(getStatus(user))}</span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.createdAt ? new Date(user.createdAt).toLocaleString('vi-VN') : ''}</td>
-                    <td className="px-6 py-4 whitespace-nowrap max-w-[120px] overflow-hidden text-ellipsis">
-                      {user.role === 'doctor' ? (user.userDescription && user.userDescription.length > 10 ? `${user.userDescription.slice(0, 10)}...` : user.userDescription || '') : ''}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex space-x-2">
-                        <Button
-                          type="link"
-                          className="text-blue-600"
-                          icon={<Eye className="w-5 h-5" />}
-                          onClick={() => navigate(`/admin/user-detail/${user._id}`)}
-                        />
-                        <Button
-                          type="link"
-                          className="text-blue-600"
-                          icon={<Edit className="w-5 h-5" />}
-                          onClick={() => handleEditUser(user)}
-                        />
-                        <Button
-                          type="link"
-                          className="text-red-600"
-                          icon={<Trash2 className="w-5 h-5" style={{ color: 'red' }} />}
-                          onClick={() => {
-                            // Không cho phép xóa tài khoản admin
-                            if (user.role === 'admin') {
-                              message.error('Không thể xóa tài khoản quản trị viên!');
-                              return;
-                            }
-                            Modal.confirm({
-                              title: 'Xác nhận xóa',
-                              content: 'Bạn có chắc chắn muốn xóa người dùng này?',
-                              okText: 'Xóa',
-                              okType: 'danger',
-                              cancelText: 'Hủy',
-                              onOk: async () => {
-                                try {
-                                  await deleteUser(user._id);
-                                  const data = await getAllUsers();
-                                  setUsers(data); // Cập nhật lại danh sách sau khi xóa
-                                  message.success('Xóa người dùng thành công!');
-                                } catch (err: any) {
-                                  message.error(err.message || 'Xóa người dùng thất bại');
-                                }
-                              },
-                            });
-                          }}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="mt-6 flex justify-center">
+                <Pagination
+                  current={currentPage}
+                  pageSize={usersPerPage}
+                  total={filteredAndSortedUsers.length}
+                  onChange={paginate}
+                  showSizeChanger={false}
+                />
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -381,11 +397,11 @@ const RoleManagement: React.FC = () => {
         open={isModalOpen}
         onCancel={() => {
           setIsModalOpen(false);
-          form.resetFields(); // Reset form khi đóng
+          form.resetFields();
           setEditingUser(null);
         }}
         footer={null}
-        destroyOnClose // Đảm bảo form được mount lại mỗi khi mở để initialValues hoạt động tốt
+        destroyOnClose
       >
         <Form
           form={form}
@@ -393,7 +409,6 @@ const RoleManagement: React.FC = () => {
           onFinish={async (values) => {
             if (!editingUser) return;
 
-            // Kiểm tra đặc biệt cho tài khoản admin
             if (editingUser.role === 'admin' && values.role !== 'admin') {
               message.error('Không thể thay đổi quyền của tài khoản quản trị viên!');
               return;
@@ -405,7 +420,7 @@ const RoleManagement: React.FC = () => {
               await updateUser(editingUser._id, payload);
 
               const data = await getAllUsers();
-              setUsers(data); // Cập nhật lại danh sách sau khi sửa
+              setUsers(data);
 
               setIsModalOpen(false);
               message.success('Cập nhật người dùng thành công!');
@@ -430,9 +445,8 @@ const RoleManagement: React.FC = () => {
             rules={[{ required: true, message: 'Vui lòng chọn vai trò' }]}
           >
             <Select
-              disabled={editingUser?.role === 'admin'} // Vô hiệu hóa chọn nếu là admin
+              disabled={editingUser?.role === 'admin'}
               onChange={role => {
-                // Nếu vai trò không phải doctor, reset userDescription
                 if (role !== 'doctor') {
                   form.setFieldsValue({ userDescription: undefined });
                 }
@@ -466,14 +480,13 @@ const RoleManagement: React.FC = () => {
           </Form.Item>
 
           <Form.Item label="Trạng thái">
-            {/* Hiển thị trạng thái dựa trên editingUser.isVerified */}
             <Input value={editingUser ? getStatusText(getStatus(editingUser)) : ''} disabled />
           </Form.Item>
 
           <div className="flex justify-end space-x-2 mt-6">
             <Button onClick={() => {
               setIsModalOpen(false);
-              form.resetFields(); // Reset form khi hủy
+              form.resetFields();
               setEditingUser(null);
             }} disabled={saving}>
               Hủy
@@ -488,9 +501,9 @@ const RoleManagement: React.FC = () => {
       {/* Modal for Add User */}
       <Modal
         title="Thêm người dùng mới"
-        open={isAddModalOpen} // Sử dụng isAddModalOpen
+        open={isAddModalOpen}
         onCancel={() => {
-          setIsAddModalOpen(false); // Sử dụng setIsAddModalOpen
+          setIsAddModalOpen(false);
           addForm.resetFields();
         }}
         footer={null}
@@ -499,14 +512,14 @@ const RoleManagement: React.FC = () => {
         <Form
           form={addForm}
           layout="vertical"
-          initialValues={{ role: 'user' }} // Mặc định vai trò là user khi thêm mới
+          initialValues={{ role: 'user' }}
           onFinish={async (values) => {
             setAdding(true);
             try {
               await createUser(values);
               const data = await getAllUsers();
-              setUsers(data); // Cập nhật lại danh sách sau khi thêm
-              setIsAddModalOpen(false); // Sử dụng setIsAddModalOpen
+              setUsers(data);
+              setIsAddModalOpen(false);
               addForm.resetFields();
               message.success('Thêm người dùng thành công!');
             } catch (err: any) {
@@ -580,7 +593,7 @@ const RoleManagement: React.FC = () => {
 
           <div className="flex justify-end space-x-2 mt-6">
             <Button onClick={() => {
-              setIsAddModalOpen(false); // Sử dụng setIsAddModalOpen
+              setIsAddModalOpen(false);
               addForm.resetFields();
             }} disabled={adding}>
               Hủy
