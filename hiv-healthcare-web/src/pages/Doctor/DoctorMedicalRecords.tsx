@@ -21,6 +21,7 @@ import {
   ChevronDown,
 } from "lucide-react"
 import type { Result } from "../../types/result"
+import { getBookingStatusColor, translateBookingStatus } from "../../utils/status"
 
 // Format frequency value (e.g., "2" → "2 lần/ngày")
 const formatFrequency = (freq: string | undefined): string => {
@@ -77,25 +78,10 @@ const DoctorMedicalRecords: React.FC = () => {
     }))
   }
 
+  // Use getBookingStatusColor from utils/status.ts for gradient status color
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-700"
-      case "confirmed":
-        return "bg-blue-100 text-blue-700"
-      case "pending":
-        return "bg-amber-100 text-amber-700"
-      case "cancelled":
-        return "bg-red-100 text-red-700"
-      case "re-examination":
-        return "bg-purple-100 text-purple-700"
-      case "checked-in":
-        return "bg-teal-100 text-teal-700"
-      case "checked-out":
-        return "bg-gray-100 text-gray-700"
-      default:
-        return "bg-gray-100 text-gray-700"
-    }
+    // Returns Tailwind gradient classes
+    return `bg-gradient-to-r ${getBookingStatusColor(status)} text-gray-800`
   }
 
   const getStatusIcon = (status: string) => {
@@ -271,14 +257,16 @@ const DoctorMedicalRecords: React.FC = () => {
                         </div>
                       </div>
                       {record.bookingId?.status && (
-                        <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                          {getStatusIcon(record.bookingId.status)}
-                          <div className="flex-1">
-                            <p className="text-sm text-gray-500">Trạng thái</p>
+                        <div className="flex flex-col items-start justify-center p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl ml-2" style={{ minHeight: 90 }}>
+                          <div className="flex flex-col items-start w-full">
+                            <div className="flex items-center gap-2 mb-1">
+                              {getStatusIcon(record.bookingId.status)}
+                              <span className="text-base text-gray-600 font-medium">Trạng thái</span>
+                            </div>
                             <span
-                              className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(record.bookingId.status)}`}
+                              className={`mt-1 inline-flex items-center justify-center w-32 h-8 rounded-full text-base font-semibold text-center ${getStatusColor(record.bookingId.status)}`}
                             >
-                              {record.bookingId.status}
+                              {translateBookingStatus(record.bookingId.status)}
                             </span>
                           </div>
                         </div>
