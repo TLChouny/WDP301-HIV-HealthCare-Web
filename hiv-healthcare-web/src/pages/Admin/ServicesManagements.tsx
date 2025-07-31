@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { getAllServices, createService, updateService, deleteService } from '../../api/serviceApi';
 import { getAllCategories } from '../../api/categoryApi';
-import { Button, Modal, Form, Input, message, Select, Pagination } from 'antd';
-import { Plus, Edit, Trash2, Search, Eye, Briefcase } from 'lucide-react';
+import { Button, Modal, Form, Input, message, Select, Pagination, Upload } from 'antd';
+import { Plus, Edit, Trash2, Search, Eye, Briefcase, UploadCloud } from 'lucide-react'; // Added UploadCloud icon
 import type { Service } from '../../types/service';
 import type { Category } from '../../types/category';
 import { Link } from 'react-router-dom';
+import type { UploadFile, UploadProps } from 'antd/es/upload/interface'; // Import types for Upload
 
 const ServicesManagements: React.FC = () => {
   const [services, setServices] = useState<Service[]>([]);
@@ -19,12 +20,17 @@ const ServicesManagements: React.FC = () => {
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [editImageUrl, setEditImageUrl] = useState('');
 
-  // State cho phân trang
+  // State for image uploads
+  const [fileList, setFileList] = useState<UploadFile[]>([]); // For Add Service Modal
+  const [editFileList, setEditFileList] = useState<UploadFile[]>([]); // For Edit Service Modal
+  const [imageUrl, setImageUrl] = useState(''); // Stores the URL of the uploaded image for add form
+  const [editImageUrl, setEditImageUrl] = useState(''); // Stores the URL of the uploaded image for edit form
+
+
+  // State for pagination
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const servicesPerPage = 10; // Số lượng dịch vụ mỗi trang
+  const servicesPerPage = 10; // Number of services per page
 
   const fetchServicesAndCategories = async () => {
     setLoading(true);
@@ -50,23 +56,75 @@ const ServicesManagements: React.FC = () => {
     service.serviceName.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Logic phân trang
+  // Pagination logic
   const indexOfLastService = currentPage * servicesPerPage;
   const indexOfFirstService = indexOfLastService - servicesPerPage;
   const currentServices = filteredServices.slice(indexOfFirstService, indexOfLastService);
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
+  // --- Image Upload Handlers ---
+ const handleBeforeUpload = (file: UploadFile) => {
+  const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
+  if (!isJpgOrPng) {
+    message.error('Bạn chỉ có thể tải lên file JPG/PNG!');
+    return false; // Prevent upload if not correct type
+  }
+
+  // Safely access file.size and check if it's undefined
+  const isLt2M = file.size ? file.size / 1024 / 1024 < 2 : false;
+  if (!isLt2M) {
+    message.error('Ảnh phải nhỏ hơn 2MB!');
+    return false; // Prevent upload if too large or size is undefined
+  }
+
+  return true; // Allow upload if both conditions are met
+};
+
+  // This function would typically handle the actual upload to a backend/cloud storage
+  // and return the URL. For this example, we're just simulating it.
+  const handleImageUploadChange: UploadProps['onChange'] = ({ fileList: newFileList, file }) => {
+    setFileList(newFileList);
+    if (file.status === 'done' && file.response) {
+      // In a real application, file.response would contain the URL from your backend
+      // For demonstration, we'll just set a placeholder URL or use the file's thumbUrl
+      setImageUrl(file.response.url || URL.createObjectURL(file.originFileObj as Blob));
+      message.success(`${file.name} đã được tải lên thành công.`);
+    } else if (file.status === 'error') {
+      message.error(`${file.name} tải lên thất bại.`);
+    }
+    // Remove file from list if status is 'removed'
+    if (file.status === 'removed') {
+      setImageUrl('');
+    }
+  };
+
+  const handleEditImageUploadChange: UploadProps['onChange'] = ({ fileList: newFileList, file }) => {
+    setEditFileList(newFileList);
+    if (file.status === 'done' && file.response) {
+      setEditImageUrl(file.response.url || URL.createObjectURL(file.originFileObj as Blob));
+      message.success(`${file.name} đã được tải lên thành công.`);
+    } else if (file.status === 'error') {
+      message.error(`${file.name} tải lên thất bại.`);
+    }
+    if (file.status === 'removed') {
+      setEditImageUrl('');
+    }
+  };
+  // --- End Image Upload Handlers ---
+
   const handleAddService = async (values: Partial<Service>) => {
     setAdding(true);
     try {
+      // Use the imageUrl obtained from the upload component
       await createService({ ...values, serviceImage: imageUrl });
       message.success('Thêm dịch vụ thành công!');
       setIsAddModalOpen(false);
       addForm.resetFields();
       setImageUrl('');
-      fetchServicesAndCategories(); // Tải lại để cập nhật
-      setCurrentPage(1); // Quay về trang đầu tiên sau khi thêm
+      setFileList([]); // Clear file list after successful add
+      fetchServicesAndCategories(); // Reload to update
+      setCurrentPage(1); // Go back to the first page after adding
     } catch (err: any) {
       message.error(err.message || 'Thêm dịch vụ thất bại');
     } finally {
@@ -77,7 +135,20 @@ const ServicesManagements: React.FC = () => {
   const handleEditService = (service: Service) => {
     setEditingService(service);
     setIsEditModalOpen(true);
+
+    // Set the current image for display in the edit form
     setEditImageUrl(service.serviceImage || '');
+    if (service.serviceImage) {
+      setEditFileList([{
+        uid: '-1',
+        name: 'image.png', // Or parse filename from URL if possible
+        status: 'done',
+        url: service.serviceImage,
+        thumbUrl: service.serviceImage,
+      }]);
+    } else {
+      setEditFileList([]);
+    }
 
     setTimeout(() => {
       editForm.setFieldsValue({
@@ -86,7 +157,7 @@ const ServicesManagements: React.FC = () => {
         categoryId: typeof service.categoryId === 'object' ? service.categoryId._id : service.categoryId,
         duration: service.duration,
         price: service.price,
-        serviceImage: service.serviceImage
+        // serviceImage is now handled by Upload component's fileList and editImageUrl state
       });
     }, 0);
   };
@@ -95,10 +166,11 @@ const ServicesManagements: React.FC = () => {
     if (!editingService) return;
     setSaving(true);
     try {
+      // Use the editImageUrl obtained from the upload component
       await updateService(editingService._id, { ...values, serviceImage: editImageUrl });
       message.success('Cập nhật dịch vụ thành công!');
       setIsEditModalOpen(false);
-      fetchServicesAndCategories(); // Tải lại để cập nhật
+      fetchServicesAndCategories(); // Reload to update
     } catch (err: any) {
       message.error(err.message || 'Cập nhật dịch vụ thất bại');
     } finally {
@@ -117,17 +189,13 @@ const ServicesManagements: React.FC = () => {
         try {
           await deleteService(service._id);
           message.success('Xóa dịch vụ thành công!');
-          fetchServicesAndCategories(); // Tải lại để cập nhật
-          setCurrentPage(1); // Quay về trang đầu tiên sau khi xóa
+          fetchServicesAndCategories(); // Reload to update
+          setCurrentPage(1); // Go back to the first page after deleting
         } catch (err: any) {
           message.error(err.message || 'Xóa dịch vụ thất bại');
         }
       },
     });
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, setUrl: (url: string) => void) => {
-    setUrl(e.target.value);
   };
 
   if (loading) {
@@ -154,7 +222,12 @@ const ServicesManagements: React.FC = () => {
               <p className="text-base text-gray-600">Quản lý, thêm, sửa, xóa các dịch vụ trong hệ thống</p>
             </div>
           </div>
-          <Button type="primary" icon={<Plus />} className="!h-12 !px-8 !text-base !font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow" onClick={() => setIsAddModalOpen(true)}>
+          <Button type="primary" icon={<Plus />} className="!h-12 !px-8 !text-base !font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow" onClick={() => {
+            setIsAddModalOpen(true);
+            addForm.resetFields(); // Ensure form is clear
+            setFileList([]); // Clear file list
+            setImageUrl(''); // Clear image URL
+          }}>
             Thêm dịch vụ
           </Button>
         </div>
@@ -177,8 +250,8 @@ const ServicesManagements: React.FC = () => {
           </div>
         </div>
 
-        {/* Thẻ div chứa bảng - bỏ overflow-x-auto, vì các cột đã được tối ưu width */}
-        <div className="bg-white rounded-lg shadow"> {/* Đã bỏ overflow-x-auto */}
+        {/* Table container */}
+        <div className="bg-white rounded-lg shadow">
           <table className="min-w-full divide-y divide-gray-200 table-auto">
             <thead className="bg-gray-50">
               <tr>
@@ -213,7 +286,7 @@ const ServicesManagements: React.FC = () => {
                           <img src={service.serviceImage} alt={service.serviceName} className="w-16 h-10 object-cover rounded" />
                         )}
                       </td>
-                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center"> {/* Thêm text-center vào đây */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
                         {service.duration || ''}
                       </td>
 
@@ -249,9 +322,9 @@ const ServicesManagements: React.FC = () => {
               )}
             </tbody>
           </table>
-        </div> {/* Đóng thẻ div chứa bảng */}
+        </div>
 
-        {/* Phân trang - Đã di chuyển ra ngoài thẻ div chứa bảng */}
+        {/* Pagination */}
         <div className="mt-6 flex justify-center">
           <Pagination
             current={currentPage}
@@ -270,6 +343,7 @@ const ServicesManagements: React.FC = () => {
             setIsAddModalOpen(false);
             addForm.resetFields();
             setImageUrl('');
+            setFileList([]); // Clear file list on cancel
           }}
           footer={null}
           destroyOnClose
@@ -301,12 +375,42 @@ const ServicesManagements: React.FC = () => {
               </Select>
             </Form.Item>
             <Form.Item
-              label="Link ảnh (URL) *"
-              name="serviceImage"
-              rules={[{ required: true, message: 'Vui lòng cung cấp link ảnh!' }]}
+              label="Ảnh dịch vụ *"
+              name="serviceImageUpload" // A dummy name for the Form.Item to hold the Upload
+              rules={[{ required: !imageUrl, message: 'Vui lòng tải lên ảnh dịch vụ!' }]} // Make it required only if no image URL is present
             >
-              <Input placeholder="Dán link ảnh" value={imageUrl} onChange={(e) => handleImageChange(e, setImageUrl)} />
+              <Upload
+                listType="picture-card"
+                fileList={fileList}
+                onChange={handleImageUploadChange}
+                beforeUpload={handleBeforeUpload}
+                maxCount={1} // Allow only one image
+                // For demonstration, we'll use a dummy request handler.
+                // In a real app, you'd send the file to your backend here.
+                customRequest={({ file, onSuccess }) => {
+                  setTimeout(() => {
+                    // Simulate a successful upload with a dummy URL
+                    const dummyUrl = URL.createObjectURL(file as Blob);
+                    (onSuccess as Function)({ url: dummyUrl }); // Pass the URL in the response
+                  }, 500);
+                }}
+              >
+                {fileList.length < 1 && (
+                  <div>
+                    <UploadCloud className="w-6 h-6 mx-auto mb-1 text-gray-500" />
+                    <div style={{ marginTop: 8 }}>Tải ảnh lên</div>
+                  </div>
+                )}
+              </Upload>
             </Form.Item>
+
+            {/* Display current image if exists (for validation/preview) */}
+            {imageUrl && (
+              <Form.Item label="Ảnh đã chọn">
+                <img src={imageUrl} alt="Preview" style={{ maxWidth: '100px', maxHeight: '100px', objectFit: 'cover' }} />
+              </Form.Item>
+            )}
+
             <Form.Item
               label="Thời lượng (phút) *"
               name="duration"
@@ -326,6 +430,7 @@ const ServicesManagements: React.FC = () => {
                 setIsAddModalOpen(false);
                 addForm.resetFields();
                 setImageUrl('');
+                setFileList([]);
               }} disabled={adding}> Hủy </Button>
               <Button type="primary" htmlType="submit" loading={adding}> Thêm </Button>
             </div>
@@ -341,6 +446,7 @@ const ServicesManagements: React.FC = () => {
             editForm.resetFields();
             setEditingService(null);
             setEditImageUrl('');
+            setEditFileList([]); // Clear file list on cancel
           }}
           footer={null}
           destroyOnClose
@@ -371,15 +477,38 @@ const ServicesManagements: React.FC = () => {
               </Select>
             </Form.Item>
             <Form.Item
-              label="Link ảnh (URL)"
-              name="serviceImage"
+              label="Ảnh dịch vụ"
+              name="serviceImageUpload" // Dummy name for the Form.Item
             >
-              <Input
-                placeholder="Dán link ảnh"
-                value={editImageUrl}
-                onChange={(e) => handleImageChange(e, setEditImageUrl)}
-              />
+              <Upload
+                listType="picture-card"
+                fileList={editFileList}
+                onChange={handleEditImageUploadChange}
+                beforeUpload={handleBeforeUpload}
+                maxCount={1}
+                customRequest={({ file, onSuccess }) => {
+                  setTimeout(() => {
+                    const dummyUrl = URL.createObjectURL(file as Blob);
+                    (onSuccess as Function)({ url: dummyUrl });
+                  }, 500);
+                }}
+              >
+                {editFileList.length < 1 && (
+                  <div>
+                    <UploadCloud className="w-6 h-6 mx-auto mb-1 text-gray-500" />
+                    <div style={{ marginTop: 8 }}>Tải ảnh lên</div>
+                  </div>
+                )}
+              </Upload>
             </Form.Item>
+
+            {/* Display current image if exists (for validation/preview) */}
+            {editImageUrl && (
+              <Form.Item label="Ảnh hiện tại">
+                <img src={editImageUrl} alt="Preview" style={{ maxWidth: '100px', maxHeight: '100px', objectFit: 'cover' }} />
+              </Form.Item>
+            )}
+
             <Form.Item
               label="Thời lượng (phút)"
               name="duration"
@@ -398,6 +527,7 @@ const ServicesManagements: React.FC = () => {
                 editForm.resetFields();
                 setEditingService(null);
                 setEditImageUrl('');
+                setEditFileList([]);
               }} disabled={saving}> Hủy </Button>
               <Button type="primary" htmlType="submit" loading={saving}> Lưu </Button>
             </div>
