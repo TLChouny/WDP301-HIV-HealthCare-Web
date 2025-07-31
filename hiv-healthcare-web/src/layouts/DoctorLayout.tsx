@@ -107,10 +107,10 @@ const DoctorLayout: React.FC = () => {
         <div className="flex flex-col h-full">
           {/* Logo and Toggle */}
           <div className="flex items-center justify-between h-16 px-4 border-b">
-            <Link to="/doctor/dashboard" className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
               <Pill className="w-8 h-8 text-blue-600" />
               <span className="text-xl font-bold text-gray-800">HIV Care</span>
-            </Link>
+            </div>
             <button
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden text-gray-500 hover:text-gray-600"

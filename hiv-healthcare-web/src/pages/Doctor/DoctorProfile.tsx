@@ -916,7 +916,7 @@ const DoctorProfile: React.FC = () => {
                         </div>
                       </div>
                       <div
-                        className={`inline-block px-2 py-1 rounded-full text-xs ${
+                        className={`inline-block px-2 py-1 w-[7vw] rounded-full text-xs ${
                           cert.status === "approved"
                             ? "bg-green-100 text-green-700"
                             : cert.status === "rejected"
@@ -925,7 +925,7 @@ const DoctorProfile: React.FC = () => {
                         }`}
                       >
                         <span
-                          className={`inline-block w-2 h-2 rounded-full mr-1 ${
+                          className={`inline-block w-2 h-2  rounded-full mr-1 ${
                             cert.status === "approved"
                               ? "bg-green-500"
                               : cert.status === "rejected"
@@ -1200,7 +1200,7 @@ const DoctorProfile: React.FC = () => {
                         </div>
                       </div>
                       <div
-                        className={`inline-block px-2 py-1 rounded-full text-xs ${
+                        className={`inline-block px-2 py-1 w-[7vw] rounded-full text-xs ${
                           exp.status === "approved"
                             ? "bg-green-100 text-green-700"
                             : exp.status === "rejected"

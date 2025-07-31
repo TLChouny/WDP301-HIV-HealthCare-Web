@@ -10,15 +10,14 @@ import {
 import type { Result } from "../types/result";
 
 // Định nghĩa kiểu dữ liệu cho payload tạo mới kết quả
-// ResultContext.tsx
 export interface NewResultPayload {
   resultName: string;
   resultDescription?: string;
   bookingId: string;
-  arvregimenId: string;
-  reExaminationDate: string; // Already updated to string
+  arvregimenId?: string; // Thay đổi từ arvregimenId: string thành arvregimenId?: string
+  reExaminationDate: string;
   medicationTime?: string;
-  medicationSlot?: string; // Added
+  medicationSlot?: string;
   symptoms?: string;
   weight?: number;
   height?: number;

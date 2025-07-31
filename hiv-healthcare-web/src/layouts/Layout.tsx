@@ -222,7 +222,7 @@ const Layout: React.FC = () => {
               >
                 Giới thiệu
               </Link>
-              <Link
+              {/* <Link
                 to="/contact"
                 className={`py-2 font-medium relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 hover:after:w-full after:bg-teal-200 after:transition-all after:duration-300 ${
                   location.pathname === "/contact"
@@ -231,7 +231,7 @@ const Layout: React.FC = () => {
                 }`}
               >
                 Liên hệ
-              </Link>
+              </Link> */}
             </nav>
 
             {/* Desktop Buttons */}

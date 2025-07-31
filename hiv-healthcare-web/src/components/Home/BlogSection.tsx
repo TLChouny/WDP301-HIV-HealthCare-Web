@@ -80,12 +80,12 @@ const BlogSection: React.FC = () => {
           </button>
 
           <div className="overflow-hidden rounded-2xl">
-            <div className="flex transition-transform duration-700 ease-out h-[20vh]" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
+            <div className="flex transition-transform duration-700 ease-out h-[450px]" style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
               {posts.map((article, index) => (
-                <div key={index} className="w-full h-[40vh] flex-shrink-0 px-4">
-                  <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden group max-w-4xl mx-auto">
+                <div key={index} className="w-full h-[450px] flex-shrink-0 px-4">
+                  <div className="bg-white rounded-2xl h-[450px] shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden group max-w-4xl mx-auto">
                     <div className="md:flex">
-                      <div className="md:w-2/5 relative overflow-hidden">
+                      <div className="md:w-3/5 h-[450px] relative overflow-hidden">
                         <img src={article.blogImage || "/placeholder.svg?height=300&width=400"} alt={article.blogTitle} className="w-full h-64 md:h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                       </div>

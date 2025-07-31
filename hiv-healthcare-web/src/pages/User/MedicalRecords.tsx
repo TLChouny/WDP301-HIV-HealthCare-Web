@@ -27,6 +27,7 @@ import { useResult } from "../../context/ResultContext";
 import { useAuth } from "../../context/AuthContext";
 import type { User as UserType } from "../../types/user";
 import type { Result } from "../../types/result";
+import { getBookingStatusColor, translateBookingStatus } from "../../utils/status";
 
 // Format frequency value (e.g., "2" → "2 lần/ngày")
 const formatFrequency = (freq: string | undefined): string => {
@@ -98,24 +99,7 @@ const MedicalRecords: React.FC = () => {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-700";
-      case "confirmed":
-        return "bg-blue-100 text-blue-700";
-      case "pending":
-        return "bg-amber-100 text-amber-700";
-      case "cancelled":
-        return "bg-red-100 text-red-700";
-      case "re-examination":
-        return "bg-purple-100 text-purple-700";
-      case "checked-in":
-        return "bg-teal-100 text-teal-700";
-      case "checked-out":
-        return "bg-gray-100 text-gray-700";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
+    return getBookingStatusColor(status);
   };
 
   const getStatusIcon = (status: string) => {
@@ -332,20 +316,20 @@ const MedicalRecords: React.FC = () => {
                                 </div>
                                 {record.bookingId?.status && (
                                   <span
-                                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                                    className={`inline-flex items-center px-2.5 py-1 w-[6vw] rounded-full text-sm font-medium bg-gradient-to-r ${getStatusColor(
                                       record.bookingId.status
-                                    )}`}
+                                    )} text-white whitespace-nowrap`}
                                   >
                                     {getStatusIcon(record.bookingId.status)}
-                                    {record.bookingId.status}
+                                    <span className="ml-1">
+                                      {translateBookingStatus(record.bookingId.status)}
+                                    </span>
                                   </span>
                                 )}
                               </div>
-
                               <p className="text-gray-600 text-sm line-clamp-2 mb-2">
                                 {record.resultDescription || "Không có mô tả"}
                               </p>
-
                               {record.arvregimenId?.drugs && record.arvregimenId.drugs.length > 0 && (
                                 <div className="mt-4">
                                   <label className="block text-sm font-medium text-gray-700 mb-2">Thông tin thuốc</label>
@@ -417,11 +401,10 @@ const MedicalRecords: React.FC = () => {
                   <button
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
-                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${
-                      currentPage === 1
+                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${currentPage === 1
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                         : "bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700"
-                    }`}
+                      }`}
                   >
                     <ChevronLeft className="h-4 w-4" />
                     Trang trước
@@ -434,11 +417,10 @@ const MedicalRecords: React.FC = () => {
                   <button
                     onClick={handleNextPage}
                     disabled={currentPage === totalPages}
-                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${
-                      currentPage === totalPages
+                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${currentPage === totalPages
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                         : "bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700"
-                    }`}
+                      }`}
                   >
                     Trang sau
                     <ChevronRight className="h-4 w-4" />
@@ -723,12 +705,12 @@ const MedicalRecords: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
                         <span
-                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r ${getStatusColor(
                             selectedRecord.bookingId.status
-                          )}`}
+                          )} text-white`}
                         >
                           {getStatusIcon(selectedRecord.bookingId.status)}
-                          {selectedRecord.bookingId.status}
+                          {translateBookingStatus(selectedRecord.bookingId.status)} {/* Sử dụng translateBookingStatus */}
                         </span>
                       </div>
                       <div>
@@ -756,17 +738,17 @@ const MedicalRecords: React.FC = () => {
                         <p className="text-gray-800 bg-white p-3 rounded-xl border">
                           {selectedRecord.bookingId.startTime && selectedRecord.bookingId.endTime
                             ? (() => {
-                                const bookingDate = selectedRecord.bookingId.bookingDate;
-                                const datePart = new Date(bookingDate).toISOString().split("T")[0];
-                                const start = new Date(`${datePart}T${selectedRecord.bookingId.startTime}:00`);
-                                const end = new Date(`${datePart}T${selectedRecord.bookingId.endTime}:00`);
-                                if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-                                  return "Không hợp lệ";
-                                }
-                                const diffMs = end.getTime() - start.getTime();
-                                const diffMinutes = Math.round(diffMs / 60000);
-                                return `${diffMinutes} phút`;
-                              })()
+                              const bookingDate = selectedRecord.bookingId.bookingDate;
+                              const datePart = new Date(bookingDate).toISOString().split("T")[0];
+                              const start = new Date(`${datePart}T${selectedRecord.bookingId.startTime}:00`);
+                              const end = new Date(`${datePart}T${selectedRecord.bookingId.endTime}:00`);
+                              if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                                return "Không hợp lệ";
+                              }
+                              const diffMs = end.getTime() - start.getTime();
+                              const diffMinutes = Math.round(diffMs / 60000);
+                              return `${diffMinutes} phút`;
+                            })()
                             : "Chưa xác định"}
                         </p>
                       </div>

@@ -1,5 +1,5 @@
-import type React from "react"
-import { useState, useEffect, useCallback, useMemo } from "react"
+import type React from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   User,
   Phone,
@@ -14,54 +14,85 @@ import {
   Calendar,
   Clock,
   XCircle,
-} from "lucide-react"
-import { translateBookingStatus } from "../../utils/status"
-import { toast, ToastContainer } from "react-toastify"
-import "react-toastify/dist/ReactToastify.css"
-import CalendarComponent from "react-calendar" // Renamed to avoid conflict with Lucide icon
-import "react-calendar/dist/Calendar.css"
-import type { Booking } from "../../types/booking"
-import { useBooking } from "../../context/BookingContext"
-import { useArv } from "../../context/ArvContext"
-import { useResult } from "../../context/ResultContext"
-import { useAuth } from "../../context/AuthContext"
+} from "lucide-react";
+import { translateBookingStatus } from "../../utils/status";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import CalendarComponent from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import type { Booking } from "../../types/booking";
+import { useBooking } from "../../context/BookingContext";
+import { useArv } from "../../context/ArvContext";
+import { useResult } from "../../context/ResultContext";
+import { useAuth } from "../../context/AuthContext";
 
 // Hàm so sánh ngày theo local
 const isSameDayLocal = (date1: string | Date, date2: string | Date) => {
-  const d1 = new Date(date1)
-  const d2 = new Date(date2)
-  return d1.getFullYear() === d2.getFullYear() && d1.getMonth() === d2.getMonth() && d1.getDate() === d2.getDate()
-}
+  const d1 = new Date(date1);
+  const d2 = new Date(date2);
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  );
+};
 
 // Hàm parse ngày
 const parseBookingDateLocal = (dateStr: string): Date => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    const [y, m, d] = dateStr.split("-").map(Number)
-    return new Date(y, m - 1, d)
+    const [y, m, d] = dateStr.split("-").map(Number);
+    return new Date(y, m - 1, d);
   }
   if (/^\d{4}-\d{2}-\d{2}T/.test(dateStr)) {
-    const [datePart] = dateStr.split("T")
-    const [y, m, d] = datePart.split("-").map(Number)
-    return new Date(y, m - 1, d)
+    const [datePart] = dateStr.split("T");
+    const [y, m, d] = datePart.split("-").map(Number);
+    return new Date(y, m - 1, d);
   }
-  return new Date(dateStr)
-}
+  return new Date(dateStr);
+};
 
 // Component hiển thị trạng thái
 const StatusButton: React.FC<{
-  status: string
-  bookingId?: string
-  onStatusChange: (bookingId: string, newStatus: "checked-in") => void
-}> = ({ status, bookingId, onStatusChange }) => {
+  status: string;
+  bookingId?: string;
+  onStatusChange: (bookingId: string, newStatus: Booking["status"]) => void;
+  isOnlineConsultation?: boolean;
+  userRole?: string;
+  serviceName?: string;
+}> = ({ status, bookingId, onStatusChange, isOnlineConsultation = false, userRole = "user", serviceName = "" }) => {
   if (!bookingId) {
     return (
       <span className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold bg-gray-100 text-gray-700 border border-gray-200">
         Lỗi: Không có ID
       </span>
-    )
+    );
   }
 
-  if (status === "pending" || status === "checked-out") {
+  // Chỉ doctor được phép cập nhật status từ "pending" sang "completed" cho "Tư vấn trực tuyến"
+  if (userRole === "doctor" && status === "pending" && isOnlineConsultation) {
+    return (
+      <button
+        onClick={() => onStatusChange(bookingId, "completed")}
+        className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-md"
+      >
+        <CheckCircle2 className="w-4 h-4 mr-2" />
+        Hoàn thành
+      </button>
+    );
+  }
+
+  // Ngăn doctor thay đổi trạng thái từ "pending" sang "checked-in" cho các dịch vụ khác
+  if (userRole === "doctor" && status === "pending" && !isOnlineConsultation) {
+    return (
+      <span className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold bg-gray-200 text-gray-500 border border-gray-200 cursor-not-allowed">
+        <Clock className="w-4 h-4 mr-2" />
+        {translateBookingStatus(status)}
+      </span>
+    );
+  }
+
+  // Cho phép chuyển từ "pending" hoặc "checked-out" sang "checked-in" cho các vai trò khác hoặc trạng thái mặc định
+  if ((userRole == "doctor" || status === "checked-out") && status !== "completed") {
     return (
       <button
         onClick={() => onStatusChange(bookingId, "checked-in")}
@@ -70,34 +101,34 @@ const StatusButton: React.FC<{
         <CheckCircle2 className="w-4 h-4 mr-2" />
         Điểm danh
       </button>
-    )
+    );
   }
 
   const statusStyles: { [key: string]: string } = {
     "checked-in": "bg-green-100 text-green-700 border-green-200",
     cancelled: "bg-red-100 text-red-700 border-red-200",
     completed: "bg-purple-100 text-purple-700 border-purple-200",
-    confirmed: "bg-blue-100 text-blue-700 border-blue-200", // Added confirmed status style
-    paid: "bg-orange-100 text-orange-700 border-orange-200", // Added paid status style
-  }
+    confirmed: "bg-blue-100 text-blue-700 border-blue-200",
+    paid: "bg-orange-100 text-orange-700 border-orange-200",
+  };
 
   const getStatusIcon = (s: string) => {
     switch (s) {
       case "checked-in":
       case "completed":
-        return <CheckCircle2 className="w-4 h-4 mr-2" />
+        return <CheckCircle2 className="w-4 h-4 mr-2" />;
       case "pending":
-        return <Clock className="w-4 h-4 mr-2" />
+        return <Clock className="w-4 h-4 mr-2" />;
       case "cancelled":
-        return <XCircle className="w-4 h-4 mr-2" />
+        return <XCircle className="w-4 h-4 mr-2" />;
       case "confirmed":
-        return <CheckCircle2 className="w-4 h-4 mr-2" />
+        return <CheckCircle2 className="w-4 h-4 mr-2" />;
       case "paid":
-        return <CreditCard className="w-4 h-4 mr-2" />
+        return <CreditCard className="w-4 h-4 mr-2" />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <span
@@ -107,63 +138,61 @@ const StatusButton: React.FC<{
       {getStatusIcon(status)}
       {translateBookingStatus(status)}
     </span>
-  )
-}
+  );
+};
 
 const AppointmentManagement: React.FC = () => {
-  const [reExaminationDate, setReExaminationDate] = useState("")
-  const { getAll, update } = useBooking()
-  const { regimens, create: createArv } = useArv()
-  const { addResult, results } = useResult()
-  const { user, getUserById } = useAuth() // Lấy user từ AuthContext
-  const [search, setSearch] = useState("")
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
-  const [selectedStatus, setSelectedStatus] = useState("all")
-  const [calendarDate, setCalendarDate] = useState<Date | null>(new Date())
-  const [bookings, setBookings] = useState<Booking[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [openMedicalModal, setOpenMedicalModal] = useState(false)
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+  const [reExaminationDate, setReExaminationDate] = useState("");
+  const { getAll, update } = useBooking();
+  const { regimens, create: createArv } = useArv();
+  const { addResult, results } = useResult();
+  const { user, getUserById } = useAuth();
+  const [search, setSearch] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [calendarDate, setCalendarDate] = useState<Date | null>(new Date());
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [openMedicalModal, setOpenMedicalModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   // State for Result fields
-  const [medicalDate, setMedicalDate] = useState("")
-  const [medicalType, setMedicalType] = useState("")
-  const [diagnosis, setDiagnosis] = useState("")
-  const [arvRegimen, setArvRegimen] = useState("")
-  const [hivLoad, setHivLoad] = useState("")
-  const [medicationTime, setMedicationTime] = useState("")
-  const [medicationTimes, setMedicationTimes] = useState<string[]>([])
-  const [symptoms, setSymptoms] = useState("")
-  const [weight, setWeight] = useState("")
-  const [height, setHeight] = useState("")
-  const [bmi, setBmi] = useState("")
-  const [bloodPressure, setBloodPressure] = useState("")
-  const [pulse, setPulse] = useState("")
-  const [temperature, setTemperature] = useState("")
-  const [sampleType, setSampleType] = useState("")
-  const [testMethod, setTestMethod] = useState("")
-  const [resultType, setResultType] = useState<"positive-negative" | "quantitative" | "other" | "">("")
-  const [testResult, setTestResult] = useState("")
-  const [testValue, setTestValue] = useState("")
-  const [unit, setUnit] = useState("")
-  const [referenceRange, setReferenceRange] = useState("")
-  const [medicationSlot, setMedicationSlot] = useState("")
+  const [medicalDate, setMedicalDate] = useState("");
+  const [medicalType, setMedicalType] = useState("");
+  const [diagnosis, setDiagnosis] = useState("");
+  const [arvRegimen, setArvRegimen] = useState("");
+  const [hivLoad, setHivLoad] = useState("");
+  const [medicationTime, setMedicationTime] = useState("");
+  const [medicationTimes, setMedicationTimes] = useState<string[]>([]);
+  const [symptoms, setSymptoms] = useState("");
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+  const [bmi, setBmi] = useState("");
+  const [bloodPressure, setBloodPressure] = useState("");
+  const [pulse, setPulse] = useState("");
+  const [temperature, setTemperature] = useState("");
+  const [sampleType, setSampleType] = useState("");
+  const [testMethod, setTestMethod] = useState("");
+  const [resultType, setResultType] = useState<"positive-negative" | "quantitative" | "other" | "">("");
+  const [testResult, setTestResult] = useState("");
+  const [testValue, setTestValue] = useState("");
+  const [unit, setUnit] = useState("");
+  const [referenceRange, setReferenceRange] = useState("");
+  const [medicationSlot, setMedicationSlot] = useState("");
+  const [regimenCode, setRegimenCode] = useState("");
+  const [treatmentLine, setTreatmentLine] = useState<"First-line" | "Second-line" | "Third-line" | "">("");
+  const [recommendedFor, setRecommendedFor] = useState("");
+  const [drugs, setDrugs] = useState<string[]>([]);
+  const [dosages, setDosages] = useState<string[]>([]);
+  const [frequencies, setFrequencies] = useState<string[]>([]);
+  const [contraindications, setContraindications] = useState<string[]>([]);
+  const [sideEffects, setSideEffects] = useState<string[]>([]);
+  const [medicalRecordSent, setMedicalRecordSent] = useState<{ [bookingId: string]: boolean }>({});
+  const [selectedStatusForSubmit, setSelectedStatusForSubmit] = useState<"re-examination" | "completed" | null>(null);
 
-  // State for ARVRegimen fields
-  const [regimenCode, setRegimenCode] = useState("")
-  const [treatmentLine, setTreatmentLine] = useState<"First-line" | "Second-line" | "Third-line" | "">("")
-  const [recommendedFor, setRecommendedFor] = useState("")
-  const [drugs, setDrugs] = useState<string[]>([])
-  const [dosages, setDosages] = useState<string[]>([])
-  const [frequencies, setFrequencies] = useState<string[]>([])
-  const [contraindications, setContraindications] = useState<string[]>([])
-  const [sideEffects, setSideEffects] = useState<string[]>([])
-  const [medicalRecordSent, setMedicalRecordSent] = useState<{ [bookingId: string]: boolean }>({})
-  const [selectedStatusForSubmit, setSelectedStatusForSubmit] = useState<"re-examination" | "completed" | null>(null)
-
-  const hasResult = selectedBooking && results.some((r) => r.bookingId && r.bookingId._id === selectedBooking._id)
-  const bookingDates = useMemo(() => bookings.map((b) => parseBookingDateLocal(b.bookingDate)), [bookings])
+  const hasResult = selectedBooking && results.some((r) => r.bookingId && r.bookingId._id === selectedBooking._id);
+  const bookingDates = useMemo(() => bookings.map((b) => parseBookingDateLocal(b.bookingDate)), [bookings]);
 
   // Map medication slots to time input labels
   const slotToTimeCount: { [key: string]: string[] } = {
@@ -174,64 +203,64 @@ const AppointmentManagement: React.FC = () => {
     "Trưa và Tối": ["Trưa", "Tối"],
     "Sáng và Tối": ["Sáng", "Tối"],
     "Sáng, Trưa và Tối": ["Sáng", "Trưa", "Tối"],
-  }
+  };
 
   // Update medicationTimes when medicationSlot changes
   useEffect(() => {
-    const timeSlots = slotToTimeCount[medicationSlot] || []
+    const timeSlots = slotToTimeCount[medicationSlot] || [];
     setMedicationTimes((prev) => {
-      const newTimes = timeSlots.map((_, i) => prev[i] || "")
-      return newTimes
-    })
-  }, [medicationSlot])
+      const newTimes = timeSlots.map((_, i) => prev[i] || "");
+      return newTimes;
+    });
+  }, [medicationSlot]);
 
   // Calculate BMI when weight or height changes
   useEffect(() => {
     if (weight && height) {
-      const weightNum = Number.parseFloat(weight)
-      const heightNum = Number.parseFloat(height) / 100 // Convert cm to meters
+      const weightNum = Number.parseFloat(weight);
+      const heightNum = Number.parseFloat(height) / 100;
       if (weightNum > 0 && heightNum > 0) {
-        const calculatedBmi = (weightNum / (heightNum * heightNum)).toFixed(2)
-        setBmi(calculatedBmi)
+        const calculatedBmi = (weightNum / (heightNum * heightNum)).toFixed(2);
+        setBmi(calculatedBmi);
       } else {
-        setBmi("")
+        setBmi("");
       }
     } else {
-      setBmi("")
+      setBmi("");
     }
-  }, [weight, height])
+  }, [weight, height]);
 
   // Populate ARV fields when a regimen is selected
   useEffect(() => {
     if (arvRegimen) {
-      const selectedRegimen = regimens.find((r) => r.arvName === arvRegimen)
+      const selectedRegimen = regimens.find((r) => r.arvName === arvRegimen);
       if (selectedRegimen) {
-        setRegimenCode(selectedRegimen.regimenCode || "")
-        setTreatmentLine(selectedRegimen.treatmentLine || "")
-        setRecommendedFor(selectedRegimen.recommendedFor || "")
-        setDrugs(selectedRegimen.drugs || [])
-        setDosages(selectedRegimen.dosages || [])
-        setFrequencies(selectedRegimen.frequency ? selectedRegimen.frequency.split(";") : [])
-        setContraindications(selectedRegimen.contraindications || [])
-        setSideEffects(selectedRegimen.sideEffects || [])
+        setRegimenCode(selectedRegimen.regimenCode || "");
+        setTreatmentLine(selectedRegimen.treatmentLine || "");
+        setRecommendedFor(selectedRegimen.recommendedFor || "");
+        setDrugs(selectedRegimen.drugs || []);
+        setDosages(selectedRegimen.dosages || []);
+        setFrequencies(selectedRegimen.frequency ? selectedRegimen.frequency.split(";") : []);
+        setContraindications(selectedRegimen.contraindications || []);
+        setSideEffects(selectedRegimen.sideEffects || []);
       }
     } else {
-      setRegimenCode("")
-      setTreatmentLine("")
-      setRecommendedFor("")
-      setDrugs([])
-      setDosages([])
-      setFrequencies([])
-      setContraindications([])
-      setSideEffects([])
+      setRegimenCode("");
+      setTreatmentLine("");
+      setRecommendedFor("");
+      setDrugs([]);
+      setDosages([]);
+      setFrequencies([]);
+      setContraindications([]);
+      setSideEffects([]);
     }
-  }, [arvRegimen, regimens])
+  }, [arvRegimen, regimens]);
 
   const anonymizeName = useCallback((name: string): string => {
-    if (!name) return "Không xác định"
-    const words = name.trim().split(" ")
+    if (!name) return "Không xác định";
+    const words = name.trim().split(" ");
     if (words.length === 1) {
-      return words[0].charAt(0) + "*".repeat(words[0].length - 1)
+      return words[0].charAt(0) + "*".repeat(words[0].length - 1);
     }
     return (
       words[0].charAt(0) +
@@ -239,64 +268,65 @@ const AppointmentManagement: React.FC = () => {
       " " +
       words[words.length - 1].charAt(0) +
       "*".repeat(words[words.length - 1].length - 1)
-    )
-  }, [])
+    );
+  }, []);
 
   const getPatientDisplayInfo = useCallback(
     (booking: Booking) => {
-      const isAnonymous = booking.isAnonymous
+      const isAnonymous = booking.isAnonymous;
       if (isAnonymous) {
         return {
           name: anonymizeName(booking.customerName || ""),
           phone: "***-***-****",
           email: "***@***.***",
           doctorName: booking.doctorName || "",
-        }
+        };
       }
       return {
         name: booking.customerName || "Không xác định",
         phone: booking.customerPhone || "Không có",
         email: booking.customerEmail || "Không có",
         doctorName: booking.doctorName || "Chưa phân công",
-      }
+      };
     },
     [anonymizeName],
-  )
+  );
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true)
-        setError(null)
-        const data = await getAll()
-        // Lọc booking theo doctorName của user hiện tại
+        setLoading(true);
+        setError(null);
+        const data = await getAll();
         if (user && user.role === "doctor" && user.userName) {
-          const filteredBookings = data.filter((booking: Booking) => booking.doctorName === user.userName)
-          setBookings(filteredBookings)
+          const filteredBookings = data.filter((booking: Booking) => booking.doctorName === user.userName);
+          setBookings(filteredBookings);
         } else {
-          setBookings(data) // Nếu không phải doctor, hiển thị tất cả
+          setBookings(data);
         }
       } catch (err: any) {
-        setError(err.message || "Không thể tải dữ liệu")
-        toast.error(err.message || "Không thể tải dữ liệu")
+        setError(err.message || "Không thể tải dữ liệu");
+        toast.error(err.message || "Không thể tải dữ liệu");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchData()
-  }, [getAll, user]) // Thêm user vào dependency để re-fetch khi user thay đổi
+    };
+    fetchData();
+  }, [getAll, user]);
 
   const handleStatusChange = useCallback(
     async (id: string, newStatus: Booking["status"]) => {
       try {
-        await update(id, { status: newStatus })
-        setBookings((prev) => prev.map((b) => (b._id === id ? { ...b, status: newStatus } : b)))
+        await update(id, { status: newStatus });
+        setBookings((prev) =>
+          prev.map((b) => (b._id === id ? { ...b, status: newStatus } : b))
+        );
       } catch (err: any) {
-        toast.error(err.message || "Cập nhật thất bại")
+        toast.error(err.message || "Cập nhật thất bại");
       }
     },
     [update],
-  )
+  );
 
   const filteredBookings = useMemo(
     () =>
@@ -305,87 +335,102 @@ const AppointmentManagement: React.FC = () => {
           booking.customerName?.toLowerCase().includes(search.toLowerCase()) ||
           booking.customerPhone?.includes(search) ||
           booking.customerEmail?.toLowerCase().includes(search.toLowerCase()) ||
-          booking.bookingCode?.toLowerCase().includes(search.toLowerCase())
-        const matchDate = !selectedDate || isSameDayLocal(parseBookingDateLocal(booking.bookingDate), selectedDate)
-        const matchStatus = selectedStatus === "all" || booking.status === selectedStatus
-        return matchSearch && matchDate && matchStatus
+          booking.bookingCode?.toLowerCase().includes(search.toLowerCase());
+        const matchDate =
+          !selectedDate || isSameDayLocal(parseBookingDateLocal(booking.bookingDate), selectedDate);
+        const matchStatus = selectedStatus === "all" || booking.status === selectedStatus;
+        return matchSearch && matchDate && matchStatus;
       }),
-    [bookings, search, selectedDate, selectedStatus],
-  )
+    [bookings, search, selectedDate, selectedStatus]
+  );
 
   const sortedBookings = useMemo(
-    () => [...filteredBookings].sort((a, b) => new Date(a.bookingDate).getTime() - new Date(b.bookingDate).getTime()),
-    [filteredBookings],
-  )
+    () =>
+      [...filteredBookings].sort(
+        (a, b) => new Date(a.bookingDate).getTime() - new Date(b.bookingDate).getTime()
+      ),
+    [filteredBookings]
+  );
 
   const handleCloseMedicalModal = useCallback(() => {
-    setOpenMedicalModal(false)
-    setDiagnosis("")
-    setArvRegimen("")
-    setHivLoad("")
-    setMedicationTime("")
-    setMedicationTimes([])
-    setReExaminationDate("")
-    setSelectedStatusForSubmit(null)
-    setSymptoms("")
-    setWeight("")
-    setHeight("")
-    setBmi("")
-    setBloodPressure("")
-    setPulse("")
-    setTemperature("")
-    setSampleType("")
-    setTestMethod("")
-    setResultType("")
-    setTestResult("")
-    setTestValue("")
-    setUnit("")
-    setReferenceRange("")
-    setMedicationSlot("")
-    setRegimenCode("")
-    setTreatmentLine("")
-    setRecommendedFor("")
-    setDrugs([])
-    setDosages([])
-    setFrequencies([])
-    setContraindications([])
-    setSideEffects([])
-  }, [])
-
-  // Handle array inputs (comma-separated strings)
-  const handleArrayInput = useCallback((value: string, setter: React.Dispatch<React.SetStateAction<string[]>>) => {
-    const array = value
-      .split(",")
-      .map((item) => item.trim())
-      .filter((item) => item)
-    setter(array)
-  }, [])
+    setOpenMedicalModal(false);
+    setDiagnosis("");
+    setArvRegimen("");
+    setHivLoad("");
+    setMedicationTime("");
+    setMedicationTimes([]);
+    setReExaminationDate("");
+    setSelectedStatusForSubmit(null);
+    setSymptoms("");
+    setWeight("");
+    setHeight("");
+    setBmi("");
+    setBloodPressure("");
+    setPulse("");
+    setTemperature("");
+    setSampleType("");
+    setTestMethod("");
+    setResultType("");
+    setTestResult("");
+    setTestValue("");
+    setUnit("");
+    setReferenceRange("");
+    setMedicationSlot("");
+    setRegimenCode("");
+    setTreatmentLine("");
+    setRecommendedFor("");
+    setDrugs([]);
+    setDosages([]);
+    setFrequencies([]);
+    setContraindications([]);
+    setSideEffects([]);
+  }, []);
 
   // Map frequency display text to numeric values for storage
   const mapFrequencyToNumeric = useCallback((freq: string): string => {
     switch (freq) {
       case "Một lần/ngày":
-        return "1"
+        return "1";
       case "Hai lần/ngày":
-        return "2"
+        return "2";
       case "Ba lần/ngày":
-        return "3"
+        return "3";
       case "Khác":
-        return "0"
+        return "0";
       default:
-        return freq || "0"
+        return freq || "0";
     }
-  }, [])
+  }, []);
 
-  const handleCalendarChange = useCallback((value: Date | null, _event: React.MouseEvent<HTMLButtonElement>) => {
-    if (value instanceof Date) {
-      setCalendarDate(value)
-      setSelectedDate(value)
-    } else if (value === null) {
-      setCalendarDate(null)
-      setSelectedDate(null)
+  // Tự định nghĩa kiểu Value nếu chưa có
+  type ValuePiece = Date | null;
+  type Value = ValuePiece | [ValuePiece, ValuePiece];
+  const handleCalendarChange = useCallback(
+    (value: Value, event: React.MouseEvent<HTMLButtonElement>) => {
+      if (value instanceof Date) {
+        setCalendarDate(value);
+        setSelectedDate(value);
+      } else if (Array.isArray(value)) {
+        const [start] = value;
+        if (start instanceof Date) {
+          setCalendarDate(start);
+          setSelectedDate(start);
+        }
+      } else {
+        setCalendarDate(null);
+        setSelectedDate(null);
+      }
+    },
+    []
+  );
+
+  // Determine if ARV section should be shown
+  const showArvSection = useMemo(() => {
+    if (!selectedBooking || !selectedBooking.serviceId || typeof selectedBooking.serviceId !== "object") {
+      return false;
     }
-  }, [])
+    return selectedBooking.serviceId.isArvTest && !selectedBooking.serviceId.isLabTest;
+  }, [selectedBooking]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
@@ -426,18 +471,21 @@ const AppointmentManagement: React.FC = () => {
                     type="date"
                     value={
                       selectedDate
-                        ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
+                        ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(
+                            2,
+                            "0"
+                          )}-${String(selectedDate.getDate()).padStart(2, "0")}`
                         : ""
                     }
                     onChange={(e) => {
                       if (!e.target.value) {
-                        setSelectedDate(null)
-                        setCalendarDate(null)
+                        setSelectedDate(null);
+                        setCalendarDate(null);
                       } else {
-                        const [year, month, day] = e.target.value.split("-").map(Number)
-                        const date = new Date(year, month - 1, day)
-                        setSelectedDate(date)
-                        setCalendarDate(date)
+                        const [year, month, day] = e.target.value.split("-").map(Number);
+                        const date = new Date(year, month - 1, day);
+                        setSelectedDate(date);
+                        setCalendarDate(date);
                       }
                     }}
                     className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
@@ -505,12 +553,13 @@ const AppointmentManagement: React.FC = () => {
                   </div>
                 ) : (
                   sortedBookings.map((booking) => {
-                    const patientInfo = getPatientDisplayInfo(booking)
+                    const patientInfo = getPatientDisplayInfo(booking);
                     const serviceName =
-                      typeof booking.serviceId === "object" ? booking.serviceId.serviceName : "Không xác định"
+                      typeof booking.serviceId === "object" ? booking.serviceId.serviceName : "Không xác định";
+                    const isOnlineConsultation = serviceName === "Tư vấn trực tuyến";
                     const serviceDescription =
-                      typeof booking.serviceId === "object" ? booking.serviceId.serviceDescription : "Không có mô tả"
-                    const servicePrice = typeof booking.serviceId === "object" ? booking.serviceId.price : undefined
+                      typeof booking.serviceId === "object" ? booking.serviceId.serviceDescription : "Không có mô tả";
+                    const servicePrice = typeof booking.serviceId === "object" ? booking.serviceId.price : undefined;
 
                     return (
                       <div
@@ -564,14 +613,27 @@ const AppointmentManagement: React.FC = () => {
                             <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
                               <h4 className="font-semibold text-gray-800 mb-2">Dịch vụ: {serviceName}</h4>
                               <p className="text-sm text-gray-600 line-clamp-2">{serviceDescription}</p>
+                              {isOnlineConsultation && booking.meetLink && (
+                                <div className="mt-3">
+                                  <label className="block text-sm font-medium text-gray-600 mb-1">Link Google Meet:</label>
+                                  <a
+                                    href={booking.meetLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:underline text-sm break-all"
+                                  >
+                                    {booking.meetLink}
+                                  </a>
+                                </div>
+                              )}
                               <div className="flex justify-between items-center mt-3">
                                 <span className="text-sm font-medium text-gray-600">Giá:</span>
                                 <span className="text-lg font-bold text-teal-600">
                                   {servicePrice
                                     ? Number(servicePrice).toLocaleString("vi-VN", {
-                                      style: "currency",
-                                      currency: "VND",
-                                    })
+                                        style: "currency",
+                                        currency: "VND",
+                                      })
                                     : "Miễn phí"}
                                 </span>
                               </div>
@@ -584,12 +646,18 @@ const AppointmentManagement: React.FC = () => {
                               status={booking.status || "unknown"}
                               bookingId={booking._id}
                               onStatusChange={handleStatusChange}
+                              isOnlineConsultation={isOnlineConsultation}
+                              userRole={user?.role}
+                              serviceName={serviceName}
                             />
                             <div className="flex items-center gap-2 text-sm text-gray-700">
                               <CreditCard className="w-4 h-4 text-teal-600" />
                               <span>
                                 Thanh toán:{" "}
-                                {booking.status === "checked-out" || booking.status === "re-examination" || booking.status === "checked-in" || booking.status === "completed" ? (
+                                {booking.status === "checked-out" ||
+                                booking.status === "re-examination" ||
+                                booking.status === "checked-in" ||
+                                booking.status === "completed" ? (
                                   <span className="font-semibold text-green-700">Đã thanh toán</span>
                                 ) : (
                                   <span className="font-semibold text-red-700">Chưa thanh toán</span>
@@ -598,22 +666,28 @@ const AppointmentManagement: React.FC = () => {
                             </div>
                             <button
                               onClick={() => {
-                                setSelectedBooking(booking)
-                                setMedicalDate(new Date(booking.bookingDate).toISOString().slice(0, 10))
-                                setMedicalType(booking.serviceId?.serviceName || "")
-                                setOpenMedicalModal(true)
+                                if (isOnlineConsultation) {
+                                  toast.error("Không thể tạo hồ sơ cho dịch vụ Tư vấn trực tuyến!");
+                                  return;
+                                }
+                                setSelectedBooking(booking);
+                                setMedicalDate(new Date(booking.bookingDate).toISOString().slice(0, 10));
+                                setMedicalType(booking.serviceId?.serviceName || "");
+                                setOpenMedicalModal(true);
                               }}
                               title={
-                                booking.status === "pending"
+                                isOnlineConsultation
+                                  ? "Không thể tạo hồ sơ cho dịch vụ Tư vấn trực tuyến"
+                                  : booking.status === "pending"
                                   ? "Không thể tạo hồ sơ khi trạng thái là Chờ xác nhận"
                                   : "Tạo hồ sơ bệnh án"
                               }
                               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md
-                                ${booking.status === "pending"
+                                ${isOnlineConsultation || booking.status === "pending"
                                   ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                                   : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
                                 }`}
-                              disabled={booking.status === "pending"}
+                              disabled={isOnlineConsultation || booking.status === "pending"}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -622,14 +696,19 @@ const AppointmentManagement: React.FC = () => {
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
                               >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 4v16m8-8H4"
+                                />
                               </svg>
                               Tạo hồ sơ
                             </button>
                           </div>
                         </div>
                       </div>
-                    )
+                    );
                   })
                 )}
               </div>
@@ -641,35 +720,29 @@ const AppointmentManagement: React.FC = () => {
             <div className="bg-white rounded-2xl shadow border p-6">
               <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Lịch hẹn theo ngày</h3>
               <CalendarComponent
-                onChange={(value) => {
-                  if (value instanceof Date) {
-                    setCalendarDate(value)
-                    setSelectedDate(value)
-                  } else if (value === null) {
-                    setCalendarDate(null)
-                    setSelectedDate(null)
-                  }
-                }}
+                onChange={handleCalendarChange}
                 value={calendarDate}
+                selectRange={false} // Đảm bảo không dùng selectRange
+                locale="vi-VN"
+                className="react-calendar-custom"
                 tileContent={({ date, view }) => {
                   if (view === "month" && bookingDates.some((d) => isSameDayLocal(d, date))) {
                     return (
                       <div className="flex justify-center">
                         <span className="block w-2 h-2 bg-teal-600 rounded-full mt-1"></span>
                       </div>
-                    )
+                    );
                   }
-                  return null
+                  return null;
                 }}
-                locale="vi-VN"
-                className="react-calendar-custom" // Custom class for styling
               />
             </div>
           </div>
         </div>
       </div>
+
       {/* Modal tạo hồ sơ bệnh án */}
-      {openMedicalModal && selectedBooking && (
+      {openMedicalModal && selectedBooking && !selectedBooking.serviceId?.serviceName?.includes("Tư vấn trực tuyến") && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
           <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-6 text-gray-900 text-center">Tạo hồ sơ bệnh án</h2>
@@ -684,79 +757,86 @@ const AppointmentManagement: React.FC = () => {
 
             <form
               onSubmit={async (e) => {
-                e.preventDefault()
-                const bookingId = selectedBooking?._id
+                e.preventDefault();
+                const bookingId = selectedBooking?._id;
                 if (!bookingId) {
-                  toast.error("Thiếu thông tin booking!")
-                  return
+                  toast.error("Thiếu thông tin booking!");
+                  return;
                 }
                 if (hasResult) {
-                  toast.error("Booking này đã có kết quả, không thể gửi thêm!")
-                  return
+                  toast.error("Booking này đã có kết quả, không thể gửi thêm!");
+                  return;
                 }
                 if (medicalRecordSent[bookingId]) {
-                  toast.error("Hồ sơ bệnh án đã được gửi!")
-                  return
+                  toast.error("Hồ sơ bệnh án đã được gửi!");
+                  return;
                 }
                 if (!selectedStatusForSubmit) {
-                  toast.error("Vui lòng chọn trạng thái gửi!")
-                  return
+                  toast.error("Vui lòng chọn trạng thái gửi!");
+                  return;
                 }
                 if (!diagnosis) {
-                  toast.error("Vui lòng nhập chẩn đoán!")
-                  return
+                  toast.error("Vui lòng nhập chẩn đoán!");
+                  return;
                 }
-                if (!arvRegimen) {
-                  toast.error("Vui lòng chọn phác đồ ARV!")
-                  return
-                }
-                if (!medicationSlot) {
-                  toast.error("Vui lòng chọn khe thời gian uống thuốc!")
-                  return
-                }
-                if (
-                  medicationTimes.length !== slotToTimeCount[medicationSlot]?.length ||
-                  medicationTimes.some((t) => !t)
-                ) {
-                  toast.error("Vui lòng nhập đầy đủ thời gian uống thuốc cho các khe đã chọn!")
-                  return
-                }
-                if (!reExaminationDate) {
-                  toast.error("Vui lòng nhập ngày tái khám!")
-                  return
-                }
-                try {
-                  const selectedRegimen = regimens.find((r) => r.arvName === arvRegimen)
-                  if (!selectedRegimen) {
-                    toast.error("Phác đồ ARV không hợp lệ!")
-                    return
+                let arvregimenId: string = "default"; // Fallback value to satisfy required field
+                if (showArvSection) {
+                  if (!arvRegimen) {
+                    toast.error("Vui lòng chọn phác đồ ARV!");
+                    return;
                   }
-                  let userName = "Unknown"
+                  if (!medicationSlot) {
+                    toast.error("Vui lòng chọn khe thời gian uống thuốc!");
+                    return;
+                  }
+                  if (
+                    medicationTimes.length !== slotToTimeCount[medicationSlot]?.length ||
+                    medicationTimes.some((t) => !t)
+                  ) {
+                    toast.error("Vui lòng nhập đầy đủ thời gian uống thuốc cho các khe đã chọn!");
+                    return;
+                  }
+                  if (!reExaminationDate) {
+                    toast.error("Vui lòng nhập ngày tái khám!");
+                    return;
+                  }
+                  const selectedRegimen = regimens.find((r) => r.arvName === arvRegimen);
+                  if (!selectedRegimen) {
+                    toast.error("Phác đồ ARV không hợp lệ!");
+                    return;
+                  }
+                  let userName = "Unknown";
                   if (selectedBooking.userId) {
                     try {
-                      const fetchedUser = await getUserById(selectedBooking.userId._id)
-                      userName = fetchedUser?.userName || "Unknown"
+                      const fetchedUser = await getUserById(selectedBooking.userId._id);
+                      userName = fetchedUser?.userName || "Unknown";
                     } catch (err: any) {
-                      console.error("Failed to fetch user:", err)
-                      toast.warn("Không thể lấy thông tin người dùng, sử dụng tên mặc định.")
+                      console.error("Failed to fetch user:", err);
+                      toast.warn("Không thể lấy thông tin người dùng, sử dụng tên mặc định.");
                     }
                   } else {
-                    console.warn("No userId in booking")
-                    toast.warn("Booking không có userId, sử dụng tên mặc định.")
+                    console.warn("No userId in booking");
+                    toast.warn("Booking không có userId, sử dụng tên mặc định.");
                   }
-                  // Check if frequency or dosages are customized
                   const isCustomFrequency =
-                    frequencies.length > 0 && frequencies.join(";") !== selectedRegimen.frequency
+                    frequencies.length > 0 && frequencies.join(";") !== selectedRegimen.frequency;
                   const isCustomDosages =
-                    dosages.length > 0 && JSON.stringify(dosages) !== JSON.stringify(selectedRegimen.dosages)
+                    dosages.length > 0 &&
+                    JSON.stringify(dosages) !== JSON.stringify(selectedRegimen.dosages);
                   const isCustomContraindications =
                     contraindications.length > 0 &&
-                    JSON.stringify(contraindications) !== JSON.stringify(selectedRegimen.contraindications)
+                    JSON.stringify(contraindications) !== JSON.stringify(
+                      selectedRegimen.contraindications
+                    );
                   const isCustomSideEffects =
                     sideEffects.length > 0 &&
-                    JSON.stringify(sideEffects) !== JSON.stringify(selectedRegimen.sideEffects)
-                  let arvregimenId: string = selectedRegimen._id! // Type assertion to ensure _id is string
-                  if (isCustomFrequency || isCustomDosages || isCustomContraindications || isCustomSideEffects) {
+                    JSON.stringify(sideEffects) !== JSON.stringify(selectedRegimen.sideEffects);
+                  if (
+                    isCustomFrequency ||
+                    isCustomDosages ||
+                    isCustomContraindications ||
+                    isCustomSideEffects
+                  ) {
                     const newRegimen = await createArv({
                       arvName: `${selectedRegimen.arvName} (${userName})`,
                       arvDescription: selectedRegimen.arvDescription,
@@ -772,22 +852,26 @@ const AppointmentManagement: React.FC = () => {
                         ? contraindications
                         : selectedRegimen.contraindications,
                       sideEffects: isCustomSideEffects ? sideEffects : selectedRegimen.sideEffects,
-                      userId: selectedBooking.userId || undefined, // Include userId if available
-                    })
+                      userId: selectedBooking.userId || undefined,
+                    });
                     if (!newRegimen) {
-                      toast.error("Không thể tạo phác đồ ARV mới!")
-                      return
+                      toast.error("Không thể tạo phác đồ ARV mới!");
+                      return;
                     }
-                    arvregimenId = newRegimen._id ?? ""
+                    arvregimenId = newRegimen._id ?? "default";
+                  } else {
+                    arvregimenId = selectedRegimen._id!;
                   }
+                }
+                try {
                   await addResult({
                     resultName: diagnosis,
-                    resultDescription: hivLoad || undefined,
+                    resultDescription: showArvSection ? hivLoad || undefined : undefined,
                     bookingId,
-                    arvregimenId,
-                    reExaminationDate,
-                    medicationTime: medicationTimes.join(";"),
-                    medicationSlot: medicationSlot || undefined,
+                    arvregimenId, // Always a string now
+                    reExaminationDate: showArvSection ? reExaminationDate : "", // Provide empty string if not ARV
+                    medicationTime: showArvSection ? medicationTimes.join(";") : undefined,
+                    medicationSlot: showArvSection ? medicationSlot || undefined : undefined,
                     symptoms: symptoms || undefined,
                     weight: weight ? Number.parseFloat(weight) : undefined,
                     height: height ? Number.parseFloat(height) : undefined,
@@ -802,14 +886,14 @@ const AppointmentManagement: React.FC = () => {
                     testValue: testValue ? Number.parseFloat(testValue) : undefined,
                     unit: unit || undefined,
                     referenceRange: referenceRange || undefined,
-                  })
-                  setMedicalRecordSent((prev) => ({ ...prev, [bookingId]: true }))
-                  await handleStatusChange(bookingId, selectedStatusForSubmit)
-                  toast.success("Đã tạo hồ sơ bệnh án!")
-                  handleCloseMedicalModal()
+                  });
+                  setMedicalRecordSent((prev) => ({ ...prev, [bookingId]: true }));
+                  await handleStatusChange(bookingId, selectedStatusForSubmit!);
+                  toast.success("Đã tạo hồ sơ bệnh án!");
+                  handleCloseMedicalModal();
                 } catch (err: any) {
-                  console.error("Form submission error:", err)
-                  toast.error(err.message || "Lưu hồ sơ thất bại!")
+                  console.error("Form submission error:", err);
+                  toast.error(err.message || "Lưu hồ sơ thất bại!");
                 }
               }}
             >
@@ -1020,225 +1104,231 @@ const AppointmentManagement: React.FC = () => {
                   </div>
                 </div>
 
-                {/* ARV Treatment */}
-                <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                  <h3 className="text-lg font-semibold text-gray-700 mb-4">Điều trị ARV</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Phác đồ ARV <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                        value={arvRegimen}
-                        onChange={(e) => setArvRegimen(e.target.value)}
-                        required
-                      >
-                        <option value="">-- Chọn phác đồ ARV --</option>
-                        {regimens.map((regimen) => (
-                          <option key={regimen._id} value={regimen.arvName}>
-                            {regimen.arvName}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Mã phác đồ</label>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
-                        value={regimenCode}
-                        readOnly
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Tuyến điều trị</label>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
-                        value={treatmentLine}
-                        readOnly
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Đối tượng khuyến cáo</label>
-                      <input
-                        type="text"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
-                        value={recommendedFor}
-                        readOnly
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Khe thời gian uống thuốc <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                        value={medicationSlot}
-                        onChange={(e) => setMedicationSlot(e.target.value)}
-                        required
-                      >
-                        <option value="">-- Chọn khe thời gian --</option>
-                        <option value="Sáng">Sáng</option>
-                        <option value="Trưa">Trưa</option>
-                        <option value="Tối">Tối</option>
-                        <option value="Sáng và Trưa">Sáng và Trưa</option>
-                        <option value="Trưa và Tối">Trưa và Tối</option>
-                        <option value="Sáng và Tối">Sáng và Tối</option>
-                        <option value="Sáng, Trưa và Tối">Sáng, Trưa và Tối</option>
-                      </select>
-                    </div>
-                    {medicationSlot && slotToTimeCount[medicationSlot]?.length > 0 && (
+                {/* ARV Treatment - Conditionally Rendered */}
+                {showArvSection && (
+                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                    <h3 className="text-lg font-semibold text-gray-700 mb-4">Điều trị ARV</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Thời gian uống thuốc <span className="text-red-500">*</span>
+                          Phác đồ ARV <span className="text-red-500">*</span>
                         </label>
-                        {slotToTimeCount[medicationSlot].map((slot, index) => (
-                          <div key={index} className="mb-2">
-                            <label className="block text-xs font-medium text-gray-600 mb-1">Thời gian {slot}</label>
-                            <input
-                              type="time"
-                              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                              value={medicationTimes[index] || ""}
-                              onChange={(e) => {
-                                const updatedTimes = [...medicationTimes];
-                                while (updatedTimes.length <= index) updatedTimes.push("");
-                                updatedTimes[index] = e.target.value;
-                                setMedicationTimes(updatedTimes);
-                              }}
-                              required
-                            />
-                          </div>
-                        ))}
+                        <select
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                          value={arvRegimen}
+                          onChange={(e) => setArvRegimen(e.target.value)}
+                          required
+                        >
+                          <option value="">-- Chọn phác đồ ARV --</option>
+                          {regimens.map((regimen) => (
+                            <option key={regimen._id} value={regimen.arvName}>
+                              {regimen.arvName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Mã phác đồ</label>
+                        <input
+                          type="text"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
+                          value={regimenCode}
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Tuyến điều trị</label>
+                        <input
+                          type="text"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
+                          value={treatmentLine}
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Đối tượng khuyến cáo
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
+                          value={recommendedFor}
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Khe thời gian uống thuốc <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                          value={medicationSlot}
+                          onChange={(e) => setMedicationSlot(e.target.value)}
+                          required
+                        >
+                          <option value="">-- Chọn khe thời gian --</option>
+                          <option value="Sáng">Sáng</option>
+                          <option value="Trưa">Trưa</option>
+                          <option value="Tối">Tối</option>
+                          <option value="Sáng và Trưa">Sáng và Trưa</option>
+                          <option value="Trưa và Tối">Trưa và Tối</option>
+                          <option value="Sáng và Tối">Sáng và Tối</option>
+                          <option value="Sáng, Trưa và Tối">Sáng, Trưa và Tối</option>
+                        </select>
+                      </div>
+                      {medicationSlot && slotToTimeCount[medicationSlot]?.length > 0 && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Thời gian uống thuốc <span className="text-red-500">*</span>
+                          </label>
+                          {slotToTimeCount[medicationSlot].map((slot, index) => (
+                            <div key={index} className="mb-2">
+                              <label className="block text-xs font-medium text-gray-600 mb-1">
+                                Thời gian {slot}
+                              </label>
+                              <input
+                                type="time"
+                                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                value={medicationTimes[index] || ""}
+                                onChange={(e) => {
+                                  const updatedTimes = [...medicationTimes];
+                                  while (updatedTimes.length <= index) updatedTimes.push("");
+                                  updatedTimes[index] = e.target.value;
+                                  setMedicationTimes(updatedTimes);
+                                }}
+                                required
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Ngày tái khám <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                          value={reExaminationDate}
+                          onChange={(e) => setReExaminationDate(e.target.value)}
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {(drugs.length > 0 || contraindications.length > 0 || sideEffects.length > 0) && (
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Thông tin thuốc (có thể chỉnh sửa)
+                        </label>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden">
+                            <thead className="bg-gray-100">
+                              <tr>
+                                <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
+                                  Thuốc
+                                </th>
+                                <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
+                                  Liều
+                                </th>
+                                <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
+                                  Tần suất
+                                </th>
+                                <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
+                                  Chống chỉ định
+                                </th>
+                                <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
+                                  Tác dụng phụ
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {drugs.map((drug, i) => (
+                                <tr key={i} className="bg-white hover:bg-gray-50">
+                                  <td className="border border-gray-200 px-3 py-2">
+                                    <input
+                                      type="text"
+                                      className="w-full border border-gray-200 rounded-md px-2 py-1 bg-gray-100 text-sm"
+                                      value={drug}
+                                      readOnly
+                                    />
+                                  </td>
+                                  <td className="border border-gray-200 px-3 py-2">
+                                    <input
+                                      type="text"
+                                      className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                                      value={dosages[i] || ""}
+                                      onChange={(e) => {
+                                        const updated = [...dosages];
+                                        updated[i] = e.target.value;
+                                        setDosages(updated);
+                                      }}
+                                      placeholder="e.g., 300mg"
+                                    />
+                                  </td>
+                                  <td className="border border-gray-200 px-3 py-2">
+                                    <select
+                                      className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                                      value={frequencies[i] || ""}
+                                      onChange={(e) => {
+                                        const updated = [...frequencies];
+                                        updated[i] = e.target.value;
+                                        setFrequencies(updated);
+                                      }}
+                                    >
+                                      <option value="">-- Chọn tần suất --</option>
+                                      <option value="Một lần/ngày">Một lần/ngày</option>
+                                      <option value="Hai lần/ngày">Hai lần/ngày</option>
+                                      <option value="Ba lần/ngày">Ba lần/ngày</option>
+                                      <option value="Khác">Khác</option>
+                                    </select>
+                                  </td>
+                                  <td className="border border-gray-200 px-3 py-2">
+                                    <input
+                                      type="text"
+                                      className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                                      value={contraindications[i] || ""}
+                                      onChange={(e) => {
+                                        const updated = [...contraindications];
+                                        updated[i] = e.target.value;
+                                        setContraindications(updated);
+                                      }}
+                                      placeholder="e.g., Dị ứng thuốc"
+                                    />
+                                  </td>
+                                  <td className="border border-gray-200 px-3 py-2">
+                                    <input
+                                      type="text"
+                                      className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                                      value={sideEffects[i] || ""}
+                                      onChange={(e) => {
+                                        const updated = [...sideEffects];
+                                        updated[i] = e.target.value;
+                                        setSideEffects(updated);
+                                      }}
+                                      placeholder="e.g., Buồn nôn"
+                                    />
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     )}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Ngày tái khám <span className="text-red-500">*</span>
-                      </label>
+
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Tải lượng HIV</label>
                       <input
-                        type="date"
+                        type="text"
                         className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                        value={reExaminationDate}
-                        onChange={(e) => setReExaminationDate(e.target.value)}
-                        required
+                        value={hivLoad}
+                        onChange={(e) => setHivLoad(e.target.value)}
+                        placeholder="e.g., < 40 copies/mL"
                       />
                     </div>
                   </div>
-
-                  {(drugs.length > 0 || contraindications.length > 0 || sideEffects.length > 0) && (
-                    <div className="mt-6">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Thông tin thuốc (có thể chỉnh sửa)
-                      </label>
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden">
-                          <thead className="bg-gray-100">
-                            <tr>
-                              <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                Thuốc
-                              </th>
-                              <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                Liều
-                              </th>
-                              <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                Tần suất
-                              </th>
-                              <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                Chống chỉ định
-                              </th>
-                              <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                Tác dụng phụ
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {drugs.map((drug, i) => (
-                              <tr key={i} className="bg-white hover:bg-gray-50">
-                                <td className="border border-gray-200 px-3 py-2">
-                                  <input
-                                    type="text"
-                                    className="w-full border border-gray-200 rounded-md px-2 py-1 bg-gray-100 text-sm"
-                                    value={drug}
-                                    readOnly
-                                  />
-                                </td>
-                                <td className="border border-gray-200 px-3 py-2">
-                                  <input
-                                    type="text"
-                                    className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                    value={dosages[i] || ""}
-                                    onChange={(e) => {
-                                      const updated = [...dosages]
-                                      updated[i] = e.target.value
-                                      setDosages(updated)
-                                    }}
-                                    placeholder="e.g., 300mg"
-                                  />
-                                </td>
-                                <td className="border border-gray-200 px-3 py-2">
-                                  <select
-                                    className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                    value={frequencies[i] || ""}
-                                    onChange={(e) => {
-                                      const updated = [...frequencies]
-                                      updated[i] = e.target.value
-                                      setFrequencies(updated)
-                                    }}
-                                  >
-                                    <option value="">-- Chọn tần suất --</option>
-                                    <option value="Một lần/ngày">Một lần/ngày</option>
-                                    <option value="Hai lần/ngày">Hai lần/ngày</option>
-                                    <option value="Ba lần/ngày">Ba lần/ngày</option>
-                                    <option value="Khác">Khác</option>
-                                  </select>
-                                </td>
-                                <td className="border border-gray-200 px-3 py-2">
-                                  <input
-                                    type="text"
-                                    className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                    value={contraindications[i] || ""}
-                                    onChange={(e) => {
-                                      const updated = [...contraindications]
-                                      updated[i] = e.target.value
-                                      setContraindications(updated)
-                                    }}
-                                    placeholder="e.g., Dị ứng thuốc"
-                                  />
-                                </td>
-                                <td className="border border-gray-200 px-3 py-2">
-                                  <input
-                                    type="text"
-                                    className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                    value={sideEffects[i] || ""}
-                                    onChange={(e) => {
-                                      const updated = [...sideEffects]
-                                      updated[i] = e.target.value
-                                      setSideEffects(updated)
-                                    }}
-                                    placeholder="e.g., Buồn nôn"
-                                  />
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Tải lượng HIV</label>
-                    <input
-                      type="text"
-                      className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                      value={hivLoad}
-                      onChange={(e) => setHivLoad(e.target.value)}
-                      placeholder="e.g., < 40 copies/mL"
-                    />
-                  </div>
-                </div>
+                )}
 
                 {/* Status Selection */}
                 <div className="mt-6 bg-gray-50 rounded-xl p-6 border border-gray-100 flex flex-col items-center">
@@ -1303,7 +1393,7 @@ const AppointmentManagement: React.FC = () => {
       )}
       <ToastContainer />
     </div>
-  )
-}
+  );
+};
 
-export default AppointmentManagement
+export default AppointmentManagement;

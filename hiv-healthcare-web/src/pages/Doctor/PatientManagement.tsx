@@ -1,57 +1,57 @@
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Search, Calendar, Clock, Users, Phone, Mail, AlertTriangle, Loader, Info } from "lucide-react"
-import { useBooking } from "../../context/BookingContext"
-import { useAuth } from "../../context/AuthContext"
-import type { Booking } from "../../types/booking"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Search, Calendar, Clock, Users, Phone, Mail, AlertTriangle, Loader, Info } from "lucide-react";
+import { useBooking } from "../../context/BookingContext";
+import { useAuth } from "../../context/AuthContext";
+import type { Booking } from "../../types/booking";
+import { getBookingStatusColor, translateBookingStatus } from "../../utils/status"; // Import cả hai hàm
 
 const PatientManagement: React.FC = () => {
-  const { getByDoctorName } = useBooking()
-  const { user } = useAuth()
-  const [bookings, setBookings] = useState<Booking[]>([])
-  const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<string | null>(null)
-  const [search, setSearch] = useState<string>("")
+  const { getByDoctorName } = useBooking();
+  const { user } = useAuth();
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState<string>("");
 
   useEffect(() => {
     const fetchBookings = async () => {
       if (!user || !user.userName) {
-        setError("Không tìm thấy thông tin bác sĩ. Vui lòng đăng nhập lại.")
-        setLoading(false)
-        return
+        setError("Không tìm thấy thông tin bác sĩ. Vui lòng đăng nhập lại.");
+        setLoading(false);
+        return;
       }
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
       try {
-        const res = await getByDoctorName(user.userName)
+        const res = await getByDoctorName(user.userName);
         // Sort bookings by bookingDate and startTime
         const sortedBookings = res.sort((a, b) => {
-          const dateA = new Date(a.bookingDate).getTime()
-          const dateB = new Date(b.bookingDate).getTime()
+          const dateA = new Date(a.bookingDate).getTime();
+          const dateB = new Date(b.bookingDate).getTime();
           if (dateA !== dateB) {
-            return dateA - dateB
+            return dateA - dateB;
           }
           // If dates are the same, sort by start time
-          const timeA = a.startTime || ""
-          const timeB = b.startTime || ""
-          return timeA.localeCompare(timeB)
-        })
-        setBookings(sortedBookings)
+          const timeA = a.startTime || "";
+          const timeB = b.startTime || "";
+          return timeA.localeCompare(timeB);
+        });
+        setBookings(sortedBookings);
       } catch (err: any) {
-        setError(`Không thể tải lịch hẹn: ${err.message || "Lỗi không xác định"}`)
-        setBookings([])
+        setBookings([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchBookings()
-  }, [user, getByDoctorName])
+    };
+    fetchBookings();
+  }, [user, getByDoctorName]);
 
   const filteredBookings = bookings.filter((booking) => {
-    const searchLower = search.toLowerCase()
-    const serviceName = (booking.serviceId as any)?.serviceName?.toLowerCase() || ""
-    const userName = (booking.userId as any)?.userName?.toLowerCase() || ""
-    const bookingCode = booking.bookingCode?.toLowerCase() || ""
+    const searchLower = search.toLowerCase();
+    const serviceName = (booking.serviceId as any)?.serviceName?.toLowerCase() || "";
+    const userName = (booking.userId as any)?.userName?.toLowerCase() || "";
+    const bookingCode = booking.bookingCode?.toLowerCase() || "";
 
     return (
       serviceName.includes(searchLower) ||
@@ -59,8 +59,8 @@ const PatientManagement: React.FC = () => {
       userName.includes(searchLower) ||
       booking.customerEmail?.toLowerCase().includes(searchLower) ||
       booking.customerPhone?.includes(searchLower)
-    )
-  })
+    );
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
@@ -200,19 +200,11 @@ const PatientManagement: React.FC = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
                           <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                              booking.status === "pending"
-                                ? "bg-amber-100 text-amber-700"
-                                : booking.status === "confirmed"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : booking.status === "completed"
-                                    ? "bg-green-100 text-green-700"
-                                    : booking.status === "cancelled"
-                                      ? "bg-red-100 text-red-700"
-                                      : "bg-gray-100 text-gray-700"
-                            }`}
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getBookingStatusColor(
+                              booking.status || "unknown"
+                            )} text-white`}
                           >
-                            {booking.status || "N/A"}
+                            {translateBookingStatus(booking.status || "unknown")}
                           </span>
                         </td>
                       </tr>
@@ -225,7 +217,7 @@ const PatientManagement: React.FC = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default PatientManagement
+export default PatientManagement;

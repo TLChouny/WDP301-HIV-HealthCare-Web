@@ -13,17 +13,17 @@ import {
   Activity,
   DollarSign,
   UserCheck,
-  Bell,
   BarChart3,
   RefreshCw,
+  Ticket
 } from "lucide-react";
 import { useBooking } from "../../context/BookingContext";
 import { useServiceContext } from "../../context/ServiceContext";
 import { useAuth } from "../../context/AuthContext";
 import { getAllPayments } from "../../api/paymentApi";
-import { getNotificationsByUserId } from "../../api/notificationApi";
-import { getAllBlogs } from "../../api/blogApi"; // Import getAllBlogs
-import { Blog } from "../../types/blog"; // Import type Blog
+import { getAllBlogs } from "../../api/blogApi";
+import { Blog } from "../../types/blog";
+import { getBookingStatusColor, translateBookingStatus } from "../../utils/status";
 
 const StaffDashboard: React.FC = () => {
   const { getAll } = useBooking();
@@ -170,51 +170,53 @@ const StaffDashboard: React.FC = () => {
 
   const recentBlogs = Array.isArray(blogs)
     ? blogs
-         .sort(
+      .sort(
         (a, b) =>
-          new Date(b.createdAt ?? "").getTime() -
-          new Date(a.createdAt ?? "").getTime()
+          new Date(b.createdAt ?? "").getTime() - new Date(a.createdAt ?? "").getTime()
       )
-        .slice(0, 5)
-        .map((blog) => ({
-          id: blog._id || Math.random(),
-          type: "blog",
-          title: blog.blogTitle || "Tin tức",
-          description: blog.blogContent || "",
-          time: blog.createdAt ? new Date(blog.createdAt).toLocaleString("vi-VN") : "",
-          icon: <ClipboardList className="w-5 h-5 text-purple-600" />, // Thay icon phù hợp
-        }))
+      .slice(0, 5)
+      .map((blog) => ({
+        id: blog._id || Math.random(),
+        type: "blog",
+        title: blog.blogTitle || "Tin tức",
+        description: blog.blogContent || "",
+        time: blog.createdAt ? new Date(blog.createdAt).toLocaleString("vi-VN") : "",
+        icon: <ClipboardList className="w-5 h-5 text-purple-600" />, // Thay icon phù hợp
+      }))
     : [];
 
   const getAppointmentStatus = (status: string) => {
+    const translatedStatus = translateBookingStatus(status);
+    const gradientColor = getBookingStatusColor(status);
+
     switch (status) {
       case "confirmed":
         return {
           icon: <CheckCircle2 className="w-4 h-4" />,
-          text: "Đã xác nhận",
-          color: "bg-green-100 text-green-800 border-green-200",
-          dotColor: "bg-green-500",
+          text: translatedStatus,
+          color: `bg-green-100 text-green-800 border-green-200`,
+          dotColor: `bg-gradient-to-r ${gradientColor}`,
         };
       case "pending":
         return {
           icon: <AlertCircle className="w-4 h-4" />,
-          text: "Chờ xác nhận",
-          color: "bg-yellow-100 text-yellow-800 border-yellow-200",
-          dotColor: "bg-yellow-500",
+          text: translatedStatus,
+          color: `bg-yellow-100 text-yellow-800 border-yellow-200`,
+          dotColor: `bg-gradient-to-r ${gradientColor}`,
         };
       case "cancelled":
         return {
           icon: <XCircle className="w-4 h-4" />,
-          text: "Đã hủy",
-          color: "bg-red-100 text-red-800 border-red-200",
-          dotColor: "bg-red-500",
+          text: translatedStatus,
+          color: `bg-red-100 text-red-800 border-red-200`,
+          dotColor: `bg-gradient-to-r ${gradientColor}`,
         };
       default:
         return {
           icon: null,
-          text: status,
-          color: "bg-gray-100 text-gray-800 border-gray-200",
-          dotColor: "bg-gray-500",
+          text: translatedStatus,
+          color: `bg-gray-100 text-gray-800 border-gray-200`,
+          dotColor: `bg-gradient-to-r ${gradientColor}`,
         };
     }
   };
@@ -419,7 +421,10 @@ const StaffDashboard: React.FC = () => {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2">
-                              <div className={`w-3 h-3 rounded-full ${status.dotColor}`}></div>
+                              <div
+                                className={`w-3 h-3 rounded-full ${status.dotColor}`}
+                                style={{ background: `linear-gradient(to right, ${status.dotColor})` }}
+                              ></div>
                               <h3 className="font-semibold text-gray-900">
                                 {booking.isAnonymous
                                   ? "Ẩn danh"
@@ -427,6 +432,10 @@ const StaffDashboard: React.FC = () => {
                               </h3>
                             </div>
                             <div className="ml-6 space-y-1">
+                              <div className="flex items-center gap-2 text-sm text-gray-600">
+                                <Ticket className="w-4 h-4 text-teal-600" />
+                                <span>Code: {booking.bookingCode || "Chưa phân công"}</span>
+                              </div>
                               <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <UserCheck className="w-4 h-4" />
                                 <span>Bác sĩ: {booking.doctorName || "Chưa phân công"}</span>
@@ -440,7 +449,7 @@ const StaffDashboard: React.FC = () => {
                             </div>
                           </div>
                           <span
-                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${status.color}`}
+                            className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${status.dotColor}`}
                           >
                             {status.icon}
                             <span className="ml-1">{status.text}</span>

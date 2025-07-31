@@ -29,16 +29,23 @@ const HomeCareSection: React.FC = () => {
             </AnimatedElement>
             <AnimatedElement animationType="fade-up" delay={500} duration={800}>
               <div className="flex flex-wrap items-center gap-4">
-                <button className="bg-teal-600 text-white py-3 px-6 rounded-lg font-medium transition-all duration-300 hover:bg-teal-700 hover:shadow-lg active:scale-95 active:bg-teal-800 flex items-center group">
-                  <Phone className="h-5 w-5 mr-2 transition-transform duration-300 group-hover:rotate-12" />
-                  <span>Gọi Ngay</span>
+                <button
+                  disabled
+                  className="bg-teal-400 text-white py-3 px-6 rounded-lg font-medium flex items-center group opacity-60 cursor-not-allowed"
+                >
+                  <Phone className="h-5 w-5 mr-2" />
+                  <span>Sắp ra mắt</span>
                 </button>
-                <button className="bg-white border border-teal-600 text-teal-600 py-3 px-6 rounded-lg font-medium transition-all duration-300 hover:bg-teal-50 hover:shadow-md active:scale-95 active:bg-teal-100 flex items-center group">
+                <button
+                  onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                  className="bg-white border border-teal-600 text-teal-600 py-3 px-6 rounded-lg font-medium transition-all duration-300 hover:bg-teal-50 hover:shadow-md active:scale-95 active:bg-teal-100 flex items-center group"
+                >
                   <Calendar className="h-5 w-5 mr-2 transition-transform duration-300 group-hover:rotate-12" />
                   <span>Đặt Lịch</span>
                 </button>
               </div>
             </AnimatedElement>
+
           </div>
         </div>
       </div>

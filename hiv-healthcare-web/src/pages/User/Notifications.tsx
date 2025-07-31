@@ -186,7 +186,7 @@ const UserNotifications: React.FC = () => {
           </div>
 
           {/* Notification Settings */}
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 h-fit">
+          {/* <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 h-fit">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
                 <Settings className="h-5 w-5 text-teal-600" />
@@ -241,7 +241,7 @@ const UserNotifications: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
