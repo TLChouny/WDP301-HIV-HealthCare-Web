@@ -7,6 +7,16 @@ import { getAllBlogs } from '../../api/blogApi';
 import { getAllCategories } from '../../api/categoryApi';
 import type { Blog } from '../../types/blog';
 import type { Category } from '../../types/category';
+import DOMPurify from 'dompurify';
+
+// Helper function để chuyển đổi HTML content thành plain text
+const stripHtmlAndTruncate = (html: string, maxLength: number) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const textContent = doc.body.textContent || '';
+    return textContent.length > maxLength 
+        ? `${textContent.slice(0, maxLength)}...` 
+        : textContent;
+};
 
 const { Search } = Input;
 const { Option } = Select;
@@ -148,7 +158,15 @@ const BlogPage: React.FC = () => {
                                     )}
                                     <div className="p-4 flex flex-col flex-grow">
                                         <h2 className="text-xl font-semibold mb-2">{post.blogTitle}</h2>
-                                        <p className="text-gray-600 text-sm mb-4 flex-grow">{post.blogContent?.slice(0, 120) || ''}{post.blogContent && post.blogContent.length > 120 ? '...' : ''}</p>
+                                        <p className="text-gray-600 text-sm mb-4 flex-grow">
+                                            {(() => {
+                                                if (!post.blogContent) return '';
+                                                const div = document.createElement('div');
+                                                div.innerHTML = post.blogContent;
+                                                const text = div.textContent || div.innerText || '';
+                                                return text.length > 120 ? text.slice(0, 120) + '...' : text;
+                                            })()}
+                                        </p>
                                         <div className="text-gray-500 text-xs mb-2">
                                             <span>{post.blogAuthor || 'Ẩn danh'}</span> • <span>{post.createdAt ? new Date(post.createdAt).toLocaleDateString('vi-VN') : ''}</span>
                                         </div>

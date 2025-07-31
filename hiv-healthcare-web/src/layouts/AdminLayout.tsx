@@ -14,7 +14,8 @@ import {
   BarChart,
   Home,
   Folder,
-  Book
+  Book,
+  DollarSign
 } from 'lucide-react';
 import { logout } from '../api/authApi';
 import { toast } from 'react-toastify';
@@ -59,7 +60,7 @@ const AdminLayout: React.FC = () => {
     {
       name: 'Tổng quan',
       path: '/admin/dashboard',
-      icon: <User className="w-5 h-5" />
+      icon: <BarChart className="w-5 h-5" />
     },
     // {
     //   name: 'Quản lý Bệnh nhân',
@@ -69,12 +70,12 @@ const AdminLayout: React.FC = () => {
     {
       name: 'Quản lý Bác sĩ',
       path: '/admin/doctors',
-      icon: <Users className="w-5 h-5" />
+      icon: <Pill className="w-5 h-5" />
     },
     {
       name: 'Quản lý Lịch làm việc',
       path: '/admin/doctors/schedule',
-      icon: <Users className="w-5 h-5" />
+      icon: <Calendar className="w-5 h-5" />
     },
     // {
     //   name: 'Quản lý Lịch hẹn',
@@ -114,7 +115,7 @@ const AdminLayout: React.FC = () => {
     {
       name: 'Quản lý doanh thu',
       path: '/admin/revenue',
-      icon: <User className="w-5 h-5" />
+      icon: <DollarSign className="w-5 h-5" />
     },
     {
       name: 'Hồ sơ cá nhân',
