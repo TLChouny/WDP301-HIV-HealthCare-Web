@@ -1339,18 +1339,21 @@ const AppointmentManagement: React.FC = () => {
                     Chọn trạng thái gửi hồ sơ <span className="text-red-500">*</span>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
-                    <button
-                      type="button"
-                      className={`flex-1 px-5 py-3 border-2 rounded-xl shadow-md flex items-center justify-center gap-2 text-base font-semibold transition-all duration-150
-                        ${selectedStatusForSubmit === "re-examination"
-                          ? "border-purple-600 bg-purple-500 text-white ring-2 ring-purple-400"
-                          : "border-purple-400 bg-purple-100 text-purple-700 hover:bg-purple-200"
-                        }`}
-                      onClick={() => setSelectedStatusForSubmit("re-examination")}
-                    >
-                      <CalendarClock className="w-6 h-6" />
-                      Tái khám
-                    </button>
+                    {/* Ẩn nút Tái Khám nếu booking là xét nghiệm labo */}
+                    {!(selectedBooking && typeof selectedBooking.serviceId === "object" && selectedBooking.serviceId.isLabTest) && (
+                      <button
+                        type="button"
+                        className={`flex-1 px-5 py-3 border-2 rounded-xl shadow-md flex items-center justify-center gap-2 text-base font-semibold transition-all duration-150
+                          ${selectedStatusForSubmit === "re-examination"
+                            ? "border-purple-600 bg-purple-500 text-white ring-2 ring-purple-400"
+                            : "border-purple-400 bg-purple-100 text-purple-700 hover:bg-purple-200"
+                          }`}
+                        onClick={() => setSelectedStatusForSubmit("re-examination")}
+                      >
+                        <CalendarClock className="w-6 h-6" />
+                        Tái khám
+                      </button>
+                    )}
                     <button
                       type="button"
                       className={`flex-1 px-5 py-3 border-2 rounded-xl shadow-md flex items-center justify-center gap-2 text-base font-semibold transition-all duration-150
