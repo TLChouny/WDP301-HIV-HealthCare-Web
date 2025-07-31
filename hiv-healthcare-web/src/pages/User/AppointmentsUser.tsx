@@ -518,7 +518,7 @@ const UserAppointments: React.FC = () => {
                     >
                       Hủy lịch
                     </button>
-                    {selectedAppointment.serviceId?.price && selectedAppointment.serviceId.price > 0 && (
+                    { selectedAppointment.serviceId.price > 0 && (
                       <button
                         onClick={() => {
                           setOpenViewDialog(false)

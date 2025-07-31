@@ -172,6 +172,15 @@ const DoctorSchedule: React.FC = () => {
     }
   }
 
+  // Check if a time slot is in the past based on real-time
+  const isSlotPast = (date: Date, time: string) => {
+    const now = new Date() // Current date and time (07:38 PM +07, 31/07/2025)
+    const [slotHour, slotMinute] = time.split(":").map(Number)
+    const slotDateTime = new Date(date)
+    slotDateTime.setHours(slotHour, slotMinute, 0, 0)
+    return slotDateTime < now
+  }
+
   const weekDates = getWeekDates(currentWeek)
   const timeSlots = generateTimeSlots()
 
@@ -403,7 +412,7 @@ const DoctorSchedule: React.FC = () => {
                         const currentDate = weekDates[dayIndex]
                         const isAvailable = isDoctorAvailable(day.en)
                         const isToday = currentDate.toDateString() === new Date().toDateString()
-                        const isPast = currentDate < new Date() && !isToday
+                        const isPast = isSlotPast(currentDate, timeSlot)
                         const booking = getBookingForSlot(currentDate, timeSlot)
 
                         if (booking) {
@@ -527,6 +536,10 @@ const DoctorSchedule: React.FC = () => {
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600">Khách hàng:</span>
                       <span className="font-semibold">{selectedBooking.customerName || "Khách hàng ẩn danh"}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-gray-600">Số điện thoại:</span>
+                      <span className="font-semibold">{selectedBooking.customerPhone || "Không có thông tin"}</span>
                     </div>
                     <div className="flex justify-between items-center py-2 border-b border-gray-100">
                       <span className="text-gray-600">Ngày:</span>

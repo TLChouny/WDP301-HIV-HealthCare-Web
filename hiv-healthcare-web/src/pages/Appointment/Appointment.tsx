@@ -97,7 +97,7 @@ const Appointment: React.FC = () => {
     return slots;
   };
 
-  // Calculate end time for display in toast
+  // Calculate end time for a given start time and duration
   const calculateEndTime = (startTime: string, duration: number = 30) => {
     const [hour, minute] = startTime.split(":").map(Number);
     const total = hour * 60 + minute + duration;
@@ -107,6 +107,24 @@ const Appointment: React.FC = () => {
       2,
       "0"
     )}`;
+  };
+
+  // Convert time string to minutes for comparison
+  const timeToMinutes = (time: string) => {
+    const [hour, minute] = time.split(":").map(Number);
+    return hour * 60 + minute;
+  };
+
+  // Check if a time slot is available considering duration
+  const isTimeSlotAvailable = (slotTime: string, duration: number) => {
+    const slotStart = timeToMinutes(slotTime);
+    const slotEnd = slotStart + duration;
+
+    return !bookedSlots.some((bookedTime) => {
+      const bookedStart = timeToMinutes(bookedTime);
+      const bookedEnd = bookedStart + duration; // Assume same duration for existing bookings
+      return slotStart < bookedEnd && slotEnd > bookedStart;
+    });
   };
 
   const filterDoctorsByDate = (doctors: User[], date: Date) => {
@@ -134,7 +152,7 @@ const Appointment: React.FC = () => {
 
   const handleTimeSelection = (time: string) => {
     const doctorObj = doctors.find((d) => d._id === selectedDoctor);
-    if (bookedSlots.includes(time)) {
+    if (!isTimeSlotAvailable(time, service?.duration || 30)) {
       showToast(
         `Bác sĩ ${
           doctorObj?.userName || "này"
@@ -177,11 +195,11 @@ const Appointment: React.FC = () => {
         customerEmail: isAnonymous ? undefined : formData.customerEmail,
         doctorName: selectedDoctorObj?.userName ?? undefined,
         notes: formData.notes,
-        serviceId: service ?? undefined, // ✅ full object -> đúng type Service
+        serviceId: service ?? undefined,
         currency: "VND",
         status: "pending" as const,
         isAnonymous,
-        userId: user, // Sử dụng toàn bộ user object nếu type Booking yêu cầu User
+        userId: user,
       };
 
       if (!user) {
@@ -265,7 +283,7 @@ const Appointment: React.FC = () => {
               doctorObj.userName,
               formattedDate
             );
-            setBookedSlots(booked);
+            setBookedSlots(booked); // booked is string[]
           } else {
             setBookedSlots([]);
           }
@@ -568,7 +586,7 @@ const Appointment: React.FC = () => {
                       const isPast = selectedDate
                         ? isPastTime(time, selectedDate)
                         : false;
-                      const isBooked = bookedSlots.includes(time);
+                      const isBooked = !isTimeSlotAvailable(time, service?.duration || 30);
                       const isDisabled = isPast || isBooked;
 
                       return (
@@ -592,8 +610,8 @@ const Appointment: React.FC = () => {
                             </span>
                           )}
                           {isPast && !isBooked && (
-                            <span >
-                              
+                            <span className="ml-2 text-gray-500 text-xs">
+                              Quá giờ
                             </span>
                           )}
                         </button>

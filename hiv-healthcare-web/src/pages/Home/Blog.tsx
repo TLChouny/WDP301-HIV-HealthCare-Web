@@ -7,7 +7,6 @@ import { getAllBlogs } from '../../api/blogApi';
 import { getAllCategories } from '../../api/categoryApi';
 import type { Blog } from '../../types/blog';
 import type { Category } from '../../types/category';
-import DOMPurify from 'dompurify';
 
 // Helper function để chuyển đổi HTML content thành plain text
 const stripHtmlAndTruncate = (html: string, maxLength: number) => {
