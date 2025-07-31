@@ -48,6 +48,20 @@ const formatMedicationTimes = (medicationTime: string | undefined, medicationSlo
   return times.map((time, i) => `${slots[i]}: ${time}`).join(", ")
 }
 
+// Hàm định dạng resultType
+const formatResultType = (resultType: string | undefined): string => {
+  if (!resultType) return "Chưa có";
+  const resultTypeMap: { [key: string]: string } = {
+    'positive-negative': 'Dương tính/ Âm tính',
+    'quantitative': 'Định lượng',
+    'other': 'Khác',
+    'dương tính/ âm tính': 'Dương tính/ Âm tính',
+    'định lượng': 'Định lượng',
+    'khác': 'Khác',
+  };
+  return resultTypeMap[resultType.toLowerCase()] || resultType; // Trả về giá trị gốc nếu không tìm thấy
+};
+
 const DoctorMedicalRecords: React.FC = () => {
   const { user } = useAuth()
   const { getByDoctorName, loading } = useResult()
@@ -190,9 +204,8 @@ const DoctorMedicalRecords: React.FC = () => {
                     </h3>
                   </div>
                   <ChevronDown
-                    className={`h-6 w-6 text-gray-600 transition-transform duration-300 ${
-                      expandedRecords[record._id!] ? "rotate-180" : ""
-                    }`}
+                    className={`h-6 w-6 text-gray-600 transition-transform duration-300 ${expandedRecords[record._id!] ? "rotate-180" : ""
+                      }`}
                   />
                 </div>
 
@@ -287,7 +300,7 @@ const DoctorMedicalRecords: React.FC = () => {
                           </p>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả kết quả</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả kết quả (nếu có ARV)</label>
                           <p className="text-gray-800 bg-white p-3 rounded-xl border">
                             {record.resultDescription || "Không có"}
                           </p>
@@ -299,7 +312,7 @@ const DoctorMedicalRecords: React.FC = () => {
                     <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6 mb-6">
                       <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
                         <Heart className="h-5 w-5 text-teal-600" />
-                        Dấu Hiệu Sinh Tồn
+                        Chỉ số cơ thể
                       </h4>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
@@ -359,11 +372,9 @@ const DoctorMedicalRecords: React.FC = () => {
                           </p>
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Loại kết quả xét nghiệm
-                          </label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Loại kết quả xét nghiệm</label>
                           <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                            {record.resultType || "Chưa có"}
+                            {formatResultType(record.resultType)}
                           </p>
                         </div>
                         <div>

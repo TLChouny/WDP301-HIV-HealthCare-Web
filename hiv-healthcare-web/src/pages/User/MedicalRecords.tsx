@@ -54,6 +54,20 @@ const formatMedicationTimes = (medicationTime: string | undefined, medicationSlo
   return times.map((time, i) => `${slots[i]}: ${time}`).join(", ");
 };
 
+// Hàm định dạng resultType
+const formatResultType = (resultType: string | undefined): string => {
+  if (!resultType) return "Chưa có";
+  const resultTypeMap: { [key: string]: string } = {
+    'positive-negative': 'Dương tính/ Âm tính',
+    'quantitative': 'Định lượng',
+    'other': 'Khác',
+    'dương tính/ âm tính': 'Dương tính/ Âm tính',
+    'định lượng': 'Định lượng',
+    'khác': 'Khác',
+  };
+  return resultTypeMap[resultType.toLowerCase()] || resultType; // Trả về giá trị gốc nếu không tìm thấy
+};
+
 const MedicalRecords: React.FC = () => {
   const { getByUserId, loading } = useResult();
   const { getUserById, user } = useAuth();
@@ -402,8 +416,8 @@ const MedicalRecords: React.FC = () => {
                     onClick={handlePreviousPage}
                     disabled={currentPage === 1}
                     className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${currentPage === 1
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700"
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700"
                       }`}
                   >
                     <ChevronLeft className="h-4 w-4" />
@@ -418,8 +432,8 @@ const MedicalRecords: React.FC = () => {
                     onClick={handleNextPage}
                     disabled={currentPage === totalPages}
                     className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${currentPage === totalPages
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700"
+                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700"
                       }`}
                   >
                     Trang sau
@@ -553,7 +567,7 @@ const MedicalRecords: React.FC = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Loại kết quả xét nghiệm</label>
                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {selectedRecord.resultType || "Chưa có"}
+                        {formatResultType(selectedRecord.resultType)}
                       </p>
                     </div>
                     <div>
