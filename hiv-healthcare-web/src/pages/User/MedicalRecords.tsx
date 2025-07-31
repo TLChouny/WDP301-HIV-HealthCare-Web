@@ -301,7 +301,7 @@ const MedicalRecords: React.FC = () => {
                                   <span className="font-medium text-gray-800">
                                     {record.reExaminationDate
                                       ? new Date(record.reExaminationDate).toLocaleDateString("vi-VN")
-                                      : "Chưa xác định"}
+                                      : "Không tái khám"}
                                   </span>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -469,7 +469,7 @@ const MedicalRecords: React.FC = () => {
                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.reExaminationDate
                           ? new Date(selectedRecord.reExaminationDate).toLocaleDateString("vi-VN")
-                          : "Chưa xác định"}
+                          : "Không tái khám"}
                       </p>
                     </div>
                     <div>

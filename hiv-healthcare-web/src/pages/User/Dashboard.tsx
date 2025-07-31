@@ -6,7 +6,7 @@ import {
   Clock,
   User,
   Stethoscope,
-  FileText
+  FileText,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -14,6 +14,7 @@ import { useBooking } from "../../context/BookingContext";
 import { useNotification } from "../../context/NotificationContext";
 import type { Booking } from "../../types/booking";
 import type { Notification } from "../../types/notification";
+import { getBookingStatusColor, translateBookingStatus } from "../../utils/status"; // Import từ status.ts
 
 const UserDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -33,11 +34,11 @@ const UserDashboard: React.FC = () => {
       try {
         // ✅ Lịch hẹn
         const userBookings = await getByUserId(user._id);
-          // Sắp xếp giảm dần theo updatedAt (mới nhất lên trên)
-          const sortedBookings = userBookings.sort((a, b) =>
-            new Date(b.updatedAt as string).getTime() - new Date(a.updatedAt as string).getTime()
-          );
-          setUpcomingAppointments(sortedBookings || []);
+        // Sắp xếp giảm dần theo updatedAt (mới nhất lên trên)
+        const sortedBookings = userBookings.sort((a, b) =>
+          new Date(b.updatedAt as string).getTime() - new Date(a.updatedAt as string).getTime()
+        );
+        setUpcomingAppointments(sortedBookings || []);
 
         // ✅ Thông báo
         const fetchedNotifications = await getNotificationsByUserIdHandler(user._id); // 🔥 lấy trực tiếp
@@ -55,7 +56,6 @@ const UserDashboard: React.FC = () => {
 
     fetchData();
   }, [user?._id, getByUserId, getNotificationsByUserIdHandler]);
-
 
   const stats = [
     {
@@ -192,12 +192,11 @@ const UserDashboard: React.FC = () => {
                         </div>
                       </div>
                       <div
-                        className={`px-3 py-1 text-xs rounded-full font-semibold ${item.status === "confirmed"
-                          ? "bg-green-100 text-green-600"
-                          : "bg-amber-100 text-amber-600"
-                          }`}
+                        className={`px-3 py-1 text-xs rounded-full font-semibold bg-gradient-to-r ${getBookingStatusColor(
+                          item.status
+                        )} text-white`}
                       >
-                        {item.status === "confirmed" ? "Đã xác nhận" : "Chờ xác nhận"}
+                        {translateBookingStatus(item.status)} {/* Sử dụng translateBookingStatus */}
                       </div>
                     </div>
                   ))}
