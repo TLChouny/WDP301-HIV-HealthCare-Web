@@ -25,6 +25,14 @@ import { getAllBlogs } from "../../api/blogApi";
 import { Blog } from "../../types/blog";
 import { getBookingStatusColor, translateBookingStatus } from "../../utils/status";
 
+// --- HÀM HELPER MỚI ĐƯỢC THÊM VÀO ---
+const stripHtml = (html: string): string => {
+  if (typeof window === 'undefined' || !html) return '';
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  return doc.body.textContent || "";
+};
+// --- KẾT THÚC HÀM HELPER MỚI ---
+
 const StaffDashboard: React.FC = () => {
   const { getAll } = useBooking();
   const { services } = useServiceContext();
@@ -33,7 +41,7 @@ const StaffDashboard: React.FC = () => {
   const [serviceStats, setServiceStats] = useState<{ serviceName: string; count: number }[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
-  const [blogs, setBlogs] = useState<Blog[]>([]); // Thay notifications bằng blogs
+  const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -64,7 +72,6 @@ const StaffDashboard: React.FC = () => {
         }
         setPayments(Array.isArray(paymentsData) ? paymentsData : []);
 
-        // Lấy danh sách blog thay vì notifications
         try {
           const blogsData = await getAllBlogs();
           setBlogs(Array.isArray(blogsData) ? blogsData : []);
@@ -179,9 +186,11 @@ const StaffDashboard: React.FC = () => {
         id: blog._id || Math.random(),
         type: "blog",
         title: blog.blogTitle || "Tin tức",
-        description: blog.blogContent || "",
+        // --- PHẦN ĐƯỢC CHỈNH SỬA ---
+        description: blog.blogContent ? stripHtml(blog.blogContent) : '',
+        // --- KẾT THÚC PHẦN CHỈNH SỬA ---
         time: blog.createdAt ? new Date(blog.createdAt).toLocaleString("vi-VN") : "",
-        icon: <ClipboardList className="w-5 h-5 text-purple-600" />, // Thay icon phù hợp
+        icon: <ClipboardList className="w-5 h-5 text-purple-600" />,
       }))
     : [];
 
