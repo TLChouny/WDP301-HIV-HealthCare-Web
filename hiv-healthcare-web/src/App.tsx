@@ -7,6 +7,7 @@ import AdminLayout from './layouts/AdminLayout';
 import UserLayout from './layouts/UserLayout';
 import DoctorLayout from './layouts/DoctorLayout';
 import StaffLayout from './layouts/StaffLayout';
+import TesterLayout from './layouts/TesterLayout';
 import { ToastContainer } from 'react-toastify';
 
 // Public Pages
@@ -42,6 +43,10 @@ import AdminServiceDetail from './pages/Admin/ServiceDetail';
 import AdminProfile from './pages/Admin/AdminProfile';
 import AdminRevenue from './pages/Admin/AdminRevenue';
 
+// Tester Pages
+import TestManagement from './pages/Tester/TestManagement';
+import PatientTestingManagement from './pages/Tester/PatientTestingManagement';
+
 // Doctor Pages
 // import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import DoctorPatientManagement from './pages/Doctor/PatientManagement';
@@ -54,6 +59,7 @@ import Counselors from './pages/Doctor/Counselors';
 import DoctorSchedule from './pages/Doctor/DoctorSchedule';
 import DoctorMedicalRecords from './pages/Doctor/DoctorMedicalRecords';
 import DoctorProfile from './pages/Doctor/DoctorProfile';
+import OnlineConsulting from './pages/Doctor/OnlineConsulting';
 
 
 // Staff Pages
@@ -90,7 +96,7 @@ const FallbackComponent: React.FC = () => (
 );
 
 // Protected Route Component
-const ProtectedRoute: React.FC<{ allowedRole: 'user' | 'admin' | 'doctor' | 'staff' | 'manager' }> = ({ allowedRole }) => {
+const ProtectedRoute: React.FC<{ allowedRole: 'user' | 'admin' | 'doctor' | 'staff' | 'tester' | 'manager' }> = ({ allowedRole }) => {
   const { isAuthenticated, user, loading, logout } = useAuth();
   const toastConfig = {
     position: "top-right" as const,
@@ -134,9 +140,10 @@ const ProtectedRoute: React.FC<{ allowedRole: 'user' | 'admin' | 'doctor' | 'sta
     toast.error(`Bạn không có quyền truy cập trang này!`, toastConfig);
     const redirectPath =
       user?.role === 'admin' ? '/admin/dashboard' :
-        user?.role === 'doctor' ? '/doctor/schedule' :
-          user?.role === 'staff' ? '/staff/dashboard' :
-            '/user/dashboard';
+      user?.role === 'doctor' ? '/doctor/schedule' :
+      user?.role === 'staff' ? '/staff/dashboard' :
+      user?.role === 'tester' ? '/tester/test-management' :
+      '/user/dashboard';
     return <Navigate to={redirectPath} replace />;
   }
 
@@ -207,12 +214,14 @@ const App: React.FC = () => {
                           <Route path="schedule" element={<DoctorSchedule />} />
                           <Route path="patients" element={<DoctorPatientManagement />} />
                           <Route path="appointments" element={<DoctorAppointmentManagement />} />
+                          <Route path="online-consulting" element={<OnlineConsulting />} />
                           <Route path="arv-protocols" element={<ARVProtocolManagement />} />
                           <Route path="medical-records" element={<DoctorMedicalRecords />} />
                         <Route path="lab-tests" element={<LabTestManagement />} />
                         <Route path="profile" element={<DoctorProfile />} />
                         </Route>
                       </Route>
+
 
                       {/* Staff routes */}
                       <Route path="/staff" element={<ProtectedRoute allowedRole="staff" />}>
@@ -224,6 +233,14 @@ const App: React.FC = () => {
                           <Route path="services" element={<StaffServiceManagement />} />
                           <Route path="counseling" element={<StaffCounseling />} />
                           <Route path="profile" element={<StaffProfile />} />
+                        </Route>
+                      </Route>
+
+                      {/* Tester routes */}
+                      <Route path="/tester" element={<ProtectedRoute allowedRole="tester" />}>
+                        <Route element={<TesterLayout />}>
+                          <Route path="test-management" element={<TestManagement />} />
+                          <Route path="patient-testing-management" element={<PatientTestingManagement />} />
                         </Route>
                       </Route>
 

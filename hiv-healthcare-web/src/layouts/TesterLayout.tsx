@@ -18,7 +18,7 @@ import { logout } from '../api/authApi';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-const DoctorLayout: React.FC = () => {
+const TesterLayout: React.FC = () => {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
@@ -54,51 +54,16 @@ const DoctorLayout: React.FC = () => {
   };
 
   const navigation = [
-    // {
-    //   name: 'Tổng quan',
-    //   path: '/doctor/dashboard',
-    //   icon: <User className="w-5 h-5" />
-    // },
     {
-      name: 'Lịch làm',
-      path: '/doctor/schedule',
+      name: 'Quản lý Xét nghiệm',
+      path: '/tester/test-management',
       icon: <Users className="w-5 h-5" />
     },
     {
       name: 'Quản lý Bệnh nhân',
-      path: '/doctor/patients',
+      path: '/tester/patient-testing-management',
       icon: <Users className="w-5 h-5" />
-    },
-    {
-      name: 'Lịch hẹn',
-      path: '/doctor/appointments',
-      icon: <Calendar className="w-5 h-5" />
-    },
-    {
-      name: 'Tư vấn trực tuyến',
-      path: '/doctor/online-consulting',
-      icon: <Bell className="w-5 h-5" />
-    },
-    {
-      name: 'Phác đồ ARV',
-      path: '/doctor/arv-protocols',
-      icon: <Pill className="w-5 h-5" />
-    },
-    {
-      name: 'Hồ sơ bệnh án',
-      path: '/doctor/medical-records',
-      icon: <FileText className="w-5 h-5" />
-    },
-    {
-      name: 'Hồ sơ cá nhân',
-      path: '/doctor/profile',
-      icon: <User className="w-5 h-5" />
-    },
-    // {
-    //   name: 'Quản lý Xét nghiệm',
-    //   path: '/doctor/lab-tests',
-    //   icon: <Microscope className="w-5 h-5" />
-    // }
+    }
   ];
 
   return (
@@ -203,4 +168,4 @@ const DoctorLayout: React.FC = () => {
   );
 };
 
-export default DoctorLayout; 
+export default TesterLayout;
