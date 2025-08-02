@@ -176,6 +176,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         navigate("/doctor/schedule");
       } else if (userData.role === "staff") {
         navigate("/staff/dashboard");
+      } else if (userData.role === "tester") {
+        navigate("/tester/test-management");
       } else {
         navigate("/");
       }

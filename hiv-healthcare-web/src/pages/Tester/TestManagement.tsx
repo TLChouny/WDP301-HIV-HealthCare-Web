@@ -163,7 +163,7 @@ const StatusButton: React.FC<{
   }
 };
 
-const AppointmentManagement: React.FC = () => {
+const TestManagement: React.FC = () => {
   const [reExaminationDate, setReExaminationDate] = useState("");
   const { getAll, update } = useBooking();
   const { regimens, create: createArv } = useArv();
@@ -750,8 +750,8 @@ const AppointmentManagement: React.FC = () => {
                               }}
                               title={
                                 booking.status === "pending"
-                                  ? "Không thể tạo hồ sơ khi trạng thái là Chờ xác nhận"
-                                  : "Tạo hồ sơ bệnh án"
+                                  ? "Không thể tạo phiếu xét nghiệm khi trạng thái là Chờ xác nhận"
+                                  : "Tạo phiếu xét nghiệm"
                               }
                               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md
                                 ${
@@ -777,7 +777,7 @@ const AppointmentManagement: React.FC = () => {
                                   d="M12 4v16m8-8H4"
                                 />
                               </svg>
-                              Tạo hồ sơ
+                              Tạo phiếu xét nghiệm
                             </button>
                           </div>
                         </div>
@@ -826,7 +826,7 @@ const AppointmentManagement: React.FC = () => {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
             <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
               <h2 className="text-2xl font-bold mb-6 text-gray-900 text-center">
-                Tạo hồ sơ bệnh án
+                Tạo phiếu xét nghiệm
               </h2>
               <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-4 mb-6 border border-blue-100">
                 <p className="text-lg font-semibold text-gray-800 mb-2">
@@ -848,141 +848,26 @@ const AppointmentManagement: React.FC = () => {
                     return;
                   }
                   if (hasResult) {
-                    toast.error(
-                      "Booking này đã có kết quả, không thể gửi thêm!"
-                    );
+                    toast.error("Booking này đã có phiếu xét nghiệm, không thể gửi thêm!");
                     return;
                   }
                   if (medicalRecordSent[bookingId]) {
-                    toast.error("Hồ sơ bệnh án đã được gửi!");
+                    toast.error("Phiếu xét nghiệm đã được gửi!");
                     return;
                   }
                   if (!selectedStatusForSubmit) {
-                    toast.error("Vui lòng chọn trạng thái gửi!");
+                    toast.error("Vui lòng chọn trạng thái gửi phiếu xét nghiệm!");
                     return;
                   }
                   if (!diagnosis) {
-                    toast.error("Vui lòng nhập chẩn đoán!");
+                    toast.error("Vui lòng nhập kết luận xét nghiệm!");
                     return;
-                  }
-                  let arvregimenId: string = "default"; // Fallback value to satisfy required field
-                  if (showArvSection) {
-                    if (!arvRegimen) {
-                      toast.error("Vui lòng chọn phác đồ ARV!");
-                      return;
-                    }
-                    if (!medicationSlot) {
-                      toast.error("Vui lòng chọn khe thời gian uống thuốc!");
-                      return;
-                    }
-                    if (
-                      medicationTimes.length !==
-                        slotToTimeCount[medicationSlot]?.length ||
-                      medicationTimes.some((t) => !t)
-                    ) {
-                      toast.error(
-                        "Vui lòng nhập đầy đủ thời gian uống thuốc cho các khe đã chọn!"
-                      );
-                      return;
-                    }
-                    if (!reExaminationDate) {
-                      toast.error("Vui lòng nhập ngày tái khám!");
-                      return;
-                    }
-                    const selectedRegimen = regimens.find(
-                      (r) => r.arvName === arvRegimen
-                    );
-                    if (!selectedRegimen) {
-                      toast.error("Phác đồ ARV không hợp lệ!");
-                      return;
-                    }
-                    let userName = "Unknown";
-                    if (selectedBooking.userId) {
-                      try {
-                        const fetchedUser = await getUserById(
-                          selectedBooking.userId._id
-                        );
-                        userName = fetchedUser?.userName || "Unknown";
-                      } catch (err: any) {
-                        console.error("Failed to fetch user:", err);
-                        toast.warn(
-                          "Không thể lấy thông tin người dùng, sử dụng tên mặc định."
-                        );
-                      }
-                    } else {
-                      console.warn("No userId in booking");
-                      toast.warn(
-                        "Booking không có userId, sử dụng tên mặc định."
-                      );
-                    }
-                    const isCustomFrequency =
-                      frequencies.length > 0 &&
-                      frequencies.join(";") !== selectedRegimen.frequency;
-                    const isCustomDosages =
-                      dosages.length > 0 &&
-                      JSON.stringify(dosages) !==
-                        JSON.stringify(selectedRegimen.dosages);
-                    const isCustomContraindications =
-                      contraindications.length > 0 &&
-                      JSON.stringify(contraindications) !==
-                        JSON.stringify(selectedRegimen.contraindications);
-                    const isCustomSideEffects =
-                      sideEffects.length > 0 &&
-                      JSON.stringify(sideEffects) !==
-                        JSON.stringify(selectedRegimen.sideEffects);
-                    if (
-                      isCustomFrequency ||
-                      isCustomDosages ||
-                      isCustomContraindications ||
-                      isCustomSideEffects
-                    ) {
-                      const newRegimen = await createArv({
-                        arvName: `${selectedRegimen.arvName} (${userName})`,
-                        arvDescription: selectedRegimen.arvDescription,
-                        regimenCode: selectedRegimen.regimenCode,
-                        treatmentLine: selectedRegimen.treatmentLine,
-                        recommendedFor: selectedRegimen.recommendedFor,
-                        drugs: selectedRegimen.drugs,
-                        dosages: isCustomDosages
-                          ? dosages
-                          : selectedRegimen.dosages,
-                        frequency: isCustomFrequency
-                          ? frequencies.map(mapFrequencyToNumeric).join(";")
-                          : selectedRegimen.frequency,
-                        contraindications: isCustomContraindications
-                          ? contraindications
-                          : selectedRegimen.contraindications,
-                        sideEffects: isCustomSideEffects
-                          ? sideEffects
-                          : selectedRegimen.sideEffects,
-                        userId: selectedBooking.userId || undefined,
-                      });
-                      if (!newRegimen) {
-                        toast.error("Không thể tạo phác đồ ARV mới!");
-                        return;
-                      }
-                      arvregimenId = newRegimen._id ?? "default";
-                    } else {
-                      arvregimenId = selectedRegimen._id!;
-                    }
                   }
                   try {
                     await addResult({
                       resultName: diagnosis,
-                      resultDescription: showArvSection
-                        ? hivLoad || undefined
-                        : undefined,
                       bookingId,
-                      arvregimenId, // Always a string now
-                      reExaminationDate: showArvSection
-                        ? reExaminationDate
-                        : "", // Provide empty string if not ARV
-                      medicationTime: showArvSection
-                        ? medicationTimes.join(";")
-                        : undefined,
-                      medicationSlot: showArvSection
-                        ? medicationSlot || undefined
-                        : undefined,
+                      reExaminationDate: "", // required field
                       symptoms: symptoms || undefined,
                       weight: weight ? Number.parseFloat(weight) : undefined,
                       height: height ? Number.parseFloat(height) : undefined,
@@ -1010,13 +895,14 @@ const AppointmentManagement: React.FC = () => {
                       bookingId,
                       selectedStatusForSubmit!
                     );
-                    toast.success("Đã tạo hồ sơ bệnh án!");
+                    toast.success("Đã tạo phiếu xét nghiệm!");
                     handleCloseMedicalModal();
                   } catch (err: any) {
                     console.error("Form submission error:", err);
-                    toast.error(err.message || "Lưu hồ sơ thất bại!");
+                    toast.error(err.message || "Lưu phiếu xét nghiệm thất bại!");
                   }
                 }}
+                    // ...existing code...
               >
                 <div className="space-y-6">
                   {/* General Information */}
@@ -1268,272 +1154,7 @@ const AppointmentManagement: React.FC = () => {
                   </div>
 
                   {/* ARV Treatment - Conditionally Rendered */}
-                  {showArvSection && (
-                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                      <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                        Điều trị ARV
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Phác đồ ARV <span className="text-red-500">*</span>
-                          </label>
-                          <select
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            value={arvRegimen}
-                            onChange={(e) => setArvRegimen(e.target.value)}
-                            required
-                          >
-                            <option value="">-- Chọn phác đồ ARV --</option>
-                            {regimens.map((regimen) => (
-                              <option key={regimen._id} value={regimen.arvName}>
-                                {regimen.arvName}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Mã phác đồ
-                          </label>
-                          <input
-                            type="text"
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
-                            value={regimenCode}
-                            readOnly
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Tuyến điều trị
-                          </label>
-                          <input
-                            type="text"
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
-                            value={treatmentLine}
-                            readOnly
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Đối tượng khuyến cáo
-                          </label>
-                          <input
-                            type="text"
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
-                            value={recommendedFor}
-                            readOnly
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Khe thời gian uống thuốc{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <select
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            value={medicationSlot}
-                            onChange={(e) => setMedicationSlot(e.target.value)}
-                            required
-                          >
-                            <option value="">-- Chọn khe thời gian --</option>
-                            <option value="Sáng">Sáng</option>
-                            <option value="Trưa">Trưa</option>
-                            <option value="Tối">Tối</option>
-                            <option value="Sáng và Trưa">Sáng và Trưa</option>
-                            <option value="Trưa và Tối">Trưa và Tối</option>
-                            <option value="Sáng và Tối">Sáng và Tối</option>
-                            <option value="Sáng, Trưa và Tối">
-                              Sáng, Trưa và Tối
-                            </option>
-                          </select>
-                        </div>
-                        {medicationSlot &&
-                          slotToTimeCount[medicationSlot]?.length > 0 && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Thời gian uống thuốc{" "}
-                                <span className="text-red-500">*</span>
-                              </label>
-                              {slotToTimeCount[medicationSlot].map(
-                                (slot, index) => (
-                                  <div key={index} className="mb-2">
-                                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                                      Thời gian {slot}
-                                    </label>
-                                    <input
-                                      type="time"
-                                      className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                                      value={medicationTimes[index] || ""}
-                                      onChange={(e) => {
-                                        const updatedTimes = [
-                                          ...medicationTimes,
-                                        ];
-                                        while (updatedTimes.length <= index)
-                                          updatedTimes.push("");
-                                        updatedTimes[index] = e.target.value;
-                                        setMedicationTimes(updatedTimes);
-                                      }}
-                                      required
-                                    />
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          )}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Ngày tái khám{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="date"
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            value={reExaminationDate}
-                            onChange={(e) =>
-                              setReExaminationDate(e.target.value)
-                            }
-                            required
-                            min={new Date(
-                              Date.now() -
-                                new Date().getTimezoneOffset() * 60000
-                            )
-                              .toISOString()
-                              .slice(0, 10)} // Không cho chọn ngày quá khứ
-                          />
-                        </div>
-                      </div>
-
-                      {(drugs.length > 0 ||
-                        contraindications.length > 0 ||
-                        sideEffects.length > 0) && (
-                        <div className="mt-6">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Thông tin thuốc (có thể chỉnh sửa)
-                          </label>
-                          <div className="overflow-x-auto">
-                            <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden">
-                              <thead className="bg-gray-100">
-                                <tr>
-                                  <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                    Thuốc
-                                  </th>
-                                  <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                    Liều
-                                  </th>
-                                  <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                    Tần suất
-                                  </th>
-                                  <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                    Chống chỉ định
-                                  </th>
-                                  <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                    Tác dụng phụ
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {drugs.map((drug, i) => (
-                                  <tr
-                                    key={i}
-                                    className="bg-white hover:bg-gray-50"
-                                  >
-                                    <td className="border border-gray-200 px-3 py-2">
-                                      <input
-                                        type="text"
-                                        className="w-full border border-gray-200 rounded-md px-2 py-1 bg-gray-100 text-sm"
-                                        value={drug}
-                                        readOnly
-                                      />
-                                    </td>
-                                    <td className="border border-gray-200 px-3 py-2">
-                                      <input
-                                        type="text"
-                                        className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                        value={dosages[i] || ""}
-                                        onChange={(e) => {
-                                          const updated = [...dosages];
-                                          updated[i] = e.target.value;
-                                          setDosages(updated);
-                                        }}
-                                        placeholder="e.g., 300mg"
-                                      />
-                                    </td>
-                                    <td className="border border-gray-200 px-3 py-2">
-                                      <select
-                                        className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                        value={frequencies[i] || ""}
-                                        onChange={(e) => {
-                                          const updated = [...frequencies];
-                                          updated[i] = e.target.value;
-                                          setFrequencies(updated);
-                                        }}
-                                      >
-                                        <option value="">
-                                          -- Chọn tần suất --
-                                        </option>
-                                        <option value="Một lần/ngày">
-                                          Một lần/ngày
-                                        </option>
-                                        <option value="Hai lần/ngày">
-                                          Hai lần/ngày
-                                        </option>
-                                        <option value="Ba lần/ngày">
-                                          Ba lần/ngày
-                                        </option>
-                                        <option value="Khác">Khác</option>
-                                      </select>
-                                    </td>
-                                    <td className="border border-gray-200 px-3 py-2">
-                                      <input
-                                        type="text"
-                                        className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                        value={contraindications[i] || ""}
-                                        onChange={(e) => {
-                                          const updated = [
-                                            ...contraindications,
-                                          ];
-                                          updated[i] = e.target.value;
-                                          setContraindications(updated);
-                                        }}
-                                        placeholder="e.g., Dị ứng thuốc"
-                                      />
-                                    </td>
-                                    <td className="border border-gray-200 px-3 py-2">
-                                      <input
-                                        type="text"
-                                        className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                        value={sideEffects[i] || ""}
-                                        onChange={(e) => {
-                                          const updated = [...sideEffects];
-                                          updated[i] = e.target.value;
-                                          setSideEffects(updated);
-                                        }}
-                                        placeholder="e.g., Buồn nôn"
-                                      />
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Tải lượng HIV
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={hivLoad}
-                          onChange={(e) => setHivLoad(e.target.value)}
-                          placeholder="e.g., < 40 copies/mL"
-                        />
-                      </div>
-                    </div>
-                  )}
+                  {/* ...không hiển thị phần ARV... */}
 
                   {/* Status Selection */}
                   <div className="mt-6 bg-gray-50 rounded-xl p-6 border border-gray-100 flex flex-col items-center">
@@ -1618,6 +1239,7 @@ const AppointmentManagement: React.FC = () => {
       <ToastContainer />
     </div>
   );
+
 };
 
-export default AppointmentManagement;
+export default TestManagement;
