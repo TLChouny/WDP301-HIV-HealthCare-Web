@@ -50,15 +50,15 @@ const ServiceByCategoryId: React.FC = () => {
   }, [categoryId, getServicesByCategoryId])
 
   useEffect(() => {
-    let filtered = services.filter(
-      (service) =>
-        service.serviceName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.serviceDescription?.toLowerCase().includes(searchTerm.toLowerCase()),
-    )
+    let filtered = services
+      .filter(
+        (service) =>
+          service.price && service.price > 0 && // Loại bỏ dịch vụ miễn phí
+          (service.serviceName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            service.serviceDescription?.toLowerCase().includes(searchTerm.toLowerCase())),
+      )
 
-    if (priceFilter === "free") {
-      filtered = filtered.filter((service) => service.price === 0 || !service.price)
-    } else if (priceFilter === "paid") {
+    if (priceFilter === "paid") {
       filtered = filtered.filter((service) => service.price && service.price > 0)
     }
 
@@ -129,12 +129,14 @@ const ServiceByCategoryId: React.FC = () => {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-2xl p-6 shadow border">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Tổng dịch vụ</p>
-                <p className="text-3xl font-bold text-gray-800">{services.length}</p>
+                <p className="text-3xl font-bold text-gray-800">
+                  {services.filter((s) => s.price && s.price > 0).length}
+                </p>
               </div>
               <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
                 <Stethoscope className="w-6 h-6 text-blue-600" />
@@ -144,28 +146,11 @@ const ServiceByCategoryId: React.FC = () => {
           <div className="bg-white rounded-2xl p-6 shadow border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Dịch vụ miễn phí</p>
-                <p className="text-3xl font-bold text-gray-800">
-                  {services.filter((s) => !s.price || s.price === 0).length}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
-                <CreditCard className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 shadow border">
-            <div className="flex items-center justify-between">
-              <div>
                 <p className="text-sm text-gray-500">
-                  {services.some((s) => s.isArvTest)
-                    ? "Điều trị ARV"
-                    : "Xét nghiệm"}
+                  {services.some((s) => s.isArvTest) ? "Điều trị ARV" : "Xét nghiệm"}
                 </p>
                 <p className="text-3xl font-bold text-gray-800">
-                  {services.filter((s) =>
-                    s.isArvTest ? s.isArvTest : s.isLabTest
-                  ).length}
+                  {services.filter((s) => (s.isArvTest ? s.isArvTest : s.isLabTest) && s.price && s.price > 0).length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
@@ -198,7 +183,6 @@ const ServiceByCategoryId: React.FC = () => {
                 className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               >
                 <option value="all">Tất cả giá</option>
-                <option value="free">Miễn phí</option>
                 <option value="paid">Có phí</option>
               </select>
             </div>

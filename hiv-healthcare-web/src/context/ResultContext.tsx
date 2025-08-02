@@ -32,6 +32,7 @@ export interface NewResultPayload {
   testValue?: number;
   unit?: string;
   referenceRange?: string;
+  testerName?: string; // tên người thực hiện test
 }
 
 interface ResultContextProps {

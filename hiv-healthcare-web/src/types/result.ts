@@ -23,6 +23,7 @@ export interface Result {
   testValue?: number;
   unit?: string;
   referenceRange?: string;
+  testerName?: string; // tên người thực hiện test
 
   // 💊 Nếu là khám ARV
   reExaminationDate?: Date;
