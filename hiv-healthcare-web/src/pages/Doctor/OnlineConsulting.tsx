@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Modal } from "antd";
 import { Calendar as CalendarIcon, Loader, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { Mail, Phone, User, Stethoscope } from "lucide-react";
 import { ToastContainer, toast } from "react-toastify";
@@ -107,6 +108,11 @@ const OnlineConsulting: React.FC = () => {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // Modal ghi chú
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [noteValue, setNoteValue] = useState("");
+  const [noteBookingId, setNoteBookingId] = useState<string | null>(null);
+  const [noteLoading, setNoteLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -358,9 +364,11 @@ const OnlineConsulting: React.FC = () => {
                             <div className="flex flex-row gap-2 mt-2">
                               <button
                                 onClick={() => {
-                                  toast.success("Tạo hồ sơ bệnh án cho lịch hẹn này!");
+                                  setNoteBookingId(booking._id);
+                                  setNoteValue(booking.doctorNote || "");
+                                  setNoteModalOpen(true);
                                 }}
-                                title={"Tạo hồ sơ bệnh án"}
+                                title={"Tạo ghi chú bác sĩ"}
                                 className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 flex items-center"
                               >
                                 <svg
@@ -453,6 +461,33 @@ const OnlineConsulting: React.FC = () => {
           </div>
         </div>
       </div>
+      <Modal
+        title="Ghi chú bác sĩ cho lịch hẹn"
+        open={noteModalOpen}
+        onCancel={() => setNoteModalOpen(false)}
+        onOk={async () => {
+          if (!noteBookingId) return;
+          setNoteLoading(true);
+          try {
+            const updated = await update(noteBookingId, { doctorNote: noteValue });
+            setBookings((prev) => prev.map((b) => b._id === noteBookingId ? { ...b, doctorNote: updated.doctorNote, status: updated.status } : b));
+            toast.success("Đã lưu ghi chú bác sĩ!");
+            setNoteModalOpen(false);
+          } catch (err: any) {
+            toast.error("Lưu ghi chú thất bại!");
+          }
+          setNoteLoading(false);
+        }}
+        confirmLoading={noteLoading}
+      >
+        <textarea
+          className="w-full p-2 border rounded"
+          rows={5}
+          value={noteValue}
+          onChange={e => setNoteValue(e.target.value)}
+          placeholder="Nhập ghi chú cho bác sĩ..."
+        />
+      </Modal>
       <ToastContainer />
     </div>
   );
