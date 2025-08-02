@@ -7,7 +7,7 @@ import type { Booking } from "../../types/booking";
 import { getBookingStatusColor, translateBookingStatus } from "../../utils/status"; // Import cả hai hàm
 
 const PatientTestingManagement: React.FC = () => {
-  const { getByDoctorName } = useBooking();
+  const { getAll } = useBooking();
   const { user } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -16,15 +16,10 @@ const PatientTestingManagement: React.FC = () => {
 
   useEffect(() => {
     const fetchBookings = async () => {
-      if (!user || !user.userName) {
-        setError("Không tìm thấy thông tin bác sĩ. Vui lòng đăng nhập lại.");
-        setLoading(false);
-        return;
-      }
       setLoading(true);
       setError(null);
       try {
-        const res = await getByDoctorName(user.userName);
+        const res = await getAll();
         // Sort bookings by bookingDate and startTime
         const sortedBookings = res.sort((a, b) => {
           const dateA = new Date(a.bookingDate).getTime();
@@ -45,7 +40,7 @@ const PatientTestingManagement: React.FC = () => {
       }
     };
     fetchBookings();
-  }, [user, getByDoctorName]);
+  }, [getAll]);
 
   const filteredBookings = bookings.filter((booking) => {
     const searchLower = search.toLowerCase();

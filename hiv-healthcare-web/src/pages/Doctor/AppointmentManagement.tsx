@@ -225,8 +225,14 @@ const AppointmentManagement: React.FC = () => {
     selectedBooking &&
     results.some((r) => r.bookingId && r.bookingId._id === selectedBooking._id);
   const bookingDates = useMemo(
-    () => bookings.map((b) => parseBookingDateLocal(b.bookingDate)),
-    [bookings]
+  () =>
+    bookings
+      .filter(
+        (b) =>
+          typeof b.serviceId === "object" && b.serviceId.isArvTest === true
+      )
+      .map((b) => parseBookingDateLocal(b.bookingDate)),
+  [bookings]
   );
 
   // Map medication slots to time input labels
@@ -369,24 +375,30 @@ const AppointmentManagement: React.FC = () => {
 
   const filteredBookings = useMemo(
     () =>
-      bookings.filter((booking) => {
-        const matchSearch =
-          booking.customerName?.toLowerCase().includes(search.toLowerCase()) ||
-          booking.customerPhone?.includes(search) ||
-          booking.customerEmail?.toLowerCase().includes(search.toLowerCase()) ||
-          booking.bookingCode?.toLowerCase().includes(search.toLowerCase());
-        const matchDate =
-          !selectedDate ||
-          isSameDayLocal(
-            parseBookingDateLocal(booking.bookingDate),
-            selectedDate
-          );
-        const matchStatus =
-          selectedStatus === "all" || booking.status === selectedStatus;
-        // Remove all 'Tư vấn trực tuyến' bookings from the list
-        const serviceName = typeof booking.serviceId === "object" ? booking.serviceId.serviceName : "";
-        return matchSearch && matchDate && matchStatus && serviceName !== "Tư vấn trực tuyến";
-      }),
+  bookings.filter((booking) => {
+    const matchSearch =
+      booking.customerName?.toLowerCase().includes(search.toLowerCase()) ||
+      booking.customerPhone?.includes(search) ||
+      booking.customerEmail?.toLowerCase().includes(search.toLowerCase()) ||
+      booking.bookingCode?.toLowerCase().includes(search.toLowerCase());
+    const matchDate =
+      !selectedDate ||
+      isSameDayLocal(
+        parseBookingDateLocal(booking.bookingDate),
+        selectedDate
+      );
+    const matchStatus =
+      selectedStatus === "all" || booking.status === selectedStatus;
+    const serviceObj = typeof booking.serviceId === "object" ? booking.serviceId : null;
+    // Chỉ lấy các booking có dịch vụ isArvTest: true
+    return (
+      matchSearch &&
+      matchDate &&
+      matchStatus &&
+      serviceObj &&
+      serviceObj.isArvTest === true
+    );
+  }),
     [bookings, search, selectedDate, selectedStatus]
   );
 

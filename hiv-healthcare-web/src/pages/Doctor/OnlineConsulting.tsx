@@ -6,7 +6,6 @@ import CalendarComponent from "../../components/CalendarComponent";
 import { useBooking } from "../../context/BookingContext";
 import { useAuth } from "../../context/AuthContext";
 import { translateBookingStatus } from "../../utils/status";
-// ...existing code...
 
 // Hàm so sánh ngày theo local
 const isSameDayLocal = (date1: string | Date, date2: string | Date) => {
@@ -378,7 +377,7 @@ const OnlineConsulting: React.FC = () => {
                                     d="M12 4v16m8-8H4"
                                   />
                                 </svg>
-                                Tạo hồ sơ
+                                Tạo ghi chú
                               </button>
                               {isOnlineConsultation && (
                                 booking.meetLink ? (

@@ -224,8 +224,15 @@ const TestManagement: React.FC = () => {
   const hasResult =
     selectedBooking &&
     results.some((r) => r.bookingId && r.bookingId._id === selectedBooking._id);
+  // Chỉ lấy ngày của các booking là xét nghiệm labo (isLabTest = true)
   const bookingDates = useMemo(
-    () => bookings.map((b) => parseBookingDateLocal(b.bookingDate)),
+    () =>
+      bookings
+        .filter(
+          (b) =>
+            typeof b.serviceId === "object" && b.serviceId.isLabTest === true
+        )
+        .map((b) => parseBookingDateLocal(b.bookingDate)),
     [bookings]
   );
 
@@ -383,9 +390,9 @@ const TestManagement: React.FC = () => {
           );
         const matchStatus =
           selectedStatus === "all" || booking.status === selectedStatus;
-        // Remove all 'Tư vấn trực tuyến' bookings from the list
-        const serviceName = typeof booking.serviceId === "object" ? booking.serviceId.serviceName : "";
-        return matchSearch && matchDate && matchStatus && serviceName !== "Tư vấn trực tuyến";
+        // Only show bookings with isLabTest = true
+        const isLabTest = typeof booking.serviceId === "object" && booking.serviceId.isLabTest === true;
+        return matchSearch && matchDate && matchStatus && isLabTest;
       }),
     [bookings, search, selectedDate, selectedStatus]
   );
