@@ -16,7 +16,10 @@ import {
   XCircle,
   RefreshCcw,
 } from "lucide-react";
-import { translateBookingStatus, getBookingStatusColor } from "../../utils/status";
+import {
+  translateBookingStatus,
+  getBookingStatusColor,
+} from "../../utils/status";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CalendarComponent from "react-calendar";
@@ -225,14 +228,14 @@ const AppointmentManagement: React.FC = () => {
     selectedBooking &&
     results.some((r) => r.bookingId && r.bookingId._id === selectedBooking._id);
   const bookingDates = useMemo(
-  () =>
-    bookings
-      .filter(
-        (b) =>
-          typeof b.serviceId === "object" && b.serviceId.isArvTest === true
-      )
-      .map((b) => parseBookingDateLocal(b.bookingDate)),
-  [bookings]
+    () =>
+      bookings
+        .filter(
+          (b) =>
+            typeof b.serviceId === "object" && b.serviceId.isArvTest === true
+        )
+        .map((b) => parseBookingDateLocal(b.bookingDate)),
+    [bookings]
   );
 
   // Map medication slots to time input labels
@@ -375,30 +378,31 @@ const AppointmentManagement: React.FC = () => {
 
   const filteredBookings = useMemo(
     () =>
-  bookings.filter((booking) => {
-    const matchSearch =
-      booking.customerName?.toLowerCase().includes(search.toLowerCase()) ||
-      booking.customerPhone?.includes(search) ||
-      booking.customerEmail?.toLowerCase().includes(search.toLowerCase()) ||
-      booking.bookingCode?.toLowerCase().includes(search.toLowerCase());
-    const matchDate =
-      !selectedDate ||
-      isSameDayLocal(
-        parseBookingDateLocal(booking.bookingDate),
-        selectedDate
-      );
-    const matchStatus =
-      selectedStatus === "all" || booking.status === selectedStatus;
-    const serviceObj = typeof booking.serviceId === "object" ? booking.serviceId : null;
-    // Chỉ lấy các booking có dịch vụ isArvTest: true
-    return (
-      matchSearch &&
-      matchDate &&
-      matchStatus &&
-      serviceObj &&
-      serviceObj.isArvTest === true
-    );
-  }),
+      bookings.filter((booking) => {
+        const matchSearch =
+          booking.customerName?.toLowerCase().includes(search.toLowerCase()) ||
+          booking.customerPhone?.includes(search) ||
+          booking.customerEmail?.toLowerCase().includes(search.toLowerCase()) ||
+          booking.bookingCode?.toLowerCase().includes(search.toLowerCase());
+        const matchDate =
+          !selectedDate ||
+          isSameDayLocal(
+            parseBookingDateLocal(booking.bookingDate),
+            selectedDate
+          );
+        const matchStatus =
+          selectedStatus === "all" || booking.status === selectedStatus;
+        const serviceObj =
+          typeof booking.serviceId === "object" ? booking.serviceId : null;
+        // Chỉ lấy các booking có dịch vụ isArvTest: true
+        return (
+          matchSearch &&
+          matchDate &&
+          matchStatus &&
+          serviceObj &&
+          serviceObj.isArvTest === true
+        );
+      }),
     [bookings, search, selectedDate, selectedStatus]
   );
 
@@ -723,10 +727,14 @@ const AppointmentManagement: React.FC = () => {
                           {/* Status and Actions */}
                           <div className="flex flex-col items-end gap-4 flex-shrink-0">
                             <div
-                              className={`px-4 py-2 rounded-xl font-semibold text-sm shadow text-white bg-gradient-to-r ${getBookingStatusColor(booking.status || "unknown")}`}
+                              className={`px-4 py-2 rounded-xl font-semibold text-sm shadow text-white bg-gradient-to-r ${getBookingStatusColor(
+                                booking.status || "unknown"
+                              )}`}
                               title={booking.status}
                             >
-                              {translateBookingStatus(booking.status || "unknown")}
+                              {translateBookingStatus(
+                                booking.status || "unknown"
+                              )}
                             </div>
                             <div className="flex items-center gap-2 text-sm text-gray-700">
                               <CreditCard className="w-4 h-4 text-teal-600" />
@@ -770,9 +778,7 @@ const AppointmentManagement: React.FC = () => {
                                     ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                                     : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
                                 }`}
-                              disabled={
-                                booking.status === "pending"
-                              }
+                              disabled={booking.status === "pending"}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -832,800 +838,783 @@ const AppointmentManagement: React.FC = () => {
       </div>
 
       {/* Modal tạo hồ sơ bệnh án */}
-      {openMedicalModal &&
-        selectedBooking && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
-            <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <h2 className="text-2xl font-bold mb-6 text-gray-900 text-center">
-                Tạo hồ sơ bệnh án
-              </h2>
-              <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-4 mb-6 border border-blue-100">
-                <p className="text-lg font-semibold text-gray-800 mb-2">
-                  Bệnh nhân: {selectedBooking.customerName} (Mã booking:{" "}
-                  {selectedBooking.bookingCode})
-                </p>
-                <p className="text-sm text-gray-600">
-                  Ngày khám: {new Date(medicalDate).toLocaleDateString("vi-VN")}{" "}
-                  | Loại khám: {medicalType}
-                </p>
-              </div>
+      {openMedicalModal && selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+          <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 text-center">
+              Tạo hồ sơ bệnh án
+            </h2>
+            <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-4 mb-6 border border-blue-100">
+              <p className="text-lg font-semibold text-gray-800 mb-2">
+                Bệnh nhân: {selectedBooking.customerName} (Mã booking:{" "}
+                {selectedBooking.bookingCode})
+              </p>
+              <p className="text-sm text-gray-600">
+                Ngày khám: {new Date(medicalDate).toLocaleDateString("vi-VN")} |
+                Loại khám: {medicalType}
+              </p>
+            </div>
 
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const bookingId = selectedBooking?._id;
-                  if (!bookingId) {
-                    toast.error("Thiếu thông tin booking!");
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const bookingId = selectedBooking?._id;
+                if (!bookingId) {
+                  toast.error("Thiếu thông tin booking!");
+                  return;
+                }
+                if (hasResult) {
+                  toast.error("Booking này đã có kết quả, không thể gửi thêm!");
+                  return;
+                }
+                if (medicalRecordSent[bookingId]) {
+                  toast.error("Hồ sơ bệnh án đã được gửi!");
+                  return;
+                }
+                if (!selectedStatusForSubmit) {
+                  toast.error("Vui lòng chọn trạng thái gửi!");
+                  return;
+                }
+                if (!diagnosis) {
+                  toast.error("Vui lòng nhập chẩn đoán!");
+                  return;
+                }
+                let arvregimenId: string = "default"; // Fallback value to satisfy required field
+                if (showArvSection) {
+                  if (!arvRegimen) {
+                    toast.error("Vui lòng chọn phác đồ ARV!");
                     return;
                   }
-                  if (hasResult) {
+                  if (!medicationSlot) {
+                    toast.error("Vui lòng chọn khe thời gian uống thuốc!");
+                    return;
+                  }
+                  if (
+                    medicationTimes.length !==
+                      slotToTimeCount[medicationSlot]?.length ||
+                    medicationTimes.some((t) => !t)
+                  ) {
                     toast.error(
-                      "Booking này đã có kết quả, không thể gửi thêm!"
+                      "Vui lòng nhập đầy đủ thời gian uống thuốc cho các khe đã chọn!"
                     );
                     return;
                   }
-                  if (medicalRecordSent[bookingId]) {
-                    toast.error("Hồ sơ bệnh án đã được gửi!");
+                  if (!reExaminationDate) {
+                    toast.error("Vui lòng nhập ngày tái khám!");
                     return;
                   }
-                  if (!selectedStatusForSubmit) {
-                    toast.error("Vui lòng chọn trạng thái gửi!");
+                  const selectedRegimen = regimens.find(
+                    (r) => r.arvName === arvRegimen
+                  );
+                  if (!selectedRegimen) {
+                    toast.error("Phác đồ ARV không hợp lệ!");
                     return;
                   }
-                  if (!diagnosis) {
-                    toast.error("Vui lòng nhập chẩn đoán!");
-                    return;
-                  }
-                  let arvregimenId: string = "default"; // Fallback value to satisfy required field
-                  if (showArvSection) {
-                    if (!arvRegimen) {
-                      toast.error("Vui lòng chọn phác đồ ARV!");
-                      return;
-                    }
-                    if (!medicationSlot) {
-                      toast.error("Vui lòng chọn khe thời gian uống thuốc!");
-                      return;
-                    }
-                    if (
-                      medicationTimes.length !==
-                        slotToTimeCount[medicationSlot]?.length ||
-                      medicationTimes.some((t) => !t)
-                    ) {
-                      toast.error(
-                        "Vui lòng nhập đầy đủ thời gian uống thuốc cho các khe đã chọn!"
+                  let userName = "Unknown";
+                  if (selectedBooking.userId) {
+                    try {
+                      const fetchedUser = await getUserById(
+                        selectedBooking.userId._id
                       );
-                      return;
-                    }
-                    if (!reExaminationDate) {
-                      toast.error("Vui lòng nhập ngày tái khám!");
-                      return;
-                    }
-                    const selectedRegimen = regimens.find(
-                      (r) => r.arvName === arvRegimen
-                    );
-                    if (!selectedRegimen) {
-                      toast.error("Phác đồ ARV không hợp lệ!");
-                      return;
-                    }
-                    let userName = "Unknown";
-                    if (selectedBooking.userId) {
-                      try {
-                        const fetchedUser = await getUserById(
-                          selectedBooking.userId._id
-                        );
-                        userName = fetchedUser?.userName || "Unknown";
-                      } catch (err: any) {
-                        console.error("Failed to fetch user:", err);
-                        toast.warn(
-                          "Không thể lấy thông tin người dùng, sử dụng tên mặc định."
-                        );
-                      }
-                    } else {
-                      console.warn("No userId in booking");
+                      userName = fetchedUser?.userName || "Unknown";
+                    } catch (err: any) {
+                      console.error("Failed to fetch user:", err);
                       toast.warn(
-                        "Booking không có userId, sử dụng tên mặc định."
+                        "Không thể lấy thông tin người dùng, sử dụng tên mặc định."
                       );
                     }
-                    const isCustomFrequency =
-                      frequencies.length > 0 &&
-                      frequencies.join(";") !== selectedRegimen.frequency;
-                    const isCustomDosages =
-                      dosages.length > 0 &&
-                      JSON.stringify(dosages) !==
-                        JSON.stringify(selectedRegimen.dosages);
-                    const isCustomContraindications =
-                      contraindications.length > 0 &&
-                      JSON.stringify(contraindications) !==
-                        JSON.stringify(selectedRegimen.contraindications);
-                    const isCustomSideEffects =
-                      sideEffects.length > 0 &&
-                      JSON.stringify(sideEffects) !==
-                        JSON.stringify(selectedRegimen.sideEffects);
-                    if (
-                      isCustomFrequency ||
-                      isCustomDosages ||
-                      isCustomContraindications ||
-                      isCustomSideEffects
-                    ) {
-                      const newRegimen = await createArv({
-                        arvName: `${selectedRegimen.arvName} (${userName})`,
-                        arvDescription: selectedRegimen.arvDescription,
-                        regimenCode: selectedRegimen.regimenCode,
-                        treatmentLine: selectedRegimen.treatmentLine,
-                        recommendedFor: selectedRegimen.recommendedFor,
-                        drugs: selectedRegimen.drugs,
-                        dosages: isCustomDosages
-                          ? dosages
-                          : selectedRegimen.dosages,
-                        frequency: isCustomFrequency
-                          ? frequencies.map(mapFrequencyToNumeric).join(";")
-                          : selectedRegimen.frequency,
-                        contraindications: isCustomContraindications
-                          ? contraindications
-                          : selectedRegimen.contraindications,
-                        sideEffects: isCustomSideEffects
-                          ? sideEffects
-                          : selectedRegimen.sideEffects,
-                        userId: selectedBooking.userId || undefined,
-                      });
-                      if (!newRegimen) {
-                        toast.error("Không thể tạo phác đồ ARV mới!");
-                        return;
-                      }
-                      arvregimenId = newRegimen._id ?? "default";
-                    } else {
-                      arvregimenId = selectedRegimen._id!;
-                    }
-                  }
-                  try {
-                    await addResult({
-                      resultName: diagnosis,
-                      resultDescription: showArvSection
-                        ? hivLoad || undefined
-                        : undefined,
-                      bookingId,
-                      arvregimenId, // Always a string now
-                      reExaminationDate: showArvSection
-                        ? reExaminationDate
-                        : "", // Provide empty string if not ARV
-                      medicationTime: showArvSection
-                        ? medicationTimes.join(";")
-                        : undefined,
-                      medicationSlot: showArvSection
-                        ? medicationSlot || undefined
-                        : undefined,
-                      symptoms: symptoms || undefined,
-                      weight: weight ? Number.parseFloat(weight) : undefined,
-                      height: height ? Number.parseFloat(height) : undefined,
-                      bmi: bmi ? Number.parseFloat(bmi) : undefined,
-                      bloodPressure: bloodPressure || undefined,
-                      pulse: pulse ? Number.parseInt(pulse) : undefined,
-                      temperature: temperature
-                        ? Number.parseFloat(temperature)
-                        : undefined,
-                      sampleType: sampleType || undefined,
-                      testMethod: testMethod || undefined,
-                      resultType: resultType || undefined,
-                      testResult: testResult || undefined,
-                      testValue: testValue
-                        ? Number.parseFloat(testValue)
-                        : undefined,
-                      unit: unit || undefined,
-                      referenceRange: referenceRange || undefined,
-                    });
-                    setMedicalRecordSent((prev) => ({
-                      ...prev,
-                      [bookingId]: true,
-                    }));
-                    await handleStatusChange(
-                      bookingId,
-                      selectedStatusForSubmit!
+                  } else {
+                    console.warn("No userId in booking");
+                    toast.warn(
+                      "Booking không có userId, sử dụng tên mặc định."
                     );
-                    toast.success("Đã tạo hồ sơ bệnh án!");
-                    handleCloseMedicalModal();
-                  } catch (err: any) {
-                    console.error("Form submission error:", err);
-                    toast.error(err.message || "Lưu hồ sơ thất bại!");
                   }
-                }}
-              >
-                <div className="space-y-6">
-                  {/* General Information */}
-                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                      Thông tin chung
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Ngày khám <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="date"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
-                          value={medicalDate}
-                          onChange={(e) => setMedicalDate(e.target.value)}
-                          required
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Loại khám <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
-                          value={medicalType}
-                          onChange={(e) => setMedicalType(e.target.value)}
-                          required
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Chẩn đoán <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={diagnosis}
-                          onChange={(e) => setDiagnosis(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Triệu chứng
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={symptoms}
-                          onChange={(e) => setSymptoms(e.target.value)}
-                        />
-                      </div>
+                  const isCustomFrequency =
+                    frequencies.length > 0 &&
+                    frequencies.join(";") !== selectedRegimen.frequency;
+                  const isCustomDosages =
+                    dosages.length > 0 &&
+                    JSON.stringify(dosages) !==
+                      JSON.stringify(selectedRegimen.dosages);
+                  const isCustomContraindications =
+                    contraindications.length > 0 &&
+                    JSON.stringify(contraindications) !==
+                      JSON.stringify(selectedRegimen.contraindications);
+                  const isCustomSideEffects =
+                    sideEffects.length > 0 &&
+                    JSON.stringify(sideEffects) !==
+                      JSON.stringify(selectedRegimen.sideEffects);
+                  if (
+                    isCustomFrequency ||
+                    isCustomDosages ||
+                    isCustomContraindications ||
+                    isCustomSideEffects
+                  ) {
+                    const newRegimen = await createArv({
+                      arvName: `${selectedRegimen.arvName} (${userName})`,
+                      arvDescription: selectedRegimen.arvDescription,
+                      regimenCode: selectedRegimen.regimenCode,
+                      treatmentLine: selectedRegimen.treatmentLine,
+                      recommendedFor: selectedRegimen.recommendedFor,
+                      drugs: selectedRegimen.drugs,
+                      dosages: isCustomDosages
+                        ? dosages
+                        : selectedRegimen.dosages,
+                      frequency: isCustomFrequency
+                        ? frequencies.map(mapFrequencyToNumeric).join(";")
+                        : selectedRegimen.frequency,
+                      contraindications: isCustomContraindications
+                        ? contraindications
+                        : selectedRegimen.contraindications,
+                      sideEffects: isCustomSideEffects
+                        ? sideEffects
+                        : selectedRegimen.sideEffects,
+                      userId: selectedBooking.userId || undefined,
+                    });
+                    if (!newRegimen) {
+                      toast.error("Không thể tạo phác đồ ARV mới!");
+                      return;
+                    }
+                    arvregimenId = newRegimen._id ?? "default";
+                  } else {
+                    arvregimenId = selectedRegimen._id!;
+                  }
+                }
+                try {
+                  await addResult({
+                    resultName: diagnosis,
+                    resultDescription: showArvSection
+                      ? hivLoad || undefined
+                      : undefined,
+                    bookingId,
+                    arvregimenId, // Always a string now
+                    reExaminationDate: showArvSection ? reExaminationDate : "", // Provide empty string if not ARV
+                    medicationTime: showArvSection
+                      ? medicationTimes.join(";")
+                      : undefined,
+                    medicationSlot: showArvSection
+                      ? medicationSlot || undefined
+                      : undefined,
+                    symptoms: symptoms || undefined,
+                    weight: weight ? Number.parseFloat(weight) : undefined,
+                    height: height ? Number.parseFloat(height) : undefined,
+                    bmi: bmi ? Number.parseFloat(bmi) : undefined,
+                    bloodPressure: bloodPressure || undefined,
+                    pulse: pulse ? Number.parseInt(pulse) : undefined,
+                    temperature: temperature
+                      ? Number.parseFloat(temperature)
+                      : undefined,
+                    sampleType: sampleType || undefined,
+                    testMethod: testMethod || undefined,
+                    resultType: resultType || undefined,
+                    testResult: testResult || undefined,
+                    testValue: testValue
+                      ? Number.parseFloat(testValue)
+                      : undefined,
+                    unit: unit || undefined,
+                    referenceRange: referenceRange || undefined,
+                  });
+                  setMedicalRecordSent((prev) => ({
+                    ...prev,
+                    [bookingId]: true,
+                  }));
+                  await handleStatusChange(bookingId, selectedStatusForSubmit!);
+                  toast.success("Đã tạo hồ sơ bệnh án!");
+                  handleCloseMedicalModal();
+                } catch (err: any) {
+                  console.error("Form submission error:", err);
+                  toast.error(err.message || "Lưu hồ sơ thất bại!");
+                }
+              }}
+            >
+              <div className="space-y-6">
+                {/* General Information */}
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                    Thông tin chung
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Ngày khám <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
+                        value={medicalDate}
+                        onChange={(e) => setMedicalDate(e.target.value)}
+                        required
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Loại khám <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
+                        value={medicalType}
+                        onChange={(e) => setMedicalType(e.target.value)}
+                        required
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Chẩn đoán <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={diagnosis}
+                        onChange={(e) => setDiagnosis(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Triệu chứng
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={symptoms}
+                        onChange={(e) => setSymptoms(e.target.value)}
+                      />
                     </div>
                   </div>
+                </div>
 
-                  {/* Exam Information */}
-                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                      Thông tin khám
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Cân nặng (kg)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={weight}
-                          onChange={(e) => setWeight(e.target.value)}
-                          min="0"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Chiều cao (cm)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={height}
-                          onChange={(e) => setHeight(e.target.value)}
-                          min="0"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          BMI
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
-                          value={bmi}
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Huyết áp
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={bloodPressure}
-                          onChange={(e) => setBloodPressure(e.target.value)}
-                          placeholder="e.g., 120/80 mmHg"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Mạch (lần/phút)
-                        </label>
-                        <input
-                          type="number"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={pulse}
-                          onChange={(e) => setPulse(e.target.value)}
-                          min="0"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Nhiệt độ (°C)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={temperature}
-                          onChange={(e) => setTemperature(e.target.value)}
-                          min="0"
-                        />
-                      </div>
+                {/* Exam Information */}
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                    Thông tin khám
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Cân nặng (kg)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value)}
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Chiều cao (cm)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={height}
+                        onChange={(e) => setHeight(e.target.value)}
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        BMI
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
+                        value={bmi}
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Huyết áp
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={bloodPressure}
+                        onChange={(e) => setBloodPressure(e.target.value)}
+                        placeholder="e.g., 120/80 mmHg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Mạch (lần/phút)
+                      </label>
+                      <input
+                        type="number"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={pulse}
+                        onChange={(e) => setPulse(e.target.value)}
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Nhiệt độ (°C)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={temperature}
+                        onChange={(e) => setTemperature(e.target.value)}
+                        min="0"
+                      />
                     </div>
                   </div>
+                </div>
 
-                  {/* Lab Test Information */}
+                {/* Lab Test Information */}
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                    Xét nghiệm
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Loại mẫu xét nghiệm
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={sampleType}
+                        onChange={(e) => setSampleType(e.target.value)}
+                        placeholder="e.g., Máu, Nước tiểu"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Phương pháp xét nghiệm
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={testMethod}
+                        onChange={(e) => setTestMethod(e.target.value)}
+                        placeholder="e.g., PCR, ELISA"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Loại kết quả xét nghiệm
+                      </label>
+                      <select
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={resultType}
+                        onChange={(e) =>
+                          setResultType(
+                            e.target.value as
+                              | "positive-negative"
+                              | "quantitative"
+                              | "other"
+                              | ""
+                          )
+                        }
+                      >
+                        <option value="">-- Chọn loại kết quả --</option>
+                        <option value="positive-negative">
+                          Dương tính/Âm tính
+                        </option>
+                        <option value="quantitative">Định lượng</option>
+                        <option value="other">Khác</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Kết quả xét nghiệm
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={testResult}
+                        onChange={(e) => setTestResult(e.target.value)}
+                        placeholder="e.g., Dương tính, Âm tính"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Giá trị xét nghiệm
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={testValue}
+                        onChange={(e) => setTestValue(e.target.value)}
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Đơn vị
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={unit}
+                        onChange={(e) => setUnit(e.target.value)}
+                        placeholder="e.g., copies/mL, %"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Khoảng tham chiếu
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={referenceRange}
+                        onChange={(e) => setReferenceRange(e.target.value)}
+                        placeholder="e.g., < 40 copies/mL"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* ARV Treatment - Conditionally Rendered */}
+                {showArvSection && (
                   <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
                     <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                      Xét nghiệm
+                      Điều trị ARV
                     </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Loại mẫu xét nghiệm
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={sampleType}
-                          onChange={(e) => setSampleType(e.target.value)}
-                          placeholder="e.g., Máu, Nước tiểu"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Phương pháp xét nghiệm
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={testMethod}
-                          onChange={(e) => setTestMethod(e.target.value)}
-                          placeholder="e.g., PCR, ELISA"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Loại kết quả xét nghiệm
+                          Phác đồ ARV <span className="text-red-500">*</span>
                         </label>
                         <select
                           className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={resultType}
-                          onChange={(e) =>
-                            setResultType(
-                              e.target.value as
-                                | "positive-negative"
-                                | "quantitative"
-                                | "other"
-                                | ""
-                            )
-                          }
+                          value={arvRegimen}
+                          onChange={(e) => setArvRegimen(e.target.value)}
+                          required
                         >
-                          <option value="">-- Chọn loại kết quả --</option>
-                          <option value="positive-negative">
-                            Dương tính/Âm tính
-                          </option>
-                          <option value="quantitative">Định lượng</option>
-                          <option value="other">Khác</option>
+                          <option value="">-- Chọn phác đồ ARV --</option>
+                          {regimens.map((regimen) => (
+                            <option key={regimen._id} value={regimen.arvName}>
+                              {regimen.arvName}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Kết quả xét nghiệm
+                          Mã phác đồ
                         </label>
                         <input
                           type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={testResult}
-                          onChange={(e) => setTestResult(e.target.value)}
-                          placeholder="e.g., Dương tính, Âm tính"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
+                          value={regimenCode}
+                          readOnly
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Giá trị xét nghiệm
+                          Tuyến điều trị
                         </label>
                         <input
-                          type="number"
-                          step="0.1"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={testValue}
-                          onChange={(e) => setTestValue(e.target.value)}
-                          min="0"
+                          type="text"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
+                          value={treatmentLine}
+                          readOnly
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Đơn vị
+                          Đối tượng khuyến cáo
                         </label>
                         <input
                           type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={unit}
-                          onChange={(e) => setUnit(e.target.value)}
-                          placeholder="e.g., copies/mL, %"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
+                          value={recommendedFor}
+                          readOnly
                         />
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Khoảng tham chiếu
+                          Khe thời gian uống thuốc{" "}
+                          <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                          value={medicationSlot}
+                          onChange={(e) => setMedicationSlot(e.target.value)}
+                          required
+                        >
+                          <option value="">-- Chọn khe thời gian --</option>
+                          <option value="Sáng">Sáng</option>
+                          <option value="Trưa">Trưa</option>
+                          <option value="Tối">Tối</option>
+                          <option value="Sáng và Trưa">Sáng và Trưa</option>
+                          <option value="Trưa và Tối">Trưa và Tối</option>
+                          <option value="Sáng và Tối">Sáng và Tối</option>
+                          <option value="Sáng, Trưa và Tối">
+                            Sáng, Trưa và Tối
+                          </option>
+                        </select>
+                      </div>
+                      {medicationSlot &&
+                        slotToTimeCount[medicationSlot]?.length > 0 && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Thời gian uống thuốc{" "}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            {slotToTimeCount[medicationSlot].map(
+                              (slot, index) => (
+                                <div key={index} className="mb-2">
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                                    Thời gian {slot}
+                                  </label>
+                                  <input
+                                    type="time"
+                                    className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                                    value={medicationTimes[index] || ""}
+                                    onChange={(e) => {
+                                      const updatedTimes = [...medicationTimes];
+                                      while (updatedTimes.length <= index)
+                                        updatedTimes.push("");
+                                      updatedTimes[index] = e.target.value;
+                                      setMedicationTimes(updatedTimes);
+                                    }}
+                                    required
+                                  />
+                                </div>
+                              )
+                            )}
+                          </div>
+                        )}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Ngày tái khám <span className="text-red-500">*</span>
                         </label>
                         <input
-                          type="text"
+                          type="date"
                           className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={referenceRange}
-                          onChange={(e) => setReferenceRange(e.target.value)}
-                          placeholder="e.g., < 40 copies/mL"
+                          value={reExaminationDate}
+                          onChange={(e) => setReExaminationDate(e.target.value)}
+                          required
+                          min={new Date(
+                            Date.now() - new Date().getTimezoneOffset() * 60000
+                          )
+                            .toISOString()
+                            .slice(0, 10)} // Không cho chọn ngày quá khứ
                         />
                       </div>
+                    </div>
+
+                    {(drugs.length > 0 ||
+                      contraindications.length > 0 ||
+                      sideEffects.length > 0) && (
+                      <div className="mt-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Thông tin thuốc (có thể chỉnh sửa)
+                        </label>
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden">
+                            <thead className="bg-gray-100">
+                              <tr>
+                                <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
+                                  Thuốc
+                                </th>
+                                <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
+                                  Liều
+                                </th>
+                                <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
+                                  Tần suất
+                                </th>
+                                <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
+                                  Chống chỉ định
+                                </th>
+                                <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
+                                  Tác dụng phụ
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {drugs.map((drug, i) => (
+                                <tr
+                                  key={i}
+                                  className="bg-white hover:bg-gray-50"
+                                >
+                                  <td className="border border-gray-200 px-3 py-2">
+                                    <input
+                                      type="text"
+                                      className="w-full border border-gray-200 rounded-md px-2 py-1 bg-gray-100 text-sm"
+                                      value={drug}
+                                      readOnly
+                                    />
+                                  </td>
+                                  <td className="border border-gray-200 px-3 py-2">
+                                    <input
+                                      type="text"
+                                      className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                                      value={dosages[i] || ""}
+                                      onChange={(e) => {
+                                        const updated = [...dosages];
+                                        updated[i] = e.target.value;
+                                        setDosages(updated);
+                                      }}
+                                      placeholder="e.g., 300mg"
+                                    />
+                                  </td>
+                                  <td className="border border-gray-200 px-3 py-2">
+                                    <select
+                                      className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                                      value={frequencies[i] || ""}
+                                      onChange={(e) => {
+                                        const updated = [...frequencies];
+                                        updated[i] = e.target.value;
+                                        setFrequencies(updated);
+                                      }}
+                                    >
+                                      <option value="">
+                                        -- Chọn tần suất --
+                                      </option>
+                                      <option value="Một lần/ngày">
+                                        Một lần/ngày
+                                      </option>
+                                      <option value="Hai lần/ngày">
+                                        Hai lần/ngày
+                                      </option>
+                                      <option value="Ba lần/ngày">
+                                        Ba lần/ngày
+                                      </option>
+                                      <option value="Khác">Khác</option>
+                                    </select>
+                                  </td>
+                                  <td className="border border-gray-200 px-3 py-2">
+                                    <input
+                                      type="text"
+                                      className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                                      value={contraindications[i] || ""}
+                                      onChange={(e) => {
+                                        const updated = [...contraindications];
+                                        updated[i] = e.target.value;
+                                        setContraindications(updated);
+                                      }}
+                                      placeholder="e.g., Dị ứng thuốc"
+                                    />
+                                  </td>
+                                  <td className="border border-gray-200 px-3 py-2">
+                                    <input
+                                      type="text"
+                                      className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                                      value={sideEffects[i] || ""}
+                                      onChange={(e) => {
+                                        const updated = [...sideEffects];
+                                        updated[i] = e.target.value;
+                                        setSideEffects(updated);
+                                      }}
+                                      placeholder="e.g., Buồn nôn"
+                                    />
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Tải lượng HIV
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={hivLoad}
+                        onChange={(e) => setHivLoad(e.target.value)}
+                        placeholder="e.g., < 40 copies/mL"
+                      />
                     </div>
                   </div>
+                )}
 
-                  {/* ARV Treatment - Conditionally Rendered */}
-                  {showArvSection && (
-                    <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                      <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                        Điều trị ARV
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Phác đồ ARV <span className="text-red-500">*</span>
-                          </label>
-                          <select
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            value={arvRegimen}
-                            onChange={(e) => setArvRegimen(e.target.value)}
-                            required
-                          >
-                            <option value="">-- Chọn phác đồ ARV --</option>
-                            {regimens.map((regimen) => (
-                              <option key={regimen._id} value={regimen.arvName}>
-                                {regimen.arvName}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Mã phác đồ
-                          </label>
-                          <input
-                            type="text"
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
-                            value={regimenCode}
-                            readOnly
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Tuyến điều trị
-                          </label>
-                          <input
-                            type="text"
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
-                            value={treatmentLine}
-                            readOnly
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Đối tượng khuyến cáo
-                          </label>
-                          <input
-                            type="text"
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
-                            value={recommendedFor}
-                            readOnly
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Khe thời gian uống thuốc{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <select
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            value={medicationSlot}
-                            onChange={(e) => setMedicationSlot(e.target.value)}
-                            required
-                          >
-                            <option value="">-- Chọn khe thời gian --</option>
-                            <option value="Sáng">Sáng</option>
-                            <option value="Trưa">Trưa</option>
-                            <option value="Tối">Tối</option>
-                            <option value="Sáng và Trưa">Sáng và Trưa</option>
-                            <option value="Trưa và Tối">Trưa và Tối</option>
-                            <option value="Sáng và Tối">Sáng và Tối</option>
-                            <option value="Sáng, Trưa và Tối">
-                              Sáng, Trưa và Tối
-                            </option>
-                          </select>
-                        </div>
-                        {medicationSlot &&
-                          slotToTimeCount[medicationSlot]?.length > 0 && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Thời gian uống thuốc{" "}
-                                <span className="text-red-500">*</span>
-                              </label>
-                              {slotToTimeCount[medicationSlot].map(
-                                (slot, index) => (
-                                  <div key={index} className="mb-2">
-                                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                                      Thời gian {slot}
-                                    </label>
-                                    <input
-                                      type="time"
-                                      className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                                      value={medicationTimes[index] || ""}
-                                      onChange={(e) => {
-                                        const updatedTimes = [
-                                          ...medicationTimes,
-                                        ];
-                                        while (updatedTimes.length <= index)
-                                          updatedTimes.push("");
-                                        updatedTimes[index] = e.target.value;
-                                        setMedicationTimes(updatedTimes);
-                                      }}
-                                      required
-                                    />
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          )}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Ngày tái khám{" "}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <input
-                            type="date"
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                            value={reExaminationDate}
-                            onChange={(e) =>
-                              setReExaminationDate(e.target.value)
-                            }
-                            required
-                            min={new Date(
-                              Date.now() -
-                                new Date().getTimezoneOffset() * 60000
-                            )
-                              .toISOString()
-                              .slice(0, 10)} // Không cho chọn ngày quá khứ
-                          />
-                        </div>
-                      </div>
-
-                      {(drugs.length > 0 ||
-                        contraindications.length > 0 ||
-                        sideEffects.length > 0) && (
-                        <div className="mt-6">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Thông tin thuốc (có thể chỉnh sửa)
-                          </label>
-                          <div className="overflow-x-auto">
-                            <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden">
-                              <thead className="bg-gray-100">
-                                <tr>
-                                  <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                    Thuốc
-                                  </th>
-                                  <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                    Liều
-                                  </th>
-                                  <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                    Tần suất
-                                  </th>
-                                  <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                    Chống chỉ định
-                                  </th>
-                                  <th className="border border-gray-200 px-3 py-2 text-left text-xs font-semibold text-gray-600">
-                                    Tác dụng phụ
-                                  </th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {drugs.map((drug, i) => (
-                                  <tr
-                                    key={i}
-                                    className="bg-white hover:bg-gray-50"
-                                  >
-                                    <td className="border border-gray-200 px-3 py-2">
-                                      <input
-                                        type="text"
-                                        className="w-full border border-gray-200 rounded-md px-2 py-1 bg-gray-100 text-sm"
-                                        value={drug}
-                                        readOnly
-                                      />
-                                    </td>
-                                    <td className="border border-gray-200 px-3 py-2">
-                                      <input
-                                        type="text"
-                                        className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                        value={dosages[i] || ""}
-                                        onChange={(e) => {
-                                          const updated = [...dosages];
-                                          updated[i] = e.target.value;
-                                          setDosages(updated);
-                                        }}
-                                        placeholder="e.g., 300mg"
-                                      />
-                                    </td>
-                                    <td className="border border-gray-200 px-3 py-2">
-                                      <select
-                                        className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                        value={frequencies[i] || ""}
-                                        onChange={(e) => {
-                                          const updated = [...frequencies];
-                                          updated[i] = e.target.value;
-                                          setFrequencies(updated);
-                                        }}
-                                      >
-                                        <option value="">
-                                          -- Chọn tần suất --
-                                        </option>
-                                        <option value="Một lần/ngày">
-                                          Một lần/ngày
-                                        </option>
-                                        <option value="Hai lần/ngày">
-                                          Hai lần/ngày
-                                        </option>
-                                        <option value="Ba lần/ngày">
-                                          Ba lần/ngày
-                                        </option>
-                                        <option value="Khác">Khác</option>
-                                      </select>
-                                    </td>
-                                    <td className="border border-gray-200 px-3 py-2">
-                                      <input
-                                        type="text"
-                                        className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                        value={contraindications[i] || ""}
-                                        onChange={(e) => {
-                                          const updated = [
-                                            ...contraindications,
-                                          ];
-                                          updated[i] = e.target.value;
-                                          setContraindications(updated);
-                                        }}
-                                        placeholder="e.g., Dị ứng thuốc"
-                                      />
-                                    </td>
-                                    <td className="border border-gray-200 px-3 py-2">
-                                      <input
-                                        type="text"
-                                        className="w-full border border-gray-200 rounded-md px-2 py-1 focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                                        value={sideEffects[i] || ""}
-                                        onChange={(e) => {
-                                          const updated = [...sideEffects];
-                                          updated[i] = e.target.value;
-                                          setSideEffects(updated);
-                                        }}
-                                        placeholder="e.g., Buồn nôn"
-                                      />
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Tải lượng HIV
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={hivLoad}
-                          onChange={(e) => setHivLoad(e.target.value)}
-                          placeholder="e.g., < 40 copies/mL"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Status Selection */}
-                  <div className="mt-6 bg-gray-50 rounded-xl p-6 border border-gray-100 flex flex-col items-center">
-                    <div className="mb-4 text-lg text-gray-800 font-semibold">
-                      Chọn trạng thái gửi hồ sơ{" "}
-                      <span className="text-red-500">*</span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
-                      {/* Ẩn nút Tái Khám nếu booking là xét nghiệm labo */}
-                      {!(
-                        selectedBooking &&
-                        typeof selectedBooking.serviceId === "object" &&
-                        selectedBooking.serviceId.isLabTest
-                      ) && (
-                        <button
-                          type="button"
-                          className={`flex-1 px-5 py-3 border-2 rounded-xl shadow-md flex items-center justify-center gap-2 text-base font-semibold transition-all duration-150
+                {/* Status Selection */}
+                <div className="mt-6 bg-gray-50 rounded-xl p-6 border border-gray-100 flex flex-col items-center">
+                  <div className="mb-4 text-lg text-gray-800 font-semibold">
+                    Chọn trạng thái gửi hồ sơ{" "}
+                    <span className="text-red-500">*</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
+                    {/* Ẩn nút Tái Khám nếu booking là xét nghiệm labo */}
+                    {!(
+                      selectedBooking &&
+                      typeof selectedBooking.serviceId === "object" &&
+                      selectedBooking.serviceId.isLabTest
+                    ) && (
+                      <button
+                        type="button"
+                        className={`flex-1 px-5 py-3 border-2 rounded-xl shadow-md flex items-center justify-center gap-2 text-base font-semibold transition-all duration-150
                           ${
                             selectedStatusForSubmit === "re-examination"
                               ? "border-purple-600 bg-purple-500 text-white ring-2 ring-purple-400"
                               : "border-purple-400 bg-purple-100 text-purple-700 hover:bg-purple-200"
                           }`}
-                          onClick={() =>
-                            setSelectedStatusForSubmit("re-examination")
-                          }
-                        >
-                          <CalendarClock className="w-6 h-6" />
-                          Tái khám
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        className={`flex-1 px-5 py-3 border-2 rounded-xl shadow-md flex items-center justify-center gap-2 text-base font-semibold transition-all duration-150
+                        onClick={() =>
+                          setSelectedStatusForSubmit("re-examination")
+                        }
+                      >
+                        <CalendarClock className="w-6 h-6" />
+                        Tái khám
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className={`flex-1 px-5 py-3 border-2 rounded-xl shadow-md flex items-center justify-center gap-2 text-base font-semibold transition-all duration-150
                         ${
                           selectedStatusForSubmit === "completed"
                             ? "border-green-600 bg-green-500 text-white ring-2 ring-green-400"
                             : "border-green-400 bg-green-100 text-green-700 hover:bg-green-200"
                         }`}
-                        onClick={() => setSelectedStatusForSubmit("completed")}
-                      >
-                        <CheckCircle2 className="w-6 h-6" />
-                        Hoàn tất
-                      </button>
-                    </div>
+                      onClick={() => setSelectedStatusForSubmit("completed")}
+                    >
+                      <CheckCircle2 className="w-6 h-6" />
+                      Hoàn tất
+                    </button>
                   </div>
                 </div>
-                <div className="mt-8 flex justify-end gap-3">
-                  <button
-                    type="button"
-                    className="px-6 py-3 bg-gray-200 rounded-xl hover:bg-gray-300 text-gray-700 font-semibold transition-all"
-                    onClick={handleCloseMedicalModal}
-                  >
-                    Đóng
-                  </button>
-                  <button
-                    type="submit"
-                    className={`px-6 py-3 rounded-xl text-white font-semibold transition-all
+              </div>
+              <div className="mt-8 flex justify-end gap-3">
+                <button
+                  type="button"
+                  className="px-6 py-3 bg-gray-200 rounded-xl hover:bg-gray-300 text-gray-700 font-semibold transition-all"
+                  onClick={handleCloseMedicalModal}
+                >
+                  Đóng
+                </button>
+                <button
+                  type="submit"
+                  className={`px-6 py-3 rounded-xl text-white font-semibold transition-all
                     ${
                       selectedBooking &&
                       (medicalRecordSent[selectedBooking._id!] || !!hasResult)
                         ? "bg-gray-400 cursor-not-allowed"
                         : "bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
                     }`}
-                    disabled={
-                      selectedBooking
-                        ? medicalRecordSent[selectedBooking._id!] || !!hasResult
-                        : true
-                    }
-                  >
-                    {!!hasResult
-                      ? "Đã có kết quả, không thể gửi"
-                      : selectedBooking &&
-                        medicalRecordSent[selectedBooking._id!]
-                      ? "Đã gửi hồ sơ"
-                      : "Lưu hồ sơ"}
-                  </button>
-                </div>
-              </form>
-            </div>
+                  disabled={
+                    selectedBooking
+                      ? medicalRecordSent[selectedBooking._id!] || !!hasResult
+                      : true
+                  }
+                >
+                  {!!hasResult
+                    ? "Đã có kết quả, không thể gửi"
+                    : selectedBooking && medicalRecordSent[selectedBooking._id!]
+                    ? "Đã gửi hồ sơ"
+                    : "Lưu hồ sơ"}
+                </button>
+              </div>
+            </form>
           </div>
-        )}
+        </div>
+      )}
       <ToastContainer />
     </div>
   );
