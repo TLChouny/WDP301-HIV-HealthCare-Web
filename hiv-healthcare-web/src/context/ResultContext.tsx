@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import {
   getAllResults,
   getResultById,
@@ -9,15 +15,11 @@ import {
 } from "../api/resultApi";
 import type { Result } from "../types/result";
 
-// Định nghĩa kiểu dữ liệu cho payload tạo mới kết quả
 export interface NewResultPayload {
   resultName: string;
   resultDescription?: string;
-  bookingId: string;
-  arvregimenId?: string; // Thay đổi từ arvregimenId: string thành arvregimenId?: string
-  reExaminationDate: string;
-  medicationTime?: string;
-  medicationSlot?: string;
+  testerName?: string;
+  notes?: string;
   symptoms?: string;
   weight?: number;
   height?: number;
@@ -27,12 +29,23 @@ export interface NewResultPayload {
   temperature?: number;
   sampleType?: string;
   testMethod?: string;
-  resultType?: 'positive-negative' | 'quantitative' | 'other';
   testResult?: string;
-  testValue?: number;
+  viralLoad?: number;
+  viralLoadReference?: string;
+  viralLoadInterpretation?: string;
+  cd4Count?: number;
+  cd4Reference?: string;
+  cd4Interpretation?: string;
   unit?: string;
-  referenceRange?: string;
-  testerName?: string; // tên người thực hiện test
+  coInfections?: string;
+  p24Antigen?: boolean;
+  hivAntibody?: boolean;
+  interpretationNote?: string;
+  reExaminationDate?: string;
+  medicationTime?: string;
+  medicationSlot?: string;
+  bookingId: string;
+  arvregimenId?: string;
 }
 
 interface ResultContextProps {
@@ -41,7 +54,7 @@ interface ResultContextProps {
   fetchResults: () => Promise<void>;
   getResult: (id: string) => Promise<Result | null>;
   addResult: (data: NewResultPayload) => Promise<Result | null>;
-  updateResult: (id: string, data: Result) => Promise<Result | null>;
+  updateResult: (id: string, data: Partial<Result>) => Promise<Result | null>;
   getByUserId: (userId: string) => Promise<Result[]>;
   getByDoctorName: (doctorName: string) => Promise<Result[]>;
 }
@@ -59,8 +72,8 @@ export const ResultProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const data = await getAllResults();
       setResults(data);
-    } catch (err: any) {
-      console.error("Failed to fetch results:", err);
+    } catch (err) {
+      console.error("❌ Failed to fetch results:", err);
     } finally {
       setLoading(false);
     }
@@ -69,8 +82,8 @@ export const ResultProvider: React.FC<{ children: React.ReactNode }> = ({
   const getResult = async (id: string): Promise<Result | null> => {
     try {
       return await getResultById(id);
-    } catch (err: any) {
-      console.error(`Failed to get result with id ${id}:`, err);
+    } catch (err) {
+      console.error(`❌ Failed to get result with id ${id}:`, err);
       return null;
     }
   };
@@ -80,15 +93,15 @@ export const ResultProvider: React.FC<{ children: React.ReactNode }> = ({
       const newResult = await createResult(data);
       setResults((prev) => [...prev, newResult]);
       return newResult;
-    } catch (err: any) {
-      console.error("Failed to create result:", err);
+    } catch (err) {
+      console.error("❌ Failed to create result:", err);
       return null;
     }
   };
 
   const updateResult = async (
     id: string,
-    data: Result
+    data: Partial<Result>
   ): Promise<Result | null> => {
     try {
       const updated = await editResult(id, data);
@@ -96,8 +109,8 @@ export const ResultProvider: React.FC<{ children: React.ReactNode }> = ({
         prev.map((r) => (r._id === id ? updated : r))
       );
       return updated;
-    } catch (err: any) {
-      console.error("Failed to update result:", err);
+    } catch (err) {
+      console.error("❌ Failed to update result:", err);
       return null;
     }
   };
@@ -108,14 +121,14 @@ export const ResultProvider: React.FC<{ children: React.ReactNode }> = ({
       const userResults = await getResultsByUserId(userId);
       setResults(userResults);
       return userResults;
-    } catch (err: any) {
-      console.error(`Failed to get results for user with id ${userId}:`, err);
+    } catch (err) {
+      console.error(`❌ Failed to get results for user ${userId}:`, err);
       return [];
     } finally {
       setLoading(false);
     }
   }, []);
-  
+
   const getByDoctorName = useCallback(
     async (doctorName: string): Promise<Result[]> => {
       setLoading(true);
@@ -123,8 +136,8 @@ export const ResultProvider: React.FC<{ children: React.ReactNode }> = ({
         const doctorResults = await getResultsByDoctorName(doctorName);
         setResults(doctorResults);
         return doctorResults;
-      } catch (err: any) {
-        console.error(`Failed to get results for doctor ${doctorName}:`, err);
+      } catch (err) {
+        console.error(`❌ Failed to get results for doctor ${doctorName}:`, err);
         return [];
       } finally {
         setLoading(false);
