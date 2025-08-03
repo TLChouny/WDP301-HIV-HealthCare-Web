@@ -946,9 +946,19 @@ const TestManagement: React.FC = () => {
                         : undefined,
                       sampleType: sampleType || undefined,
                       testMethod: testMethod || undefined,
-                      testResult: testResult || undefined,
                       unit: unit || undefined,
                     };
+                    // Nếu là Xét nghiệm HIV nhanh (Rapid Test) thì chỉ gửi testResult
+                    if (
+                      selectedBooking &&
+                      typeof selectedBooking.serviceId === "object" &&
+                      selectedBooking.serviceId.serviceName === "Xét nghiệm HIV nhanh (Rapid Test)"
+                    ) {
+                      // Chỉ gửi nếu là 1 trong 3 giá trị hợp lệ
+                      if (["positive", "negative", "invalid"].includes(testResult)) {
+                        baseResult.testResult = testResult;
+                      }
+                    }
                     // Nếu là Xét nghiệm HIV NAT (PCR) thì gửi thêm các trường đặc biệt
                     if (
                       selectedBooking &&
@@ -1004,7 +1014,6 @@ const TestManagement: React.FC = () => {
                     toast.error(err.message || "Lưu phiếu xét nghiệm thất bại!");
                   }
                 }}
-                    // ...existing code...
               >
                 <div className="space-y-6">
                   {/* General Information */}
@@ -1293,7 +1302,25 @@ const TestManagement: React.FC = () => {
                           placeholder="e.g., < 40 copies/mL"
                         />
                       </div> */}
-                      {/* Nếu là Xét nghiệm HIV NAT (PCR) thì hiển thị các trường đặc biệt */}
+                      {/* Nếu là Xét nghiệm HIV nhanh (Rapid Test) thì hiển thị trường testResult ở phần Xét nghiệm */}
+                      {selectedBooking && typeof selectedBooking.serviceId === "object" && selectedBooking.serviceId.serviceName === "Xét nghiệm HIV nhanh (Rapid Test)" && (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Kết quả xét nghiệm <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                            value={testResult}
+                            onChange={(e) => setTestResult(e.target.value as "positive" | "negative" | "invalid" | "")}
+                            required
+                          >
+                            <option value="">-- Chọn kết quả --</option>
+                            <option value="positive">Dương tính</option>
+                            <option value="negative">Âm tính</option>
+                            <option value="invalid">Không xác định</option>
+                          </select>
+                        </div>
+                      )}
                       {selectedBooking && typeof selectedBooking.serviceId === "object" && selectedBooking.serviceId.serviceName === "Xét nghiệm HIV NAT (PCR)" && (
                         <>
                           <div>
