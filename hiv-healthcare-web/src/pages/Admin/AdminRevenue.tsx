@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getAllPayments } from '../../api/paymentApi';
 import type { Payment } from '../../types/payment';
 import { Table, Tag, Select, message, Input } from 'antd';
-import {  DollarSign, CheckCircle, Clock } from 'lucide-react';
+import { DollarSign, CheckCircle, Clock } from 'lucide-react';
 
 const { Option } = Select;
 
@@ -20,6 +20,7 @@ const AdminRevenue: React.FC = () => {
     setLoading(true);
     try {
       const data = await getAllPayments();
+      // Đảm bảo dữ liệu từ backend luôn có bookingIds được populate
       setPayments(Array.isArray(data) ? data : []);
     } catch (err: any) {
       message.error(err.message || 'Lỗi khi lấy danh sách thanh toán');
@@ -29,16 +30,13 @@ const AdminRevenue: React.FC = () => {
     }
   };
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    message.success('Đã copy link thanh toán!');
-  };
-
   const filteredPayments = (Array.isArray(payments) ? payments : []).filter((p) => {
     const matchStatus = statusFilter === 'all' || p.status === statusFilter;
     const matchSearch =
       p.orderCode.toString().includes(search) ||
-      (p.orderName && p.orderName.toLowerCase().includes(search.toLowerCase()));
+      (p.orderName && p.orderName.toLowerCase().includes(search.toLowerCase())) ||
+      (p.paymentID && p.paymentID.toLowerCase().includes(search.toLowerCase())) ||
+      (p.bookingIds?.[0]?.customerName && p.bookingIds[0].customerName.toLowerCase().includes(search.toLowerCase()));
     return matchStatus && matchSearch;
   });
 
@@ -59,6 +57,13 @@ const AdminRevenue: React.FC = () => {
 
   const columns = [
     {
+      title: 'Mã giao dịch',
+      dataIndex: 'paymentID',
+      key: 'paymentID',
+      width: 150,
+      render: (text: string) => <span className="font-mono text-xs">{text}</span>,
+    },
+    {
       title: 'Mã đơn',
       dataIndex: 'orderCode',
       key: 'orderCode',
@@ -76,7 +81,14 @@ const AdminRevenue: React.FC = () => {
       dataIndex: 'amount',
       key: 'amount',
       width: 140,
-      render: (amount: number) => amount ? amount.toLocaleString('vi-VN') : '',
+      render: (amount: number) => (amount ? amount.toLocaleString('vi-VN') : ''),
+    },
+    {
+      title: 'Khách hàng',
+      dataIndex: ['bookingIds', 0, 'customerName'],
+      key: 'customerName',
+      width: 150,
+      render: (customerName: string) => <span className="font-medium">{customerName || '---'}</span>,
     },
     {
       title: 'Trạng thái',
@@ -96,11 +108,26 @@ const AdminRevenue: React.FC = () => {
       width: 170,
       render: (date: string) => new Date(date).toLocaleString('vi-VN'),
     },
-    // ĐÃ XÓA CỘT 'QR Code' và 'Hành động'
+    {
+      title: 'Thời gian khám',
+      dataIndex: ['bookingIds', 0, 'startTime'],
+      key: 'startTime',
+      width: 150,
+      render: (startTime: string, record: any) => {
+        const booking = record.bookingIds?.[0];
+        return booking ? `${booking.bookingDate} ${startTime} - ${booking.endTime}` : '---';
+      },
+    },
+    {
+      title: 'Bác sĩ',
+      dataIndex: ['bookingIds', 0, 'doctorName'],
+      key: 'doctorName',
+      width: 150,
+      render: (doctorName: string) => <span>{doctorName || '---'}</span>,
+    },
   ];
 
   return (
-    // THAY ĐỔI Ở ĐÂY: Thêm background gradient
     <div className="p-6 bg-gradient-to-br from-blue-50 via-white to-teal-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -124,7 +151,7 @@ const AdminRevenue: React.FC = () => {
                 <p className="text-3xl font-bold text-green-600">{totalRevenue.toLocaleString('vi-VN')} VNĐ</p>
               </div>
               <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-green-600" />
+                <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
             </div>
           </div>
@@ -164,7 +191,7 @@ const AdminRevenue: React.FC = () => {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
                 <Input.Search
-                  placeholder="Tìm kiếm theo mã đơn, tên đơn hàng..."
+                  placeholder="Tìm kiếm theo mã đơn, tên đơn hàng, người dùng..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full"
@@ -191,9 +218,6 @@ const AdminRevenue: React.FC = () => {
           dataSource={filteredPayments}
           rowKey="_id"
           loading={loading}
-          // Xóa scroll X nếu các cột bị xóa làm giảm tổng chiều rộng
-          // Nếu bạn có nhiều cột hơn trong tương lai, hãy cân nhắc lại thuộc tính này
-          // scroll={{ x: 900 }} 
           pagination={{ pageSize: 10 }}
         />
       </div>

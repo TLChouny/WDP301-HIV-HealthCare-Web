@@ -33,7 +33,7 @@ export const createResult = async (data: NewResultPayload): Promise<Result> => {
   return res.data;
 };
 
-export const editResult = async (id: string, data: Result): Promise<Result> => {
+export const editResult = async (id: string, data: Partial<Result>): Promise<Result> => {
   const res = await apiClient.put(API_ENDPOINTS.EDIT_RESULT(id), data);
   return res.data;
 };
