@@ -14,7 +14,6 @@ import {
   getResultsByDoctorName,
 } from "../api/resultApi";
 import type { Result } from "../types/result";
-
 export interface NewResultPayload {
   resultName: string;
   resultDescription?: string;
@@ -29,17 +28,17 @@ export interface NewResultPayload {
   temperature?: number;
   sampleType?: string;
   testMethod?: string;
-  testResult?: string;
+  testResult?: "positive" | "negative" | "invalid";
   viralLoad?: number;
   viralLoadReference?: string;
-  viralLoadInterpretation?: string;
+  viralLoadInterpretation?: "undetectable" | "low" | "high";
   cd4Count?: number;
   cd4Reference?: string;
-  cd4Interpretation?: string;
+  cd4Interpretation?: "normal" | "low" | "very_low";
   unit?: string;
-  coInfections?: string;
-  p24Antigen?: boolean;
-  hivAntibody?: boolean;
+  coInfections?: string[]; // FIXED
+  p24Antigen?: number;     // FIXED
+  hivAntibody?: number;    // FIXED
   interpretationNote?: string;
   reExaminationDate?: string;
   medicationTime?: string;
@@ -47,7 +46,6 @@ export interface NewResultPayload {
   bookingId: string;
   arvregimenId?: string;
 }
-
 interface ResultContextProps {
   results: Result[];
   loading: boolean;

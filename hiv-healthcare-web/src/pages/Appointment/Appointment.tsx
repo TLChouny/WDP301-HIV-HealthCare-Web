@@ -122,7 +122,7 @@ const Appointment: React.FC = () => {
 
     return !bookedSlots.some((bookedTime) => {
       const bookedStart = timeToMinutes(bookedTime);
-      const bookedEnd = bookedStart + duration; // Assume same duration for existing bookings
+      const bookedEnd = bookedStart + (service?.duration || 30); // Use service duration for booked slots
       return slotStart < bookedEnd && slotEnd > bookedStart;
     });
   };
@@ -283,7 +283,7 @@ const Appointment: React.FC = () => {
               doctorObj.userName,
               formattedDate
             );
-            setBookedSlots(booked); // booked is string[]
+            setBookedSlots(booked.map((b: any) => b.startTime)); // Adjust based on actual response structure
           } else {
             setBookedSlots([]);
           }
