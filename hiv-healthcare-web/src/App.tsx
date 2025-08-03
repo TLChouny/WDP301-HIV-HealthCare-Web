@@ -42,6 +42,7 @@ import ServicesManagements from './pages/Admin/ServicesManagements';
 import AdminServiceDetail from './pages/Admin/ServiceDetail';
 import AdminProfile from './pages/Admin/AdminProfile';
 import AdminRevenue from './pages/Admin/AdminRevenue';
+import AdminRevenueDetail from './pages/Admin/AdminRevenueDetail';
 
 // Tester Pages
 import TestManagement from './pages/Tester/TestManagement';
@@ -204,6 +205,7 @@ const App: React.FC = () => {
                           <Route path="services/:id" element={<AdminServiceDetail />} />
                           <Route path="revenue" element={<AdminRevenue />} />
                           <Route path="profile" element={<AdminProfile />} />
+                          <Route path="revenue/:id" element={<AdminRevenueDetail />} />
                         </Route>
                       </Route>
 
