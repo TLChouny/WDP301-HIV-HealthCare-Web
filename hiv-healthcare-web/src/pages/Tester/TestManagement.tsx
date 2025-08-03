@@ -68,100 +68,99 @@ const StatusButton: React.FC<{
   userRole = "user",
   serviceName = "",
 }) => {
-  if (!bookingId) {
-    return (
-      <span className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold bg-gray-100 text-gray-700 border border-gray-200">
-        Lỗi: Không có ID
-      </span>
-    );
-  }
+    if (!bookingId) {
+      return (
+        <span className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold bg-gray-100 text-gray-700 border border-gray-200">
+          Lỗi: Không có ID
+        </span>
+      );
+    }
 
-  // Nếu đã có kết quả hoặc trạng thái đặc biệt thì chỉ hiển thị trạng thái hiện tại
-  if (
-    [
-      "re-examination",
-      "checked-in",
-      "completed",
-      "cancelled",
-      "confirmed",
-      "paid",
-    ].includes(status)
-  ) {
-    const statusStyles: { [key: string]: string } = {
-      "checked-in": "bg-green-100 text-green-700 border-green-200",
-      cancelled: "bg-red-100 text-red-700 border-red-200",
-      completed: "bg-purple-100 text-purple-700 border-purple-200",
-      confirmed: "bg-blue-100 text-blue-700 border-blue-200",
-      paid: "bg-orange-100 text-orange-700 border-orange-200",
-      "re-examination": "bg-purple-100 text-purple-700 border-purple-200",
-    };
-    const getStatusIcon = (s: string) => {
-      switch (s) {
-        case "checked-in":
-        case "completed":
-          return <CheckCircle2 className="w-4 h-4 mr-2" />;
-        case "pending":
-          return <Clock className="w-4 h-4 mr-2" />;
-        case "cancelled":
-          return <XCircle className="w-4 h-4 mr-2" />;
-        case "confirmed":
-          return <CheckCircle2 className="w-4 h-4 mr-2" />;
-        case "paid":
-          return <CreditCard className="w-4 h-4 mr-2" />;
-        case "re-examination":
-          return <RefreshCcw className="w-4 h-4 mr-2" />;
-        default:
-          return null;
-      }
-    };
-    return (
-      <span
-        className={`inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold ${
-          statusStyles[status] || "bg-gray-100 text-gray-700 border-gray-200"
-        }`}
-      >
-        {getStatusIcon(status)}
-        {translateBookingStatus(status)}
-      </span>
-    );
-  }
+    // Nếu đã có kết quả hoặc trạng thái đặc biệt thì chỉ hiển thị trạng thái hiện tại
+    if (
+      [
+        "re-examination",
+        "checked-in",
+        "completed",
+        "cancelled",
+        "confirmed",
+        "paid",
+      ].includes(status)
+    ) {
+      const statusStyles: { [key: string]: string } = {
+        "checked-in": "bg-green-100 text-green-700 border-green-200",
+        cancelled: "bg-red-100 text-red-700 border-red-200",
+        completed: "bg-purple-100 text-purple-700 border-purple-200",
+        confirmed: "bg-blue-100 text-blue-700 border-blue-200",
+        paid: "bg-orange-100 text-orange-700 border-orange-200",
+        "re-examination": "bg-purple-100 text-purple-700 border-purple-200",
+      };
+      const getStatusIcon = (s: string) => {
+        switch (s) {
+          case "checked-in":
+          case "completed":
+            return <CheckCircle2 className="w-4 h-4 mr-2" />;
+          case "pending":
+            return <Clock className="w-4 h-4 mr-2" />;
+          case "cancelled":
+            return <XCircle className="w-4 h-4 mr-2" />;
+          case "confirmed":
+            return <CheckCircle2 className="w-4 h-4 mr-2" />;
+          case "paid":
+            return <CreditCard className="w-4 h-4 mr-2" />;
+          case "re-examination":
+            return <RefreshCcw className="w-4 h-4 mr-2" />;
+          default:
+            return null;
+        }
+      };
+      return (
+        <span
+          className={`inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold ${statusStyles[status] || "bg-gray-100 text-gray-700 border-gray-200"
+            }`}
+        >
+          {getStatusIcon(status)}
+          {translateBookingStatus(status)}
+        </span>
+      );
+    }
 
-  // Chỉ doctor được phép cập nhật status từ "pending" sang "completed" cho "Tư vấn trực tuyến"
-  if (userRole === "doctor" && status === "pending" && isOnlineConsultation) {
-    return (
-      <div
-        onClick={() => onStatusChange(bookingId, "completed")}
-        className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold text-black hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-md"
-      >
-        <CheckCircle2 className="w-4 h-4 mr-2" />
-        Hoàn thành
-      </div>
-    );
-  }
+    // Chỉ doctor được phép cập nhật status từ "pending" sang "completed" cho "Tư vấn trực tuyến"
+    if (userRole === "doctor" && status === "pending" && isOnlineConsultation) {
+      return (
+        <div
+          onClick={() => onStatusChange(bookingId, "completed")}
+          className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold text-black hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-md"
+        >
+          <CheckCircle2 className="w-4 h-4 mr-2" />
+          Hoàn thành
+        </div>
+      );
+    }
 
-  // Ngăn doctor thay đổi trạng thái từ "pending" sang "checked-in" cho các dịch vụ khác
-  // if (userRole === "doctor" && status === "pending" && !isOnlineConsultation) {
-  //   return (
-  //     <span className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold bg-gray-200 text-gray-500 border border-gray-200 cursor-not-allowed">
-  //       <Clock className="w-4 h-4 mr-2" />
-  //       {translateBookingStatus(status)}
-  //     </span>
-  //   );
-  // }
+    // Ngăn doctor thay đổi trạng thái từ "pending" sang "checked-in" cho các dịch vụ khác
+    // if (userRole === "doctor" && status === "pending" && !isOnlineConsultation) {
+    //   return (
+    //     <span className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold bg-gray-200 text-gray-500 border border-gray-200 cursor-not-allowed">
+    //       <Clock className="w-4 h-4 mr-2" />
+    //       {translateBookingStatus(status)}
+    //     </span>
+    //   );
+    // }
 
-  // Cho phép chuyển từ "pending" hoặc "checked-out" sang "checked-in" cho các vai trò khác hoặc trạng thái mặc định
-  if (
-    (userRole === "doctor" || status === "checked-out") &&
-    status !== "completed"
-  ) {
-    return (
-      <div className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700 transition-all duration-200 shadow-md">
-        <CheckCircle2 className="w-4 h-4 mr-2" />
-        Điểm danh
-      </div>
-    );
-  }
-};
+    // Cho phép chuyển từ "pending" hoặc "checked-out" sang "checked-in" cho các vai trò khác hoặc trạng thái mặc định
+    if (
+      (userRole === "doctor" || status === "checked-out") &&
+      status !== "completed"
+    ) {
+      return (
+        <div className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700 transition-all duration-200 shadow-md">
+          <CheckCircle2 className="w-4 h-4 mr-2" />
+          Điểm danh
+        </div>
+      );
+    }
+  };
 
 const TestManagement: React.FC = () => {
   // CD4 specific fields
@@ -228,7 +227,9 @@ const TestManagement: React.FC = () => {
   const [resultType, setResultType] = useState<
     "positive-negative" | "quantitative" | "other" | ""
   >("");
-  const [testResult, setTestResult] = useState<"positive" | "negative" | "invalid" | "">("");
+  const [testResult, setTestResult] = useState<
+    "positive" | "negative" | "invalid" | ""
+  >("");
   const [testValue, setTestValue] = useState("");
   const [unit, setUnit] = useState("");
   const [referenceRange, setReferenceRange] = useState("");
@@ -277,6 +278,9 @@ const TestManagement: React.FC = () => {
   const [frequencies, setFrequencies] = useState<string[]>([]);
   const [contraindications, setContraindications] = useState<string[]>([]);
   const [sideEffects, setSideEffects] = useState<string[]>([]);
+  // HIV Combo (Ag/Ab) specific fields
+  const [p24Antigen, setP24Antigen] = useState("");
+  const [hivAntibody, setHivAntibody] = useState("");
   const [medicalRecordSent, setMedicalRecordSent] = useState<{
     [bookingId: string]: boolean;
   }>({});
@@ -454,7 +458,9 @@ const TestManagement: React.FC = () => {
         const matchStatus =
           selectedStatus === "all" || booking.status === selectedStatus;
         // Only show bookings with isLabTest = true
-        const isLabTest = typeof booking.serviceId === "object" && booking.serviceId.isLabTest === true;
+        const isLabTest =
+          typeof booking.serviceId === "object" &&
+          booking.serviceId.isLabTest === true;
         return matchSearch && matchDate && matchStatus && isLabTest;
       }),
     [bookings, search, selectedDate, selectedStatus]
@@ -501,6 +507,8 @@ const TestManagement: React.FC = () => {
     setFrequencies([]);
     setContraindications([]);
     setSideEffects([]);
+    setP24Antigen("");
+    setHivAntibody("");
   }, []);
 
   // Map frequency display text to numeric values for storage
@@ -570,8 +578,8 @@ const TestManagement: React.FC = () => {
             </h1>
           </div>
           <p className="text-gray-600">
-            Quản lý và theo dõi lịch xét nghiệm HIV. Thông tin ẩn danh chỉ áp dụng
-            cho booking ẩn danh.
+            Quản lý và theo dõi lịch xét nghiệm HIV. Thông tin ẩn danh chỉ áp
+            dụng cho booking ẩn danh.
           </p>
         </div>
 
@@ -599,10 +607,10 @@ const TestManagement: React.FC = () => {
                     value={
                       selectedDate
                         ? `${selectedDate.getFullYear()}-${String(
-                            selectedDate.getMonth() + 1
-                          ).padStart(2, "0")}-${String(
-                            selectedDate.getDate()
-                          ).padStart(2, "0")}`
+                          selectedDate.getMonth() + 1
+                        ).padStart(2, "0")}-${String(
+                          selectedDate.getDate()
+                        ).padStart(2, "0")}`
                         : ""
                     }
                     onChange={(e) => {
@@ -766,12 +774,12 @@ const TestManagement: React.FC = () => {
                                 <span className="text-lg font-bold text-teal-600">
                                   {servicePrice
                                     ? Number(servicePrice).toLocaleString(
-                                        "vi-VN",
-                                        {
-                                          style: "currency",
-                                          currency: "VND",
-                                        }
-                                      )
+                                      "vi-VN",
+                                      {
+                                        style: "currency",
+                                        currency: "VND",
+                                      }
+                                    )
                                     : "Miễn phí"}
                                 </span>
                               </div>
@@ -792,9 +800,9 @@ const TestManagement: React.FC = () => {
                               <span>
                                 Thanh toán:{" "}
                                 {booking.status === "checked-out" ||
-                                booking.status === "re-examination" ||
-                                booking.status === "checked-in" ||
-                                booking.status === "completed" ? (
+                                  booking.status === "re-examination" ||
+                                  booking.status === "checked-in" ||
+                                  booking.status === "completed" ? (
                                   <span className="font-semibold text-green-700">
                                     Đã thanh toán
                                   </span>
@@ -824,14 +832,11 @@ const TestManagement: React.FC = () => {
                                   : "Tạo phiếu xét nghiệm"
                               }
                               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md
-                                ${
-                                  booking.status === "pending"
-                                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                    : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                                ${booking.status === "pending"
+                                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                  : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
                                 }`}
-                              disabled={
-                                booking.status === "pending"
-                              }
+                              disabled={booking.status === "pending"}
                             >
                               <svg
                                 xmlns="http://www.w3.org/2000/svg"
@@ -891,427 +896,414 @@ const TestManagement: React.FC = () => {
       </div>
 
       {/* Modal tạo hồ sơ bệnh án */}
-      {openMedicalModal &&
-        selectedBooking && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
-            <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-              <h2 className="text-2xl font-bold mb-6 text-gray-900 text-center">
-                Tạo phiếu xét nghiệm
-              </h2>
-              <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-4 mb-6 border border-blue-100">
-                <p className="text-lg font-semibold text-gray-800 mb-2">
-                  Bệnh nhân: {selectedBooking.customerName} (Mã booking:{" "}
-                  {selectedBooking.bookingCode})
-                </p>
-                <p className="text-sm text-gray-600">
-                  Ngày khám: {new Date(medicalDate).toLocaleDateString("vi-VN")}{" "}
-                  | Loại khám: {medicalType}
-                </p>
-              </div>
+      {openMedicalModal && selectedBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+          <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold mb-6 text-gray-900 text-center">
+              Tạo phiếu xét nghiệm
+            </h2>
+            <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-4 mb-6 border border-blue-100">
+              <p className="text-lg font-semibold text-gray-800 mb-2">
+                Bệnh nhân: {selectedBooking.customerName} (Mã booking:{" "}
+                {selectedBooking.bookingCode})
+              </p>
+              <p className="text-sm text-gray-600">
+                Ngày khám: {new Date(medicalDate).toLocaleDateString("vi-VN")} |
+                Loại khám: {medicalType}
+              </p>
+            </div>
 
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const bookingId = selectedBooking?._id;
-                  if (!bookingId) {
-                    toast.error("Thiếu thông tin booking!");
-                    return;
-                  }
-                  if (hasResult) {
-                    toast.error("Booking này đã có phiếu xét nghiệm, không thể gửi thêm!");
-                    return;
-                  }
-                  if (medicalRecordSent[bookingId]) {
-                    toast.error("Phiếu xét nghiệm đã được gửi!");
-                    return;
-                  }
-                  // Đã bỏ kiểm tra trạng thái gửi hồ sơ
-                  // Đã bỏ kiểm tra kết luận xét nghiệm
-                  try {
-                    // Chuẩn bị dữ liệu gửi đi
-                    const baseResult: any = {
-                      resultName: resultName,
-                      resultDescription: resultDescription || undefined,
-                      testerName: testerName || undefined,
-                      bookingId,
-                      reExaminationDate: "", // required field
-                      symptoms: symptoms || undefined,
-                      weight: weight ? Number.parseFloat(weight) : undefined,
-                      height: height ? Number.parseFloat(height) : undefined,
-                      bmi: bmi ? Number.parseFloat(bmi) : undefined,
-                      bloodPressure: bloodPressure || undefined,
-                      pulse: pulse ? Number.parseInt(pulse) : undefined,
-                      temperature: temperature
-                        ? Number.parseFloat(temperature)
-                        : undefined,
-                      sampleType: sampleType || undefined,
-                      testMethod: testMethod || undefined,
-                      unit: unit || undefined,
-                    };
-                    // Nếu là Xét nghiệm HIV nhanh (Rapid Test) thì chỉ gửi testResult
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const bookingId = selectedBooking?._id;
+                if (!bookingId) {
+                  toast.error("Thiếu thông tin booking!");
+                  return;
+                }
+                if (hasResult) {
+                  toast.error(
+                    "Booking này đã có phiếu xét nghiệm, không thể gửi thêm!"
+                  );
+                  return;
+                }
+                if (medicalRecordSent[bookingId]) {
+                  toast.error("Phiếu xét nghiệm đã được gửi!");
+                  return;
+                }
+                // Đã bỏ kiểm tra trạng thái gửi hồ sơ
+                // Đã bỏ kiểm tra kết luận xét nghiệm
+                try {
+                  // Chuẩn bị dữ liệu gửi đi
+                  const baseResult: any = {
+                    resultName: resultName,
+                    resultDescription: resultDescription || undefined,
+                    testerName: testerName || undefined,
+                    bookingId,
+                    reExaminationDate: "", // required field
+                    symptoms: symptoms || undefined,
+                    weight: weight ? Number.parseFloat(weight) : undefined,
+                    height: height ? Number.parseFloat(height) : undefined,
+                    bmi: bmi ? Number.parseFloat(bmi) : undefined,
+                    bloodPressure: bloodPressure || undefined,
+                    pulse: pulse ? Number.parseInt(pulse) : undefined,
+                    temperature: temperature
+                      ? Number.parseFloat(temperature)
+                      : undefined,
+                    sampleType: sampleType || undefined,
+                    testMethod: testMethod || undefined,
+                    unit: unit || undefined,
+                  };
+                  // Nếu là Xét nghiệm HIV nhanh (Rapid Test) thì chỉ gửi testResult
+                  if (
+                    selectedBooking &&
+                    typeof selectedBooking.serviceId === "object" &&
+                    selectedBooking.serviceId.serviceName ===
+                    "Xét nghiệm HIV nhanh (Rapid Test)"
+                  ) {
+                    // Chỉ gửi nếu là 1 trong 3 giá trị hợp lệ
                     if (
-                      selectedBooking &&
-                      typeof selectedBooking.serviceId === "object" &&
-                      selectedBooking.serviceId.serviceName === "Xét nghiệm HIV nhanh (Rapid Test)"
+                      ["positive", "negative", "invalid"].includes(testResult)
                     ) {
-                      // Chỉ gửi nếu là 1 trong 3 giá trị hợp lệ
-                      if (["positive", "negative", "invalid"].includes(testResult)) {
-                        baseResult.testResult = testResult;
-                      }
+                      baseResult.testResult = testResult;
                     }
-                    // Nếu là Xét nghiệm HIV NAT (PCR) thì gửi thêm các trường đặc biệt
-                    if (
-                      selectedBooking &&
-                      typeof selectedBooking.serviceId === "object" &&
-                      selectedBooking.serviceId.serviceName === "Xét nghiệm HIV NAT (PCR)"
-                    ) {
-                      baseResult.viralLoad = viralLoad ? Number.parseFloat(viralLoad) : undefined;
-                      baseResult.viralLoadReference = viralLoadReference || undefined;
-                      // Đảm bảo gửi đúng giá trị enum cho diễn giải VL
-                      let interpretation = viralLoadInterpretation;
-                      if (
-                        interpretation !== "undetectable" &&
-                        interpretation !== "low" &&
-                        interpretation !== "high"
-                      ) {
-                        // Nếu đang là text tiếng Việt thì chuyển về enum
-                        if (interpretation === "Không phát hiện") interpretation = "undetectable";
-                        else if (interpretation === "Thấp") interpretation = "low";
-                        else if (interpretation === "Cao") interpretation = "high";
-                      }
-                      baseResult.viralLoadInterpretation = interpretation || undefined;
-                    }
-                    // Nếu là Xét nghiệm CD4 thì gửi các trường đặc biệt
-                    if (
-                      selectedBooking &&
-                      typeof selectedBooking.serviceId === "object" &&
-                      selectedBooking.serviceId.serviceName === "Xét nghiệm CD4"
-                    ) {
-                      baseResult.cd4Count = cd4Count ? Number.parseFloat(cd4Count) : undefined;
-                      baseResult.cd4Reference = cd4Reference || undefined;
-                      // Đảm bảo gửi đúng giá trị enum cho diễn giải CD4
-                      let cd4Interp = cd4Interpretation;
-                      if (
-                        cd4Interp !== "normal" &&
-                        cd4Interp !== "low" &&
-                        cd4Interp !== "very_low"
-                      ) {
-                        if (cd4Interp === "Bình thường") cd4Interp = "normal";
-                        else if (cd4Interp === "Thấp") cd4Interp = "low";
-                        else if (cd4Interp === "Rất thấp") cd4Interp = "very_low";
-                      }
-                      baseResult.cd4Interpretation = cd4Interp || undefined;
-                    }
-                    await addResult(baseResult);
-                    setMedicalRecordSent((prev) => ({
-                      ...prev,
-                      [bookingId]: true,
-                    }));
-                    toast.success("Đã tạo phiếu xét nghiệm!");
-                    handleCloseMedicalModal();
-                  } catch (err: any) {
-                    console.error("Form submission error:", err);
-                    toast.error(err.message || "Lưu phiếu xét nghiệm thất bại!");
                   }
-                }}
-              >
-                <div className="space-y-6">
-                  {/* General Information */}
-                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                      Thông tin chung
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Ngày khám <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="date"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
-                          value={medicalDate}
-                          onChange={(e) => setMedicalDate(e.target.value)}
-                          required
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Loại khám <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
-                          value={medicalType}
-                          onChange={(e) => setMedicalType(e.target.value)}
-                          required
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Tên kết quả <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={resultName}
-                          onChange={(e) => setResultName(e.target.value)}
-                          placeholder="Nhập tên kết quả xét nghiệm"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Người thực hiện xét nghiệm
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={testerName}
-                          onChange={(e) => setTesterName(e.target.value)}
-                          placeholder="Nhập tên người thực hiện xét nghiệm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Mô tả kết quả
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={resultDescription}
-                          onChange={(e) => setResultDescription(e.target.value)}
-                          placeholder="Nhập mô tả thêm cho kết quả xét nghiệm"
-                        />
-                      </div>
-                      {/* <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Chẩn đoán <span className="text-red-500">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={diagnosis}
-                          onChange={(e) => setDiagnosis(e.target.value)}
-                          required
-                        />
-                      </div> */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Triệu chứng
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={symptoms}
-                          onChange={(e) => setSymptoms(e.target.value)}
-                        />
-                      </div>
+                  // Nếu là Xét nghiệm HIV NAT (PCR) thì gửi thêm các trường đặc biệt
+                  if (
+                    selectedBooking &&
+                    typeof selectedBooking.serviceId === "object" &&
+                    selectedBooking.serviceId.serviceName ===
+                    "Xét nghiệm HIV NAT (PCR)"
+                  ) {
+                    baseResult.viralLoad = viralLoad
+                      ? Number.parseFloat(viralLoad)
+                      : undefined;
+                    baseResult.viralLoadReference =
+                      viralLoadReference || undefined;
+                    // Đảm bảo gửi đúng giá trị enum cho diễn giải VL
+                    let interpretation = viralLoadInterpretation;
+                    if (
+                      interpretation !== "undetectable" &&
+                      interpretation !== "low" &&
+                      interpretation !== "high"
+                    ) {
+                      // Nếu đang là text tiếng Việt thì chuyển về enum
+                      if (interpretation === "Không phát hiện")
+                        interpretation = "undetectable";
+                      else if (interpretation === "Thấp")
+                        interpretation = "low";
+                      else if (interpretation === "Cao")
+                        interpretation = "high";
+                    }
+                    baseResult.viralLoadInterpretation =
+                      interpretation || undefined;
+                  }
+                  // Nếu là Xét nghiệm CD4 thì gửi các trường đặc biệt
+                  if (
+                    selectedBooking &&
+                    typeof selectedBooking.serviceId === "object" &&
+                    selectedBooking.serviceId.serviceName === "Xét nghiệm CD4"
+                  ) {
+                    baseResult.cd4Count = cd4Count
+                      ? Number.parseFloat(cd4Count)
+                      : undefined;
+                    baseResult.cd4Reference = cd4Reference || undefined;
+                    // Đảm bảo gửi đúng giá trị enum cho diễn giải CD4
+                    let cd4Interp = cd4Interpretation;
+                    if (
+                      cd4Interp !== "normal" &&
+                      cd4Interp !== "low" &&
+                      cd4Interp !== "very_low"
+                    ) {
+                      if (cd4Interp === "Bình thường") cd4Interp = "normal";
+                      else if (cd4Interp === "Thấp") cd4Interp = "low";
+                      else if (cd4Interp === "Rất thấp") cd4Interp = "very_low";
+                    }
+                    baseResult.cd4Interpretation = cd4Interp || undefined;
+                  }
+                  // Nếu là Xét nghiệm HIV Combo (Ag/Ab) thì gửi thêm các trường đặc biệt
+                  if (
+                    selectedBooking &&
+                    typeof selectedBooking.serviceId === "object" &&
+                    selectedBooking.serviceId.serviceName ===
+                    "Xét nghiệm HIV Combo (Ag/Ab)"
+                  ) {
+                    baseResult.p24Antigen = p24Antigen
+                      ? Number.parseFloat(p24Antigen)
+                      : undefined;
+                    baseResult.hivAntibody = hivAntibody
+                      ? Number.parseFloat(hivAntibody)
+                      : undefined;
+                  }
+                  await addResult(baseResult);
+                  setMedicalRecordSent((prev) => ({
+                    ...prev,
+                    [bookingId]: true,
+                  }));
+                  toast.success("Đã tạo phiếu xét nghiệm!");
+                  handleCloseMedicalModal();
+                } catch (err: any) {
+                  console.error("Form submission error:", err);
+                  toast.error(err.message || "Lưu phiếu xét nghiệm thất bại!");
+                }
+              }}
+            >
+              <div className="space-y-6">
+                {/* General Information */}
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                    Thông tin chung
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Ngày khám <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
+                        value={medicalDate}
+                        onChange={(e) => setMedicalDate(e.target.value)}
+                        required
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Loại khám <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
+                        value={medicalType}
+                        onChange={(e) => setMedicalType(e.target.value)}
+                        required
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Tên kết quả <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={resultName}
+                        onChange={(e) => setResultName(e.target.value)}
+                        placeholder="Nhập tên kết quả xét nghiệm"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Người thực hiện xét nghiệm
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={testerName}
+                        onChange={(e) => setTesterName(e.target.value)}
+                        placeholder="Nhập tên người thực hiện xét nghiệm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Mô tả kết quả
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={resultDescription}
+                        onChange={(e) => setResultDescription(e.target.value)}
+                        placeholder="Nhập mô tả thêm cho kết quả xét nghiệm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Triệu chứng
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={symptoms}
+                        onChange={(e) => setSymptoms(e.target.value)}
+                      />
                     </div>
                   </div>
+                </div>
 
-                  {/* Exam Information */}
-                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                      Thông tin khám
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Cân nặng (kg)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={weight}
-                          onChange={(e) => setWeight(e.target.value)}
-                          min="0"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Chiều cao (cm)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={height}
-                          onChange={(e) => setHeight(e.target.value)}
-                          min="0"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          BMI
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
-                          value={bmi}
-                          readOnly
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Huyết áp
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={bloodPressure}
-                          onChange={(e) => setBloodPressure(e.target.value)}
-                          placeholder="e.g., 120/80 mmHg"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Mạch (lần/phút)
-                        </label>
-                        <input
-                          type="number"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={pulse}
-                          onChange={(e) => setPulse(e.target.value)}
-                          min="0"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Nhiệt độ (°C)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={temperature}
-                          onChange={(e) => setTemperature(e.target.value)}
-                          min="0"
-                        />
-                      </div>
+                {/* Exam Information */}
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                    Thông tin khám
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Cân nặng (kg)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={weight}
+                        onChange={(e) => setWeight(e.target.value)}
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Chiều cao (cm)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={height}
+                        onChange={(e) => setHeight(e.target.value)}
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        BMI
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
+                        value={bmi}
+                        readOnly
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Huyết áp
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={bloodPressure}
+                        onChange={(e) => setBloodPressure(e.target.value)}
+                        placeholder="e.g., 120/80 mmHg"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Mạch (lần/phút)
+                      </label>
+                      <input
+                        type="number"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={pulse}
+                        onChange={(e) => setPulse(e.target.value)}
+                        min="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Nhiệt độ (°C)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={temperature}
+                        onChange={(e) => setTemperature(e.target.value)}
+                        min="0"
+                      />
                     </div>
                   </div>
+                </div>
 
-                  {/* Lab Test Information */}
-                  <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
-                    <h3 className="text-lg font-semibold text-gray-700 mb-4">
-                      Xét nghiệm
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Loại mẫu xét nghiệm
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={sampleType}
-                          onChange={(e) => setSampleType(e.target.value)}
-                          placeholder="e.g., Máu, Nước tiểu"
-                        />
-                      </div>
-                      {/* <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Phương pháp xét nghiệm
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={testMethod}
-                          onChange={(e) => setTestMethod(e.target.value)}
-                          placeholder="e.g., PCR, ELISA"
-                        />
-                      </div> */}
-                      {/* <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Loại kết quả xét nghiệm
-                        </label>
-                        <select
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={resultType}
-                          onChange={(e) =>
-                            setResultType(
-                              e.target.value as
-                                | "positive-negative"
-                                | "quantitative"
-                                | "other"
-                                | ""
-                            )
-                          }
-                        >
-                          <option value="">-- Chọn loại kết quả --</option>
-                          <option value="positive-negative">
-                            Dương tính/Âm tính
-                          </option>
-                          <option value="quantitative">Định lượng</option>
-                          <option value="other">Khác</option>
-                        </select>
-                      </div> */}
-                      {/* <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Kết quả xét nghiệm <span className="text-red-500">*</span>
-                        </label>
-                        <select
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={testResult}
-                          onChange={(e) => setTestResult(e.target.value as "positive" | "negative" | "invalid" | "")}
-                          required
-                        >
-                          <option value="">-- Chọn kết quả --</option>
-                          <option value="positive">Dương tính</option>
-                          <option value="negative">Âm tính</option>
-                          <option value="invalid">Không xác định</option>
-                        </select>
-                      </div> */}
-                      {/* <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Giá trị xét nghiệm
-                        </label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={testValue}
-                          onChange={(e) => setTestValue(e.target.value)}
-                          min="0"
-                        />
-                      </div> */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Đơn vị
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={unit}
-                          onChange={(e) => setUnit(e.target.value)}
-                          placeholder="e.g., copies/mL, %"
-                        />
-                      </div>
-                      {/* <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Khoảng tham chiếu
-                        </label>
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                          value={referenceRange}
-                          onChange={(e) => setReferenceRange(e.target.value)}
-                          placeholder="e.g., < 40 copies/mL"
-                        />
-                      </div> */}
-                      {/* Nếu là Xét nghiệm HIV nhanh (Rapid Test) thì hiển thị trường testResult ở phần Xét nghiệm */}
-                      {selectedBooking && typeof selectedBooking.serviceId === "object" && selectedBooking.serviceId.serviceName === "Xét nghiệm HIV nhanh (Rapid Test)" && (
+                {/* Lab Test Information */}
+                <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-4">
+                    Xét nghiệm
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Loại mẫu xét nghiệm
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={sampleType}
+                        onChange={(e) => setSampleType(e.target.value)}
+                        placeholder="e.g., Máu, Nước tiểu"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Đơn vị
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={unit}
+                        onChange={(e) => setUnit(e.target.value)}
+                        placeholder="e.g., copies/mL, %"
+                      />
+                    </div>
+
+                    {/* Nếu là Combo thì hiển thị thêm các trường đặc biệt */}
+                    {selectedBooking &&
+                      typeof selectedBooking.serviceId === "object" &&
+                      selectedBooking.serviceId.serviceName === "Xét nghiệm HIV Combo (Ag/Ab)" && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Giá trị kháng nguyên P24 (p24Antigen)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                              value={p24Antigen}
+                              onChange={(e) => setP24Antigen(e.target.value)}
+                              min="0"
+                              placeholder="e.g., 1.2"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Giá trị kháng thể HIV (hivAntibody)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                              value={hivAntibody}
+                              onChange={(e) => setHivAntibody(e.target.value)}
+                              min="0"
+                              placeholder="e.g., 0.8"
+                            />
+                          </div>
+                        </>
+                    )}
+
+                    {/* Nếu là Xét nghiệm HIV nhanh (Rapid Test) thì hiển thị trường testResult ở phần Xét nghiệm */}
+                    {selectedBooking &&
+                      typeof selectedBooking.serviceId === "object" &&
+                      selectedBooking.serviceId.serviceName ===
+                      "Xét nghiệm HIV nhanh (Rapid Test)" && (
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Kết quả xét nghiệm <span className="text-red-500">*</span>
+                            Kết quả xét nghiệm{" "}
+                            <span className="text-red-500">*</span>
                           </label>
                           <select
                             className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                             value={testResult}
-                            onChange={(e) => setTestResult(e.target.value as "positive" | "negative" | "invalid" | "")}
+                            onChange={(e) =>
+                              setTestResult(
+                                e.target.value as
+                                | "positive"
+                                | "negative"
+                                | "invalid"
+                                | ""
+                              )
+                            }
                             required
                           >
                             <option value="">-- Chọn kết quả --</option>
@@ -1321,7 +1313,10 @@ const TestManagement: React.FC = () => {
                           </select>
                         </div>
                       )}
-                      {selectedBooking && typeof selectedBooking.serviceId === "object" && selectedBooking.serviceId.serviceName === "Xét nghiệm HIV NAT (PCR)" && (
+                    {selectedBooking &&
+                      typeof selectedBooking.serviceId === "object" &&
+                      selectedBooking.serviceId.serviceName ===
+                      "Xét nghiệm HIV NAT (PCR)" && (
                         <>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1360,10 +1355,10 @@ const TestManagement: React.FC = () => {
                                 viralLoadInterpretation === "undetectable"
                                   ? "Không phát hiện"
                                   : viralLoadInterpretation === "low"
-                                  ? "Thấp"
-                                  : viralLoadInterpretation === "high"
-                                  ? "Cao"
-                                  : ""
+                                    ? "Thấp"
+                                    : viralLoadInterpretation === "high"
+                                      ? "Cao"
+                                      : ""
                               }
                               readOnly
                               placeholder="Diễn giải tự động"
@@ -1371,8 +1366,11 @@ const TestManagement: React.FC = () => {
                           </div>
                         </>
                       )}
-                      {/* Nếu là Xét nghiệm CD4 thì hiển thị các trường đặc biệt */}
-                      {selectedBooking && typeof selectedBooking.serviceId === "object" && selectedBooking.serviceId.serviceName === "Xét nghiệm CD4" && (
+                    {/* Nếu là Xét nghiệm CD4 thì hiển thị các trường đặc biệt */}
+                    {selectedBooking &&
+                      typeof selectedBooking.serviceId === "object" &&
+                      selectedBooking.serviceId.serviceName ===
+                      "Xét nghiệm CD4" && (
                         <>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1411,10 +1409,10 @@ const TestManagement: React.FC = () => {
                                 cd4Interpretation === "normal"
                                   ? "Bình thường"
                                   : cd4Interpretation === "low"
-                                  ? "Thấp"
-                                  : cd4Interpretation === "very_low"
-                                  ? "Rất thấp"
-                                  : ""
+                                    ? "Thấp"
+                                    : cd4Interpretation === "very_low"
+                                      ? "Rất thấp"
+                                      : ""
                               }
                               readOnly
                               placeholder="Diễn giải tự động"
@@ -1422,53 +1420,50 @@ const TestManagement: React.FC = () => {
                           </div>
                         </>
                       )}
-                    </div>
                   </div>
-
-                  {/* ARV Treatment - Conditionally Rendered */}
-                  {/* ...không hiển thị phần ARV... */}
-
-                  {/* Đã ẩn phần chọn trạng thái gửi hồ sơ theo yêu cầu */}
                 </div>
-                <div className="mt-8 flex justify-end gap-3">
-                  <button
-                    type="button"
-                    className="px-6 py-3 bg-gray-200 rounded-xl hover:bg-gray-300 text-gray-700 font-semibold transition-all"
-                    onClick={handleCloseMedicalModal}
-                  >
-                    Đóng
-                  </button>
-                  <button
-                    type="submit"
-                    className={`px-6 py-3 rounded-xl text-white font-semibold transition-all
-                    ${
-                      selectedBooking &&
+
+                {/* ARV Treatment - Conditionally Rendered */}
+                {/* ...không hiển thị phần ARV... */}
+
+                {/* Đã ẩn phần chọn trạng thái gửi hồ sơ theo yêu cầu */}
+              </div>
+              <div className="mt-8 flex justify-end gap-3">
+                <button
+                  type="button"
+                  className="px-6 py-3 bg-gray-200 rounded-xl hover:bg-gray-300 text-gray-700 font-semibold transition-all"
+                  onClick={handleCloseMedicalModal}
+                >
+                  Đóng
+                </button>
+                <button
+                  type="submit"
+                  className={`px-6 py-3 rounded-xl text-white font-semibold transition-all
+                    ${selectedBooking &&
                       (medicalRecordSent[selectedBooking._id!] || !!hasResult)
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
                     }`}
-                    disabled={
-                      selectedBooking
-                        ? medicalRecordSent[selectedBooking._id!] || !!hasResult
-                        : true
-                    }
-                  >
-                    {!!hasResult
-                      ? "Đã có kết quả, không thể gửi"
-                      : selectedBooking &&
-                        medicalRecordSent[selectedBooking._id!]
+                  disabled={
+                    selectedBooking
+                      ? medicalRecordSent[selectedBooking._id!] || !!hasResult
+                      : true
+                  }
+                >
+                  {!!hasResult
+                    ? "Đã có kết quả, không thể gửi"
+                    : selectedBooking && medicalRecordSent[selectedBooking._id!]
                       ? "Đã gửi hồ sơ"
                       : "Lưu hồ sơ"}
-                  </button>
-                </div>
-              </form>
-            </div>
+                </button>
+              </div>
+            </form>
           </div>
-        )}
+        </div>
+      )}
       <ToastContainer />
     </div>
   );
-
 };
 
 export default TestManagement;
