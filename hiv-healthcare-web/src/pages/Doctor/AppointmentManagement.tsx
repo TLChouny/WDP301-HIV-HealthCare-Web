@@ -16,7 +16,7 @@ import {
   XCircle,
   RefreshCcw,
 } from "lucide-react";
-import { translateBookingStatus } from "../../utils/status";
+import { translateBookingStatus, getBookingStatusColor } from "../../utils/status";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import CalendarComponent from "react-calendar";
@@ -722,13 +722,12 @@ const AppointmentManagement: React.FC = () => {
 
                           {/* Status and Actions */}
                           <div className="flex flex-col items-end gap-4 flex-shrink-0">
-                            <StatusButton
-                              status={booking.status || "unknown"}
-                              bookingId={booking._id}
-                              onStatusChange={handleStatusChange}
-                              userRole={user?.role}
-                              serviceName={serviceName}
-                            />
+                            <div
+                              className={`px-4 py-2 rounded-xl font-semibold text-sm shadow text-white bg-gradient-to-r ${getBookingStatusColor(booking.status || "unknown")}`}
+                              title={booking.status}
+                            >
+                              {translateBookingStatus(booking.status || "unknown")}
+                            </div>
                             <div className="flex items-center gap-2 text-sm text-gray-700">
                               <CreditCard className="w-4 h-4 text-teal-600" />
                               <span>

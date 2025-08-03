@@ -503,11 +503,11 @@ const TestManagement: React.FC = () => {
               <Calendar className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-gray-800">
-              Quản Lý Lịch Hẹn
+              Quản Lý Lịch Xét Nghiệm
             </h1>
           </div>
           <p className="text-gray-600">
-            Quản lý và theo dõi lịch hẹn khám HIV. Thông tin ẩn danh chỉ áp dụng
+            Quản lý và theo dõi lịch xét nghiệm HIV. Thông tin ẩn danh chỉ áp dụng
             cho booking ẩn danh.
           </p>
         </div>
