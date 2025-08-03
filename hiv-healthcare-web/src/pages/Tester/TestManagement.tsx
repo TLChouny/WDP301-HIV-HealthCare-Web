@@ -199,12 +199,46 @@ const TestManagement: React.FC = () => {
   const [resultType, setResultType] = useState<
     "positive-negative" | "quantitative" | "other" | ""
   >("");
-  const [testResult, setTestResult] = useState("");
+  const [testResult, setTestResult] = useState<"positive" | "negative" | "invalid" | "">("");
   const [testValue, setTestValue] = useState("");
   const [unit, setUnit] = useState("");
   const [referenceRange, setReferenceRange] = useState("");
   const [medicationSlot, setMedicationSlot] = useState("");
   const [regimenCode, setRegimenCode] = useState("");
+  // PCR HIV specific fields
+  const [viralLoad, setViralLoad] = useState("");
+  const [viralLoadReference, setViralLoadReference] = useState("");
+  const [viralLoadInterpretation, setViralLoadInterpretation] = useState("");
+
+  // Tự động cập nhật diễn giải VL khi nhập tải lượng virus
+  useEffect(() => {
+    if (
+      selectedBooking &&
+      typeof selectedBooking.serviceId === "object" &&
+      selectedBooking.serviceId.serviceName === "Xét nghiệm HIV NAT (PCR)"
+    ) {
+      const vl = viralLoad ? Number.parseFloat(viralLoad) : undefined;
+      if (vl === undefined || isNaN(vl)) {
+        setViralLoadInterpretation("");
+        setViralLoadReference("<20 copies/mL");
+      } else if (vl < 20) {
+        setViralLoadInterpretation("undetectable");
+        setViralLoadReference("<20 copies/mL");
+      } else if (vl < 1000) {
+        setViralLoadInterpretation("low");
+        setViralLoadReference("20-999 copies/mL");
+      } else {
+        setViralLoadInterpretation("high");
+        setViralLoadReference("≥1000 copies/mL");
+      }
+    }
+  }, [viralLoad, selectedBooking]);
+  // Thêm trường mô tả kết quả
+  const [resultDescription, setResultDescription] = useState("");
+  // Thêm trường tên người thực hiện xét nghiệm
+  const [testerName, setTesterName] = useState("");
+  // Thêm trường tên kết quả
+  const [resultName, setResultName] = useState("");
   const [treatmentLine, setTreatmentLine] = useState<
     "First-line" | "Second-line" | "Third-line" | ""
   >("");
@@ -862,17 +896,14 @@ const TestManagement: React.FC = () => {
                     toast.error("Phiếu xét nghiệm đã được gửi!");
                     return;
                   }
-                  if (!selectedStatusForSubmit) {
-                    toast.error("Vui lòng chọn trạng thái gửi phiếu xét nghiệm!");
-                    return;
-                  }
-                  if (!diagnosis) {
-                    toast.error("Vui lòng nhập kết luận xét nghiệm!");
-                    return;
-                  }
+                  // Đã bỏ kiểm tra trạng thái gửi hồ sơ
+                  // Đã bỏ kiểm tra kết luận xét nghiệm
                   try {
-                    await addResult({
-                      resultName: diagnosis,
+                    // Chuẩn bị dữ liệu gửi đi
+                    const baseResult: any = {
+                      resultName: resultName,
+                      resultDescription: resultDescription || undefined,
+                      testerName: testerName || undefined,
                       bookingId,
                       reExaminationDate: "", // required field
                       symptoms: symptoms || undefined,
@@ -886,22 +917,36 @@ const TestManagement: React.FC = () => {
                         : undefined,
                       sampleType: sampleType || undefined,
                       testMethod: testMethod || undefined,
-                      resultType: resultType || undefined,
                       testResult: testResult || undefined,
-                      testValue: testValue
-                        ? Number.parseFloat(testValue)
-                        : undefined,
                       unit: unit || undefined,
-                      referenceRange: referenceRange || undefined,
-                    });
+                    };
+                    // Nếu là Xét nghiệm HIV NAT (PCR) thì gửi thêm các trường đặc biệt
+                    if (
+                      selectedBooking &&
+                      typeof selectedBooking.serviceId === "object" &&
+                      selectedBooking.serviceId.serviceName === "Xét nghiệm HIV NAT (PCR)"
+                    ) {
+                      baseResult.viralLoad = viralLoad ? Number.parseFloat(viralLoad) : undefined;
+                      baseResult.viralLoadReference = viralLoadReference || undefined;
+                      // Đảm bảo gửi đúng giá trị enum cho diễn giải VL
+                      let interpretation = viralLoadInterpretation;
+                      if (
+                        interpretation !== "undetectable" &&
+                        interpretation !== "low" &&
+                        interpretation !== "high"
+                      ) {
+                        // Nếu đang là text tiếng Việt thì chuyển về enum
+                        if (interpretation === "Không phát hiện") interpretation = "undetectable";
+                        else if (interpretation === "Thấp") interpretation = "low";
+                        else if (interpretation === "Cao") interpretation = "high";
+                      }
+                      baseResult.viralLoadInterpretation = interpretation || undefined;
+                    }
+                    await addResult(baseResult);
                     setMedicalRecordSent((prev) => ({
                       ...prev,
                       [bookingId]: true,
                     }));
-                    await handleStatusChange(
-                      bookingId,
-                      selectedStatusForSubmit!
-                    );
                     toast.success("Đã tạo phiếu xét nghiệm!");
                     handleCloseMedicalModal();
                   } catch (err: any) {
@@ -946,6 +991,43 @@ const TestManagement: React.FC = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Tên kết quả <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                          value={resultName}
+                          onChange={(e) => setResultName(e.target.value)}
+                          placeholder="Nhập tên kết quả xét nghiệm"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Người thực hiện xét nghiệm
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                          value={testerName}
+                          onChange={(e) => setTesterName(e.target.value)}
+                          placeholder="Nhập tên người thực hiện xét nghiệm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Mô tả kết quả
+                        </label>
+                        <input
+                          type="text"
+                          className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                          value={resultDescription}
+                          onChange={(e) => setResultDescription(e.target.value)}
+                          placeholder="Nhập mô tả thêm cho kết quả xét nghiệm"
+                        />
+                      </div>
+                      {/* <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                           Chẩn đoán <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -955,7 +1037,7 @@ const TestManagement: React.FC = () => {
                           onChange={(e) => setDiagnosis(e.target.value)}
                           required
                         />
-                      </div>
+                      </div> */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Triệu chứng
@@ -1071,7 +1153,7 @@ const TestManagement: React.FC = () => {
                           placeholder="e.g., Máu, Nước tiểu"
                         />
                       </div>
-                      <div>
+                      {/* <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Phương pháp xét nghiệm
                         </label>
@@ -1082,8 +1164,8 @@ const TestManagement: React.FC = () => {
                           onChange={(e) => setTestMethod(e.target.value)}
                           placeholder="e.g., PCR, ELISA"
                         />
-                      </div>
-                      <div>
+                      </div> */}
+                      {/* <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Loại kết quả xét nghiệm
                         </label>
@@ -1107,20 +1189,24 @@ const TestManagement: React.FC = () => {
                           <option value="quantitative">Định lượng</option>
                           <option value="other">Khác</option>
                         </select>
-                      </div>
-                      <div>
+                      </div> */}
+                      {/* <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Kết quả xét nghiệm
+                          Kết quả xét nghiệm <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          type="text"
+                        <select
                           className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                           value={testResult}
-                          onChange={(e) => setTestResult(e.target.value)}
-                          placeholder="e.g., Dương tính, Âm tính"
-                        />
-                      </div>
-                      <div>
+                          onChange={(e) => setTestResult(e.target.value as "positive" | "negative" | "invalid" | "")}
+                          required
+                        >
+                          <option value="">-- Chọn kết quả --</option>
+                          <option value="positive">Dương tính</option>
+                          <option value="negative">Âm tính</option>
+                          <option value="invalid">Không xác định</option>
+                        </select>
+                      </div> */}
+                      {/* <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Giá trị xét nghiệm
                         </label>
@@ -1132,7 +1218,7 @@ const TestManagement: React.FC = () => {
                           onChange={(e) => setTestValue(e.target.value)}
                           min="0"
                         />
-                      </div>
+                      </div> */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Đơn vị
@@ -1145,7 +1231,7 @@ const TestManagement: React.FC = () => {
                           placeholder="e.g., copies/mL, %"
                         />
                       </div>
-                      <div>
+                      {/* <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Khoảng tham chiếu
                         </label>
@@ -1156,57 +1242,65 @@ const TestManagement: React.FC = () => {
                           onChange={(e) => setReferenceRange(e.target.value)}
                           placeholder="e.g., < 40 copies/mL"
                         />
-                      </div>
+                      </div> */}
+                      {/* Nếu là Xét nghiệm HIV NAT (PCR) thì hiển thị các trường đặc biệt */}
+                      {selectedBooking && typeof selectedBooking.serviceId === "object" && selectedBooking.serviceId.serviceName === "Xét nghiệm HIV NAT (PCR)" && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Tải lượng virus HIV (copies/mL)
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                              value={viralLoad}
+                              onChange={(e) => setViralLoad(e.target.value)}
+                              min="0"
+                              placeholder="e.g., 20"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Khoảng tham chiếu VL
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
+                              value={viralLoadReference}
+                              readOnly
+                              placeholder="e.g., <20 copies/mL"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Diễn giải kết quả VL
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
+                              value={
+                                viralLoadInterpretation === "undetectable"
+                                  ? "Không phát hiện"
+                                  : viralLoadInterpretation === "low"
+                                  ? "Thấp"
+                                  : viralLoadInterpretation === "high"
+                                  ? "Cao"
+                                  : ""
+                              }
+                              readOnly
+                              placeholder="Diễn giải tự động"
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
 
                   {/* ARV Treatment - Conditionally Rendered */}
                   {/* ...không hiển thị phần ARV... */}
 
-                  {/* Status Selection */}
-                  <div className="mt-6 bg-gray-50 rounded-xl p-6 border border-gray-100 flex flex-col items-center">
-                    <div className="mb-4 text-lg text-gray-800 font-semibold">
-                      Chọn trạng thái gửi hồ sơ{" "}
-                      <span className="text-red-500">*</span>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
-                      {/* Ẩn nút Tái Khám nếu booking là xét nghiệm labo */}
-                      {!(
-                        selectedBooking &&
-                        typeof selectedBooking.serviceId === "object" &&
-                        selectedBooking.serviceId.isLabTest
-                      ) && (
-                        <button
-                          type="button"
-                          className={`flex-1 px-5 py-3 border-2 rounded-xl shadow-md flex items-center justify-center gap-2 text-base font-semibold transition-all duration-150
-                          ${
-                            selectedStatusForSubmit === "re-examination"
-                              ? "border-purple-600 bg-purple-500 text-white ring-2 ring-purple-400"
-                              : "border-purple-400 bg-purple-100 text-purple-700 hover:bg-purple-200"
-                          }`}
-                          onClick={() =>
-                            setSelectedStatusForSubmit("re-examination")
-                          }
-                        >
-                          <CalendarClock className="w-6 h-6" />
-                          Tái khám
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        className={`flex-1 px-5 py-3 border-2 rounded-xl shadow-md flex items-center justify-center gap-2 text-base font-semibold transition-all duration-150
-                        ${
-                          selectedStatusForSubmit === "completed"
-                            ? "border-green-600 bg-green-500 text-white ring-2 ring-green-400"
-                            : "border-green-400 bg-green-100 text-green-700 hover:bg-green-200"
-                        }`}
-                        onClick={() => setSelectedStatusForSubmit("completed")}
-                      >
-                        <CheckCircle2 className="w-6 h-6" />
-                        Hoàn tất
-                      </button>
-                    </div>
-                  </div>
+                  {/* Đã ẩn phần chọn trạng thái gửi hồ sơ theo yêu cầu */}
                 </div>
                 <div className="mt-8 flex justify-end gap-3">
                   <button
