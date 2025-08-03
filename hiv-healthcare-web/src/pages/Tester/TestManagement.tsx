@@ -164,6 +164,12 @@ const StatusButton: React.FC<{
 };
 
 const TestManagement: React.FC = () => {
+  // CD4 specific fields
+  const [cd4Count, setCd4Count] = useState("");
+  const [cd4Reference, setCd4Reference] = useState("");
+  const [cd4Interpretation, setCd4Interpretation] = useState("");
+
+  // ...existing code...
   const [reExaminationDate, setReExaminationDate] = useState("");
   const { getAll, update } = useBooking();
   const { regimens, create: createArv } = useArv();
@@ -178,6 +184,29 @@ const TestManagement: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [openMedicalModal, setOpenMedicalModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  // Tự động cập nhật diễn giải CD4 khi nhập số lượng tế bào CD4
+  useEffect(() => {
+    if (
+      selectedBooking &&
+      typeof selectedBooking.serviceId === "object" &&
+      selectedBooking.serviceId.serviceName === "Xét nghiệm CD4"
+    ) {
+      const cd4 = cd4Count ? Number.parseFloat(cd4Count) : undefined;
+      if (cd4 === undefined || isNaN(cd4)) {
+        setCd4Interpretation("");
+        setCd4Reference(">500 cells/mm³");
+      } else if (cd4 >= 500) {
+        setCd4Interpretation("normal");
+        setCd4Reference(">500 cells/mm³");
+      } else if (cd4 >= 200) {
+        setCd4Interpretation("low");
+        setCd4Reference("200-499 cells/mm³");
+      } else {
+        setCd4Interpretation("very_low");
+        setCd4Reference("<200 cells/mm³");
+      }
+    }
+  }, [cd4Count, selectedBooking]);
 
   // State for Result fields
   const [medicalDate, setMedicalDate] = useState("");
@@ -942,6 +971,27 @@ const TestManagement: React.FC = () => {
                       }
                       baseResult.viralLoadInterpretation = interpretation || undefined;
                     }
+                    // Nếu là Xét nghiệm CD4 thì gửi các trường đặc biệt
+                    if (
+                      selectedBooking &&
+                      typeof selectedBooking.serviceId === "object" &&
+                      selectedBooking.serviceId.serviceName === "Xét nghiệm CD4"
+                    ) {
+                      baseResult.cd4Count = cd4Count ? Number.parseFloat(cd4Count) : undefined;
+                      baseResult.cd4Reference = cd4Reference || undefined;
+                      // Đảm bảo gửi đúng giá trị enum cho diễn giải CD4
+                      let cd4Interp = cd4Interpretation;
+                      if (
+                        cd4Interp !== "normal" &&
+                        cd4Interp !== "low" &&
+                        cd4Interp !== "very_low"
+                      ) {
+                        if (cd4Interp === "Bình thường") cd4Interp = "normal";
+                        else if (cd4Interp === "Thấp") cd4Interp = "low";
+                        else if (cd4Interp === "Rất thấp") cd4Interp = "very_low";
+                      }
+                      baseResult.cd4Interpretation = cd4Interp || undefined;
+                    }
                     await addResult(baseResult);
                     setMedicalRecordSent((prev) => ({
                       ...prev,
@@ -1286,6 +1336,57 @@ const TestManagement: React.FC = () => {
                                   ? "Thấp"
                                   : viralLoadInterpretation === "high"
                                   ? "Cao"
+                                  : ""
+                              }
+                              readOnly
+                              placeholder="Diễn giải tự động"
+                            />
+                          </div>
+                        </>
+                      )}
+                      {/* Nếu là Xét nghiệm CD4 thì hiển thị các trường đặc biệt */}
+                      {selectedBooking && typeof selectedBooking.serviceId === "object" && selectedBooking.serviceId.serviceName === "Xét nghiệm CD4" && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Số lượng tế bào CD4 (cells/mm³)
+                            </label>
+                            <input
+                              type="number"
+                              step="1"
+                              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                              value={cd4Count}
+                              onChange={(e) => setCd4Count(e.target.value)}
+                              min="0"
+                              placeholder="e.g., 600"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Khoảng tham chiếu CD4
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
+                              value={cd4Reference}
+                              readOnly
+                              placeholder="e.g., >500 cells/mm³"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Diễn giải kết quả CD4
+                            </label>
+                            <input
+                              type="text"
+                              className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
+                              value={
+                                cd4Interpretation === "normal"
+                                  ? "Bình thường"
+                                  : cd4Interpretation === "low"
+                                  ? "Thấp"
+                                  : cd4Interpretation === "very_low"
+                                  ? "Rất thấp"
                                   : ""
                               }
                               readOnly
