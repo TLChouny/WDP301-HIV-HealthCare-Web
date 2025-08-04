@@ -8,7 +8,11 @@ import type { Payment } from "../types/payment";
 export const createPaymentLink = async (
   paymentData: Omit<Payment, "_id" | "createdAt" | "updatedAt">
 ): Promise<Payment> => {
-  const res = await axios.post(`${BASE_URL}${API_ENDPOINTS.CREATE_PAYMENT_LINK}`, paymentData);
+  if (!paymentData.bookingIds || paymentData.bookingIds.length === 0) {
+    throw new Error("bookingIds phải là mảng có ít nhất 1 phần tử")
+  }
+
+  const res = await axios.post(`${BASE_URL}${API_ENDPOINTS.CREATE_PAYMENT_LINK}`, paymentData)
 
   if (res.data.error === 0) {
     return {
@@ -16,12 +20,12 @@ export const createPaymentLink = async (
       checkoutUrl: res.data.data.checkoutUrl,
       qrCode: res.data.data.qrCode,
       orderCode: res.data.data.orderCode,
-      status: "pending",
-    };
+      status: "pending", // Giữ nguyên pending, API sẽ update sau khi thanh toán
+    }
   } else {
-    throw new Error(res.data.message || "Tạo thanh toán thất bại");
+    throw new Error(res.data.message || "Tạo thanh toán thất bại")
   }
-};
+}
 
 /**
  * Lấy thông tin đơn hàng theo mã đơn hàng (orderCode)
