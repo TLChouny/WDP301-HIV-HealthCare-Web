@@ -243,6 +243,21 @@ const AppointmentManagement: React.FC = () => {
     [update],
   )
 
+  // Callback để refresh danh sách booking sau khi cập nhật
+  const handleBookingUpdate = useCallback(async () => {
+    try {
+      const data = await getAll()
+      if (user && user.role === "doctor" && user.userName) {
+        const filteredBookings = data.filter((booking: Booking) => booking.doctorName === user.userName)
+        setBookings(filteredBookings)
+      } else {
+        setBookings(data)
+      }
+    } catch (err: any) {
+      console.error("Error refreshing bookings:", err)
+    }
+  }, [getAll, user])
+
   const filteredBookings = useMemo(
     () =>
       bookings.filter((booking) => {
@@ -438,7 +453,11 @@ const AppointmentManagement: React.FC = () => {
                 setMedicalType={setMedicalType}
                 setOpenMedicalModal={setOpenMedicalModal}
                 medicalRecordSent={medicalRecordSent}
-                hasResult={!!hasResult} loading={false} error={null}              />
+                hasResult={!!hasResult} 
+                loading={false} 
+                error={null}
+                onBookingUpdate={handleBookingUpdate}
+              />
             )}
           </div>
 

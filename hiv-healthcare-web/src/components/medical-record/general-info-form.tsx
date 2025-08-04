@@ -13,6 +13,7 @@ interface GeneralInfoFormProps {
   setHeight?: (height: number) => void;
   bmi?: number;
   labResult?: Result | null;
+  isArvTest?: boolean;
 }
 
 const GeneralInfoForm: React.FC<GeneralInfoFormProps> = ({
@@ -26,6 +27,7 @@ const GeneralInfoForm: React.FC<GeneralInfoFormProps> = ({
   setHeight,
   bmi,
   labResult,
+  isArvTest = false,
 }) => {
   // Auto-fill từ labResult nếu có
   useEffect(() => {
@@ -47,9 +49,15 @@ const GeneralInfoForm: React.FC<GeneralInfoFormProps> = ({
   const calculatedBMI =
     weight && height && height > 0 ? Number((weight / (height * height)).toFixed(2)) : "";
 
+  // Nếu là isArvTest thì không hiển thị gì
+  if (isArvTest) {
+    return null;
+  }
+
   return (
     <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
       <h3 className="text-lg font-semibold text-gray-700 mb-4">Thông tin chung</h3>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Ngày khám */}
         <div>

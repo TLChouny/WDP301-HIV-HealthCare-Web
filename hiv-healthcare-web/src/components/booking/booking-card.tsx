@@ -1,8 +1,9 @@
 import type React from "react"
-import { User, Phone, Mail, Stethoscope, CreditCard, Calendar } from "lucide-react"
+import { User, Phone, Mail, Stethoscope, CreditCard, Calendar, X } from "lucide-react"
 import type { Booking } from "../../types/booking" // Assuming this path is correct
 import { parseBookingDateLocal } from "../../utils/date"
 import { translateBookingStatus, getBookingStatusColor } from "../../utils/status"
+import { updateBooking } from "../../api/bookingApi"
 
 interface BookingCardProps {
   booking: Booking
@@ -18,6 +19,7 @@ interface BookingCardProps {
   setOpenMedicalModal: (open: boolean) => void
   medicalRecordSent: { [bookingId: string]: boolean }
   hasResult: boolean
+  onBookingUpdate?: () => void // Callback để refresh danh sách booking
 }
 
 const BookingCard: React.FC<BookingCardProps> = ({
@@ -29,12 +31,67 @@ const BookingCard: React.FC<BookingCardProps> = ({
   setOpenMedicalModal,
   medicalRecordSent,
   hasResult,
+  onBookingUpdate,
 }) => {
   const patientInfo = getPatientDisplayInfo(booking)
   const serviceName = typeof booking.serviceId === "object" ? booking.serviceId.serviceName : "Không xác định"
   const serviceDescription =
     typeof booking.serviceId === "object" ? booking.serviceId.serviceDescription : "Không có mô tả"
   const servicePrice = typeof booking.serviceId === "object" ? booking.serviceId.price : undefined
+  
+  // Check if this is a lab test or ARV test
+  const isLabTest = typeof booking.serviceId === "object" && booking.serviceId?.isLabTest
+  const isArvTest = typeof booking.serviceId === "object" && booking.serviceId?.isArvTest
+  
+  // Determine button text based on service type
+  const getButtonText = () => {
+    if (isArvTest) return "Tạo hồ sơ ARV"
+    if (isLabTest) return "Xem hồ sơ"
+    return "Tạo hồ sơ"
+  }
+
+  // Check if button should be disabled
+  const isButtonDisabled = () => {
+    if (booking.status === "pending") return true
+    return false
+  }
+
+  // Check if button should be hidden completely
+  const shouldHideButton = () => {
+    if (isArvTest && (booking.status === "completed" || booking.status === "re-examination")) return true
+    return false
+  }
+
+  // Get button title based on disabled state
+  const getButtonTitle = () => {
+    if (booking.status === "pending") return "Không thể tạo hồ sơ khi trạng thái là Chờ xác nhận"
+    return "Tạo hồ sơ bệnh án"
+  }
+
+  // Handle cancel booking
+  const handleCancelBooking = async () => {
+    if (!booking._id) return
+    
+    const isConfirmed = window.confirm("Bạn có chắc chắn muốn hủy lịch hẹn này không?")
+    if (!isConfirmed) return
+
+    try {
+      console.log("Cancelling booking with ID:", booking._id)
+      console.log("Current booking status:", booking.status)
+      
+      const updatedBooking = await updateBooking(booking._id, { status: "cancelled" })
+      console.log("Updated booking:", updatedBooking)
+      
+      // Refresh the booking list if callback is provided
+      if (onBookingUpdate) {
+        onBookingUpdate()
+      }
+      alert("Hủy lịch hẹn thành công!")
+    } catch (error) {
+      console.error("Error cancelling booking:", error)
+      alert("Có lỗi xảy ra khi hủy lịch hẹn. Vui lòng thử lại!")
+    }
+  }
 
   return (
     <div
@@ -113,42 +170,55 @@ const BookingCard: React.FC<BookingCardProps> = ({
               {booking.status === "checked-out" ||
               booking.status === "re-examination" ||
               booking.status === "checked-in" ||
-              booking.status === "completed" ? (
+              booking.status === "completed" ||
+              booking.status === "cancelled" ? (
                 <span className="font-semibold text-green-700">Đã thanh toán</span>
               ) : (
                 <span className="font-semibold text-red-700">Chưa thanh toán</span>
               )}
             </span>
           </div>
-          <button
-            onClick={() => {
-              setSelectedBooking(booking)
-              setMedicalDate(new Date(booking.bookingDate).toISOString().slice(0, 10))
-              setMedicalType(booking.serviceId?.serviceName || "")
-              setOpenMedicalModal(true)
-            }}
-            title={
-              booking.status === "pending" ? "Không thể tạo hồ sơ khi trạng thái là Chờ xác nhận" : "Tạo hồ sơ bệnh án"
-            }
-            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md
-              ${
-                booking.status === "pending"
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
-              }`}
-            disabled={booking.status === "pending"}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-4 h-4 inline mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          {!shouldHideButton() && (
+            <button
+              onClick={() => {
+                setSelectedBooking(booking)
+                setMedicalDate(new Date(booking.bookingDate).toISOString().slice(0, 10))
+                setMedicalType(booking.serviceId?.serviceName || "")
+                setOpenMedicalModal(true)
+              }}
+              title={getButtonTitle()}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md
+                ${
+                  isButtonDisabled()
+                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                }`}
+              disabled={isButtonDisabled()}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Tạo hồ sơ
-          </button>
+              {/* <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4 inline mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg> */}
+              {getButtonText()}
+            </button>
+          )}
+          
+          {/* Cancel Button - Only show for checked-in status */}
+          {booking.status === "checked-in" && (
+            <button
+              onClick={handleCancelBooking}
+              title="Hủy lịch hẹn"
+              className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 flex items-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              Hủy lịch
+            </button>
+          )}
         </div>
       </div>
     </div>

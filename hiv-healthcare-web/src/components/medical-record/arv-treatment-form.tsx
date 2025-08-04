@@ -158,17 +158,6 @@ const ArvTreatmentForm: React.FC<ArvTreatmentFormProps> = ({
               disabled={!!hasResult}
             />
           </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tải lượng HIV</label>
-              <input
-                type="text"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                value={hivLoad}
-                onChange={(e) => setHivLoad(e.target.value)}
-                placeholder="e.g., < 40 copies/mL"
-                disabled={!!hasResult}
-              />
-            </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Đối tượng</label>
             <input

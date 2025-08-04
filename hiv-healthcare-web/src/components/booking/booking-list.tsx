@@ -22,6 +22,7 @@ interface BookingListProps {
   setOpenMedicalModal: (open: boolean) => void
   medicalRecordSent: { [bookingId: string]: boolean }
   hasResult: boolean
+  onBookingUpdate?: () => void // Callback để refresh danh sách booking
 }
 
 const BookingList: React.FC<BookingListProps> = ({
@@ -38,6 +39,7 @@ const BookingList: React.FC<BookingListProps> = ({
   setOpenMedicalModal,
   medicalRecordSent,
   hasResult,
+  onBookingUpdate,
 }) => {
   if (loading || error) {
     return null // Handled in parent component
@@ -76,6 +78,7 @@ const BookingList: React.FC<BookingListProps> = ({
           setOpenMedicalModal={setOpenMedicalModal}
           medicalRecordSent={medicalRecordSent}
           hasResult={hasResult}
+          onBookingUpdate={onBookingUpdate}
         />
       ))}
     </div>

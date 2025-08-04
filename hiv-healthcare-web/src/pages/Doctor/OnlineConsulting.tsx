@@ -36,7 +36,7 @@ const parseBookingDateLocal = (dateStr: string): Date => {
 const StatusButton: React.FC<{
   status: string;
   bookingId?: string;
-  onStatusChange: (bookingId: string, newStatus: "checked-in" | "completed" | "cancelled" | "confirmed" | "pending" | "re-examination" | "checked-out") => void;
+  onStatusChange?: (bookingId: string, newStatus: "checked-in" | "completed" | "cancelled" | "confirmed" | "pending" | "re-examination" | "checked-out") => void;
   userRole?: string;
 }> = ({ status, bookingId, onStatusChange, userRole = "user" }) => {
   if (!bookingId) {
@@ -46,53 +46,35 @@ const StatusButton: React.FC<{
       </span>
     );
   }
-  if (["checked-in", "completed", "cancelled", "confirmed", "paid"].includes(status)) {
-    const statusStyles: { [key: string]: string } = {
-      "checked-in": "bg-green-100 text-green-700 border-green-200",
-      cancelled: "bg-red-100 text-red-700 border-red-200",
-      completed: "bg-purple-100 text-purple-700 border-purple-200",
-      confirmed: "bg-blue-100 text-blue-700 border-blue-200",
-      paid: "bg-orange-100 text-orange-700 border-orange-200",
-    };
-    const getStatusIcon = (s: string) => {
-      switch (s) {
-        case "checked-in":
-        case "completed":
-          return <CheckCircle2 className="w-4 h-4 mr-2" />;
-        case "pending":
-          return <Clock className="w-4 h-4 mr-2" />;
-        case "cancelled":
-          return <XCircle className="w-4 h-4 mr-2" />;
-        case "confirmed":
-          return <CheckCircle2 className="w-4 h-4 mr-2" />;
-        case "paid":
-          return <CheckCircle2 className="w-4 h-4 mr-2" />;
-        default:
-          return null;
-      }
-    };
-    return (
-      <span className={`inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold ${statusStyles[status] || "bg-gray-100 text-gray-700 border-gray-200"}`}>
-        {getStatusIcon(status)}
-        {translateBookingStatus(status)}
-      </span>
-    );
-  }
-  // Doctor có thể chuyển từ pending sang completed cho tư vấn trực tuyến
-  if (userRole === "doctor" && status === "pending") {
-    return (
-      <div
-        onClick={() => onStatusChange(bookingId, "completed")}
-        className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold text-black hover:from-purple-700 hover:to-pink-700 transition-all duration-200 shadow-md cursor-pointer"
-      >
-        <CheckCircle2 className="w-4 h-4 mr-2" />
-        Hoàn thành
-      </div>
-    );
-  }
+  
+  const statusStyles: { [key: string]: string } = {
+    "checked-in": "bg-green-100 text-green-700 border-green-200",
+    cancelled: "bg-red-100 text-red-700 border-red-200",
+    completed: "bg-purple-100 text-purple-700 border-purple-200",
+    confirmed: "bg-blue-100 text-blue-700 border-blue-200",
+    paid: "bg-orange-100 text-orange-700 border-orange-200",
+    pending: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  };
+  
+  const getStatusIcon = (s: string) => {
+    switch (s) {
+      case "checked-in":
+      case "completed":
+      case "confirmed":
+      case "paid":
+        return <CheckCircle2 className="w-4 h-4 mr-2" />;
+      case "pending":
+        return <Clock className="w-4 h-4 mr-2" />;
+      case "cancelled":
+        return <XCircle className="w-4 h-4 mr-2" />;
+      default:
+        return null;
+    }
+  };
+  
   return (
-    <span className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold bg-gray-200 text-gray-500 border border-gray-200 cursor-not-allowed">
-      <Clock className="w-4 h-4 mr-2" />
+    <span className={`inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold border ${statusStyles[status] || "bg-gray-100 text-gray-700 border-gray-200"}`}>
+      {getStatusIcon(status)}
       {translateBookingStatus(status)}
     </span>
   );
@@ -358,7 +340,6 @@ const OnlineConsulting: React.FC = () => {
                             <StatusButton
                               status={booking.status}
                               bookingId={booking._id}
-                              onStatusChange={handleStatusChange}
                               userRole={user?.role}
                             />
                             <div className="flex flex-row gap-2 mt-2">
@@ -387,6 +368,16 @@ const OnlineConsulting: React.FC = () => {
                                 </svg>
                                 Tạo ghi chú
                               </button>
+                              {booking.status === "checked-in" && (
+                                <button
+                                  onClick={() => handleStatusChange(booking._id, "cancelled")}
+                                  title="Hủy lịch hẹn"
+                                  className="px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 flex items-center"
+                                >
+                                  <XCircle className="w-4 h-4 inline mr-2" />
+                                  Hủy lịch
+                                </button>
+                              )}
                               {isOnlineConsultation && (
                                 booking.meetLink ? (
                                   <a
@@ -469,9 +460,9 @@ const OnlineConsulting: React.FC = () => {
           if (!noteBookingId) return;
           setNoteLoading(true);
           try {
-            const updated = await update(noteBookingId, { doctorNote: noteValue });
-            setBookings((prev) => prev.map((b) => b._id === noteBookingId ? { ...b, doctorNote: updated.doctorNote, status: updated.status } : b));
-            toast.success("Đã lưu ghi chú bác sĩ!");
+            const updated = await update(noteBookingId, { doctorNote: noteValue, status: "completed" });
+            setBookings((prev) => prev.map((b) => b._id === noteBookingId ? { ...b, doctorNote: updated.doctorNote, status: "completed" } : b));
+            toast.success("Đã lưu ghi chú bác sĩ và hoàn thành lịch hẹn!");
             setNoteModalOpen(false);
           } catch (err: any) {
             toast.error("Lưu ghi chú thất bại!");
