@@ -16,9 +16,13 @@ import {
   XCircle,
   MapPin,
   Activity,
+  Heart,
+  TestTube,
+  Pill,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useResult } from "../../context/ResultContext";
+import { getBookingStatusColor, translateBookingStatus, getStatusIcon } from "../../utils/status";
 import type { User as UserType } from "../../types/user"; // Giả sử Result được định nghĩa ở đây
 import { Result } from "../../types/result";
 // Helper function to format frequency (e.g., "2" → "2 lần/ngày")
@@ -28,48 +32,58 @@ const formatFrequency = (freq: string | undefined): string => {
   return isNaN(num) ? freq : `${num} lần/ngày`;
 };
 
-// Helper function to get status color for bookings
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "completed":
-      return "bg-green-100 text-green-700";
-    case "confirmed":
-      return "bg-blue-100 text-blue-700";
-    case "pending":
-      return "bg-amber-100 text-amber-700";
-    case "cancelled":
-      return "bg-red-100 text-red-700";
-    case "re-examination":
-      return "bg-purple-100 text-purple-700";
-    case "checked-in":
-      return "bg-teal-100 text-teal-700";
-    case "checked-out":
-      return "bg-gray-100 text-gray-700";
-    default:
-      return "bg-gray-100 text-gray-700";
-  }
+// Format test result with color coding
+const formatTestResult = (testResult: string | undefined): string => {
+  if (!testResult) return "Chưa có";
+  const resultMap: { [key: string]: string } = {
+    positive: "Dương tính",
+    negative: "Âm tính",
+    invalid: "Không hợp lệ",
+  };
+  return resultMap[testResult.toLowerCase()] || testResult;
 };
 
-// Helper function to get status icon for bookings
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case "completed":
-      return <CheckCircle2 className="h-4 w-4" />;
-    case "confirmed":
-      return <CheckCircle2 className="h-4 w-4" />;
-    case "pending":
-      return <Clock className="h-4 w-4" />;
-    case "cancelled":
-      return <XCircle className="h-4 w-4" />;
-    case "re-examination":
-      return <Activity className="h-4 w-4" />;
-    case "checked-in":
-      return <MapPin className="h-4 w-4" />;
-    case "checked-out":
-      return <MapPin className="h-4 w-4" />;
-    default:
-      return <AlertCircle className="h-4 w-4" />;
-  }
+// Format viral load interpretation
+const formatViralLoadInterpretation = (interpretation: string | undefined): string => {
+  if (!interpretation) return "Chưa có";
+  const interpretationMap: { [key: string]: string } = {
+    undetectable: "Không phát hiện",
+    low: "Thấp",
+    high: "Cao",
+  };
+  return interpretationMap[interpretation.toLowerCase()] || interpretation;
+};
+
+// Format CD4 interpretation
+const formatCD4Interpretation = (interpretation: string | undefined): string => {
+  if (!interpretation) return "Chưa có";
+  const interpretationMap: { [key: string]: string } = {
+    normal: "Bình thường",
+    low: "Thấp",
+    very_low: "Rất thấp",
+  };
+  return interpretationMap[interpretation.toLowerCase()] || interpretation;
+};
+
+// Calculate and format BMI
+const calculateBMI = (weight?: number, height?: number): string => {
+  if (!weight || !height) return "Chưa có";
+  const heightInMeters = height / 100; // convert cm to meters
+  const bmi = weight / (heightInMeters * heightInMeters);
+  return bmi.toFixed(1);
+};
+
+// Get BMI status and color
+const getBMIStatus = (weight?: number, height?: number): { status: string; color: string } => {
+  if (!weight || !height) return { status: "Chưa có", color: "bg-gray-100 text-gray-800" };
+  
+  const heightInMeters = height / 100;
+  const bmi = weight / (heightInMeters * heightInMeters);
+  
+  if (bmi < 18.5) return { status: "Thiếu cân", color: "bg-blue-100 text-blue-800" };
+  if (bmi >= 18.5 && bmi < 25) return { status: "Bình thường", color: "bg-green-100 text-green-800" };
+  if (bmi >= 25 && bmi < 30) return { status: "Thừa cân", color: "bg-yellow-100 text-yellow-800" };
+  return { status: "Béo phì", color: "bg-red-100 text-red-800" };
 };
 
 const StaffPatientAndRecordManagement: React.FC = () => {
@@ -316,18 +330,31 @@ const StaffPatientAndRecordManagement: React.FC = () => {
                     <div className="mb-4">
                       <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
                         <Stethoscope className="h-5 w-5 text-teal-600" />
-                        Chẩn đoán
+                        Chẩn đoán & Thông tin chung
                       </h4>
                       <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                        <p className="text-gray-700">
-                          <span className="font-medium">Tên kết quả:</span> {result.resultName || "Không có"}
-                        </p>
-                        <p className="text-gray-700 mt-1">
-                          <span className="font-medium">Mô tả:</span> {result.resultDescription || "Không có"}
-                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <p className="text-gray-700">
+                            <span className="font-medium">Tên kết quả:</span> {result.resultName || "Không có"}
+                          </p>
+                          <p className="text-gray-700">
+                            <span className="font-medium">Mô tả:</span> {result.resultDescription || "Không có"}
+                          </p>
+                          <p className="text-gray-700">
+                            <span className="font-medium">Người thực hiện XN:</span> {result.testerName || "Không có"}
+                          </p>
+                          <p className="text-gray-700">
+                            <span className="font-medium">Ghi chú bác sĩ:</span> {result.notes || "Không có"}
+                          </p>
+                        </div>
                         {result.symptoms && (
-                          <p className="text-gray-700 mt-1">
+                          <p className="text-gray-700 mt-2">
                             <span className="font-medium">Triệu chứng:</span> {result.symptoms}
+                          </p>
+                        )}
+                        {result.interpretationNote && (
+                          <p className="text-gray-700 mt-2">
+                            <span className="font-medium">Ghi chú diễn giải:</span> {result.interpretationNote}
                           </p>
                         )}
                       </div>
@@ -336,10 +363,10 @@ const StaffPatientAndRecordManagement: React.FC = () => {
                     {/* Vital Signs */}
                     <div className="mb-4">
                       <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                        <CheckCircle2 className="h-5 w-5 text-teal-600" />
+                        <Heart className="h-5 w-5 text-teal-600" />
                         Chỉ số sinh tồn
                       </h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <p className="text-gray-700">
                           <span className="font-medium">Cân nặng:</span> {result.weight ? `${result.weight} kg` : "N/A"}
                         </p>
@@ -347,21 +374,175 @@ const StaffPatientAndRecordManagement: React.FC = () => {
                           <span className="font-medium">Chiều cao:</span>{" "}
                           {result.height ? `${result.height} cm` : "N/A"}
                         </p>
+                        <div className="text-gray-700">
+                          <span className="font-medium">BMI:</span>{" "}
+                          {result.weight && result.height ? (
+                            <span className="inline-flex items-center gap-2">
+                              <span>{result.bmi || calculateBMI(result.weight, result.height)}</span>
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                getBMIStatus(result.weight, result.height).color
+                              }`}>
+                                {getBMIStatus(result.weight, result.height).status}
+                              </span>
+                            </span>
+                          ) : "N/A"}
+                        </div>
                         <p className="text-gray-700">
                           <span className="font-medium">Huyết áp:</span> {result.bloodPressure || "N/A"}
                         </p>
                         <p className="text-gray-700">
-                          <span className="font-medium">Tải lượng HIV:</span> {result.pulse || "N/A"}
+                          <span className="font-medium">Mạch:</span> {result.pulse ? `${result.pulse} lần/phút` : "N/A"}
                         </p>
-                        {result.bmi && (
+                        <p className="text-gray-700">
+                          <span className="font-medium">Nhiệt độ:</span> {result.temperature ? `${result.temperature} °C` : "N/A"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Lab Test Information */}
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                        <TestTube className="h-5 w-5 text-teal-600" />
+                        Xét nghiệm chi tiết
+                      </h4>
+                      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                           <p className="text-gray-700">
-                            <span className="font-medium">BMI:</span> {result.bmi}
+                            <span className="font-medium">Loại mẫu:</span> {result.sampleType || "N/A"}
                           </p>
+                          <p className="text-gray-700">
+                            <span className="font-medium">Phương pháp:</span> {result.testMethod || "N/A"}
+                          </p>
+                          <p className="text-gray-700">
+                            <span className="font-medium">Đơn vị đo:</span> {result.unit || "N/A"}
+                          </p>
+                          <div className="text-gray-700">
+                            <span className="font-medium">Kết quả XN:</span>{" "}
+                            {result.testResult ? (
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                result.testResult === 'positive' ? 'bg-red-100 text-red-800' :
+                                result.testResult === 'negative' ? 'bg-green-100 text-green-800' :
+                                'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {formatTestResult(result.testResult)}
+                              </span>
+                            ) : "N/A"}
+                          </div>
+                        </div>
+
+                        {/* Viral Load Section */}
+                        {(result.viralLoad || result.viralLoadInterpretation || result.viralLoadReference) && (
+                          <div className="border-t border-gray-200 pt-3 mt-3">
+                            <h5 className="font-medium text-gray-700 mb-2">Tải lượng virus (VL)</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                              <p className="text-gray-700 text-sm">
+                                <span className="font-medium">Giá trị:</span>{" "}
+                                {result.viralLoad ? `${result.viralLoad} ${result.unit || 'copies/mL'}` : "N/A"}
+                              </p>
+                              <p className="text-gray-700 text-sm">
+                                <span className="font-medium">Tham chiếu:</span> {result.viralLoadReference || "N/A"}
+                              </p>
+                              <div className="text-gray-700 text-sm">
+                                <span className="font-medium">Diễn giải:</span>{" "}
+                                {result.viralLoadInterpretation ? (
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    result.viralLoadInterpretation === 'undetectable' ? 'bg-green-100 text-green-800' :
+                                    result.viralLoadInterpretation === 'low' ? 'bg-yellow-100 text-yellow-800' :
+                                    result.viralLoadInterpretation === 'high' ? 'bg-red-100 text-red-800' :
+                                    'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {formatViralLoadInterpretation(result.viralLoadInterpretation)}
+                                  </span>
+                                ) : "N/A"}
+                              </div>
+                            </div>
+                          </div>
                         )}
-                        {result.temperature && (
-                          <p className="text-gray-700">
-                            <span className="font-medium">Nhiệt độ:</span> {result.temperature} °C
-                          </p>
+
+                        {/* CD4 Section */}
+                        {(result.cd4Count || result.cd4Interpretation || result.cd4Reference) && (
+                          <div className="border-t border-gray-200 pt-3 mt-3">
+                            <h5 className="font-medium text-gray-700 mb-2">Số lượng CD4</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                              <p className="text-gray-700 text-sm">
+                                <span className="font-medium">Giá trị:</span>{" "}
+                                {result.cd4Count ? `${result.cd4Count} cells/mm³` : "N/A"}
+                              </p>
+                              <p className="text-gray-700 text-sm">
+                                <span className="font-medium">Tham chiếu:</span> {result.cd4Reference || "N/A"}
+                              </p>
+                              <div className="text-gray-700 text-sm">
+                                <span className="font-medium">Diễn giải:</span>{" "}
+                                {result.cd4Interpretation ? (
+                                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                    result.cd4Interpretation === 'normal' ? 'bg-green-100 text-green-800' :
+                                    result.cd4Interpretation === 'low' ? 'bg-yellow-100 text-yellow-800' :
+                                    result.cd4Interpretation === 'very_low' ? 'bg-red-100 text-red-800' :
+                                    'bg-gray-100 text-gray-800'
+                                  }`}>
+                                    {formatCD4Interpretation(result.cd4Interpretation)}
+                                  </span>
+                                ) : "N/A"}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Antibody/Antigen Tests */}
+                        {(result.p24Antigen !== undefined || result.hivAntibody !== undefined) && (
+                          <div className="border-t border-gray-200 pt-3 mt-3">
+                            <h5 className="font-medium text-gray-700 mb-2">Kháng thể & Kháng nguyên</h5>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              <div className="text-gray-700 text-sm">
+                                <span className="font-medium">P24 Antigen:</span>{" "}
+                                {result.p24Antigen !== undefined ? (
+                                  result.p24Antigen > 0 ? (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                      Dương tính ({result.p24Antigen})
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                      Âm tính
+                                    </span>
+                                  )
+                                ) : "N/A"}
+                              </div>
+                              <div className="text-gray-700 text-sm">
+                                <span className="font-medium">HIV Antibody:</span>{" "}
+                                {result.hivAntibody !== undefined ? (
+                                  result.hivAntibody > 0 ? (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                      Dương tính ({result.hivAntibody})
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                      Âm tính
+                                    </span>
+                                  )
+                                ) : "N/A"}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Co-infections */}
+                        {result.coInfections && result.coInfections.length > 0 && (
+                          <div className="border-t border-gray-200 pt-3 mt-3">
+                            <h5 className="font-medium text-gray-700 mb-2 flex items-center gap-1">
+                              <AlertTriangle className="h-4 w-4 text-orange-500" />
+                              Các bệnh nhiễm kèm
+                            </h5>
+                            <div className="flex flex-wrap gap-2">
+                              {result.coInfections.map((infection: string, index: number) => (
+                                <span 
+                                  key={index} 
+                                  className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800"
+                                >
+                                  {infection}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -370,22 +551,53 @@ const StaffPatientAndRecordManagement: React.FC = () => {
                     {result.arvregimenId && (
                       <div className="mb-4">
                         <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                          <Activity className="h-5 w-5 text-teal-600" />
+                          <Pill className="h-5 w-5 text-teal-600" />
                           Phác đồ điều trị ARV
                         </h4>
                         <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                          <p className="text-gray-700">
-                            <span className="font-medium">Tên phác đồ:</span>{" "}
-                            {result.arvregimenId.arvName || "Không có"}
-                          </p>
-                          {result.arvregimenId.arvDescription && (
-                            <p className="text-gray-700 mt-1">
-                              <span className="font-medium">Mô tả:</span> {result.arvregimenId.arvDescription}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                            <p className="text-gray-700">
+                              <span className="font-medium">Tên phác đồ:</span>{" "}
+                              {result.arvregimenId.arvName || "Không có"}
                             </p>
+                            <p className="text-gray-700">
+                              <span className="font-medium">Mã phác đồ:</span>{" "}
+                              {result.arvregimenId.regimenCode || "Không có"}
+                            </p>
+                            <p className="text-gray-700">
+                              <span className="font-medium">Tuyến điều trị:</span>{" "}
+                              {result.arvregimenId.treatmentLine || "Không có"}
+                            </p>
+                            <p className="text-gray-700">
+                              <span className="font-medium">Đối tượng:</span>{" "}
+                              {result.arvregimenId.recommendedFor || "Không có"}
+                            </p>
+                          </div>
+
+                          {/* Medication Schedule */}
+                          {(result.medicationTime || result.medicationSlot) && (
+                            <div className="border-t border-gray-200 pt-3 mt-3">
+                              <h5 className="font-medium text-gray-700 mb-2">Lịch uống thuốc</h5>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <p className="text-gray-700 text-sm">
+                                  <span className="font-medium">Thời gian:</span> {result.medicationTime || "Chưa có"}
+                                </p>
+                                <p className="text-gray-700 text-sm">
+                                  <span className="font-medium">Khe thời gian:</span> {result.medicationSlot || "Chưa có"}
+                                </p>
+                              </div>
+                            </div>
+                          )}
+
+                          {result.arvregimenId.arvDescription && (
+                            <div className="border-t border-gray-200 pt-3 mt-3">
+                              <h5 className="font-medium text-gray-700 mb-2">Mô tả</h5>
+                              <p className="text-gray-700 text-sm leading-relaxed">{result.arvregimenId.arvDescription}</p>
+                            </div>
                           )}
 
                           {result.arvregimenId.drugs && result.arvregimenId.drugs.length > 0 && (
-                            <div className="mt-4">
+                            <div className="border-t border-gray-200 pt-3 mt-3">
                               <h5 className="font-medium text-gray-700 mb-2">Thông tin thuốc:</h5>
                               <div className="overflow-x-auto">
                                 <table className="min-w-full border border-gray-200 rounded-xl">
@@ -399,6 +611,12 @@ const StaffPatientAndRecordManagement: React.FC = () => {
                                       </th>
                                       <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
                                         Tần suất
+                                      </th>
+                                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+                                        Chống chỉ định
+                                      </th>
+                                      <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+                                        Tác dụng phụ
                                       </th>
                                     </tr>
                                   </thead>
@@ -428,6 +646,12 @@ const StaffPatientAndRecordManagement: React.FC = () => {
                                           <td className="px-4 py-2 text-sm text-gray-800">{drug}</td>
                                           <td className="px-4 py-2 text-sm text-gray-800">{dosage}</td>
                                           <td className="px-4 py-2 text-sm text-gray-800">{frequency}</td>
+                                          <td className="px-4 py-2 text-sm text-gray-800">
+                                            {result.arvregimenId?.contraindications?.[index] || "Chưa có"}
+                                          </td>
+                                          <td className="px-4 py-2 text-sm text-gray-800">
+                                            {result.arvregimenId?.sideEffects?.[index] || "Chưa có"}
+                                          </td>
                                         </tr>
                                       );
                                     })}
@@ -436,35 +660,37 @@ const StaffPatientAndRecordManagement: React.FC = () => {
                               </div>
                             </div>
                           )}
+
                           {/* Contraindications */}
                           {Array.isArray(result.arvregimenId.contraindications) &&
                             result.arvregimenId.contraindications.length > 0 && (
-                              <div className="mt-4">
+                              <div className="border-t border-gray-200 pt-3 mt-3">
                                 <h5 className="font-medium text-gray-700 mb-2 flex items-center gap-1">
                                   <AlertTriangle className="h-4 w-4 text-red-500" />
-                                  Chống chỉ định
+                                  Chống chỉ định tổng quát
                                 </h5>
                                 <div className="bg-red-50 rounded-xl border border-red-200 p-3">
                                   {result.arvregimenId.contraindications.map((c: string, idx: number) => (
                                     <p key={idx} className="text-red-700 text-sm">
-                                      - {c}
+                                      • {c}
                                     </p>
                                   ))}
                                 </div>
                               </div>
                             )}
+
                           {/* Side Effects */}
                           {Array.isArray(result.arvregimenId.sideEffects) &&
                             result.arvregimenId.sideEffects.length > 0 && (
-                              <div className="mt-4">
+                              <div className="border-t border-gray-200 pt-3 mt-3">
                                 <h5 className="font-medium text-gray-700 mb-2 flex items-center gap-1">
                                   <AlertCircle className="h-4 w-4 text-amber-500" />
-                                  Tác dụng phụ
+                                  Tác dụng phụ chung
                                 </h5>
                                 <div className="bg-amber-50 rounded-xl border border-amber-200 p-3">
                                   {result.arvregimenId.sideEffects.map((s: string, idx: number) => (
                                     <p key={idx} className="text-amber-700 text-sm">
-                                      - {s}
+                                      • {s}
                                     </p>
                                   ))}
                                 </div>
@@ -473,22 +699,68 @@ const StaffPatientAndRecordManagement: React.FC = () => {
                         </div>
                       </div>
                     )}
-                    {/* Status and Re-examination Date */}
-                    <div className="flex items-center justify-between mt-4">
-                      <span
-                        className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                          result.bookingId?.status || "pending"
-                        )}`}
-                      >
-                        {getStatusIcon(result.bookingId?.status || "pending")}
-                        {result.bookingId?.status || "Chưa xác định"}
-                      </span>
-                      {result.reExaminationDate && (
-                        <div className="text-sm text-gray-700 flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-teal-600" />
-                          <span>Tái khám: {new Date(result.reExaminationDate).toLocaleDateString("vi-VN")}</span>
+                    {/* Service Information & Re-examination */}
+                    <div className="mb-4">
+                      <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                        <Calendar className="h-5 w-5 text-teal-600" />
+                        Thông tin dịch vụ & Tái khám
+                      </h4>
+                      <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <p className="text-gray-700">
+                            <span className="font-medium">Dịch vụ:</span>{" "}
+                            {result.bookingId?.serviceId?.serviceName || result.serviceId?.serviceName || "Không có"}
+                          </p>
+                          <p className="text-gray-700">
+                            <span className="font-medium">Mô tả dịch vụ:</span>{" "}
+                            {result.bookingId?.serviceId?.serviceDescription || result.serviceId?.serviceDescription || "Không có"}
+                          </p>
+                          <p className="text-gray-700">
+                            <span className="font-medium">Bác sĩ phụ trách:</span>{" "}
+                            {result.bookingId?.doctorName || "Không có"}
+                          </p>
+                          {result.reExaminationDate && (
+                            <p className="text-gray-700">
+                              <span className="font-medium">Ngày tái khám:</span>{" "}
+                              <span className="text-orange-600 font-medium">
+                                {new Date(result.reExaminationDate).toLocaleDateString("vi-VN")}
+                              </span>
+                            </p>
+                          )}
                         </div>
-                      )}
+                      </div>
+                    </div>
+
+                    {/* Status and timestamps */}
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
+                      <div className="flex items-center gap-4">
+                        <span
+                          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${getBookingStatusColor(
+                            result.bookingId?.status || "pending"
+                          )}`}
+                        >
+                          {getStatusIcon(result.bookingId?.status || "pending")}
+                          {translateBookingStatus(result.bookingId?.status || "pending")}
+                        </span>
+                        {result.reExaminationDate && (
+                          <div className="text-sm text-gray-700 flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-orange-600" />
+                            <span className="text-orange-600 font-medium">
+                              Tái khám: {new Date(result.reExaminationDate).toLocaleDateString("vi-VN")}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 space-y-1">
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>Tạo: {new Date(result.createdAt).toLocaleDateString("vi-VN")}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>Cập nhật: {new Date(result.updatedAt).toLocaleDateString("vi-VN")}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -719,11 +719,26 @@ const TestManagement: React.FC = () => {
                               userRole={user?.role}
                               serviceName={serviceName}
                             />
+                            {/* Nút Hủy booking */}
+                            {(booking.status !== "cancelled" && booking.status !== "completed") && (
+                              <button
+                                onClick={() => booking._id && handleStatusChange(booking._id, "cancelled")}
+                                className="px-4 py-2 rounded-xl text-sm font-semibold bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-md hover:from-red-600 hover:to-orange-600 transition-all duration-200"
+                                title="Hủy lịch hẹn"
+                              >
+                                <XCircle className="w-4 h-4 inline mr-2" />
+                                Hủy lịch hẹn
+                              </button>
+                            )}
                             <div className="flex items-center gap-2 text-sm text-gray-700">
                               <CreditCard className="w-4 h-4 text-teal-600" />
                               <span>
-                                Thanh toán:{" "}
-                                {booking.status === "checked-out" ||
+                                Thanh toán: {" "}
+                                {booking.status === "cancelled" ? (
+                                  <span className="font-semibold text-green-700">
+                                    Đã thanh toán
+                                  </span>
+                                ) : booking.status === "checked-out" ||
                                   booking.status === "re-examination" ||
                                   booking.status === "checked-in" ||
                                   booking.status === "completed" ? (

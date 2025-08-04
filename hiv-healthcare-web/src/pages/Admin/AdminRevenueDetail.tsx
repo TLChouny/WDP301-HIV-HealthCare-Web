@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Descriptions, Tag, Button, message, Spin } from 'antd';
 import { ArrowLeft, DollarSign, Calendar, User, Phone, Mail, CreditCard, Clock } from 'lucide-react';
-import { getPaymentById, getAllPayments } from '../../api/paymentApi';
+import { getPaymentByOrderCode, getAllPayments } from '../../api/paymentApi';
 import type { Payment } from '../../types/payment';
+import type { Booking } from '../../types/booking';
 
 const AdminRevenueDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,9 +21,14 @@ const AdminRevenueDetail: React.FC = () => {
   const fetchPaymentDetail = async () => {
     setLoading(true);
     try {
-      // Thử lấy theo orderCode trước
-      const data = await getPaymentById(id!);
-      setPayment(data);
+      // Sử dụng getPaymentByOrderCode thay vì getPaymentById
+      const response = await getPaymentByOrderCode(id!);
+      // Kiểm tra nếu response có structure { error: 0, data: payment }
+      if (response && typeof response === 'object' && 'data' in response) {
+        setPayment(response.data as Payment);
+      } else {
+        setPayment(response as Payment);
+      }
     } catch (err: any) {
       // Nếu không có endpoint, thử lấy từ danh sách payments
       try {
@@ -66,7 +72,11 @@ const AdminRevenueDetail: React.FC = () => {
     );
   }
 
-  const booking = payment.bookingIds?.[0];
+  const booking = Array.isArray(payment?.bookingIds) && 
+                   payment.bookingIds.length > 0 && 
+                   typeof payment.bookingIds[0] === 'object' 
+                   ? payment.bookingIds[0] as Booking 
+                   : null;
 
   return (
     <div className="p-6 bg-gradient-to-br from-blue-50 via-white to-teal-50 min-h-screen">

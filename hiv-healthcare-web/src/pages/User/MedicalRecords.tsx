@@ -16,19 +16,19 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  Loader,
-  ChevronLeft,
-  ChevronRight,
   Heart,
   TestTube,
   User,
   Search,
+  Loader,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { useResult } from "../../context/ResultContext";
 import { useAuth } from "../../context/AuthContext";
 import type { User as UserType } from "../../types/user";
 import type { Result } from "../../types/result";
-import { getBookingStatusColor, translateBookingStatus } from "../../utils/status";
+import { getBookingStatusColor, translateBookingStatus, getStatusIcon } from "../../utils/status";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -66,6 +66,60 @@ const formatResultType = (resultType: string | undefined): string => {
     other: "Khác",
   };
   return resultTypeMap[resultType.toLowerCase()] || resultType;
+};
+
+// Format test result with color coding
+const formatTestResult = (testResult: string | undefined): string => {
+  if (!testResult) return "Chưa có";
+  const resultMap: { [key: string]: string } = {
+    positive: "Dương tính",
+    negative: "Âm tính",
+    invalid: "Không hợp lệ",
+  };
+  return resultMap[testResult.toLowerCase()] || testResult;
+};
+
+// Format viral load interpretation
+const formatViralLoadInterpretation = (interpretation: string | undefined): string => {
+  if (!interpretation) return "Chưa có";
+  const interpretationMap: { [key: string]: string } = {
+    undetectable: "Không phát hiện",
+    low: "Thấp",
+    high: "Cao",
+  };
+  return interpretationMap[interpretation.toLowerCase()] || interpretation;
+};
+
+// Format CD4 interpretation
+const formatCD4Interpretation = (interpretation: string | undefined): string => {
+  if (!interpretation) return "Chưa có";
+  const interpretationMap: { [key: string]: string } = {
+    normal: "Bình thường",
+    low: "Thấp",
+    very_low: "Rất thấp",
+  };
+  return interpretationMap[interpretation.toLowerCase()] || interpretation;
+};
+
+// Calculate and format BMI
+const calculateBMI = (weight?: number, height?: number): string => {
+  if (!weight || !height) return "Chưa có";
+  const heightInMeters = height / 100; // convert cm to meters
+  const bmi = weight / (heightInMeters * heightInMeters);
+  return bmi.toFixed(1);
+};
+
+// Get BMI status and color
+const getBMIStatus = (weight?: number, height?: number): { status: string; color: string } => {
+  if (!weight || !height) return { status: "Chưa có", color: "bg-gray-100 text-gray-800" };
+  
+  const heightInMeters = height / 100;
+  const bmi = weight / (heightInMeters * heightInMeters);
+  
+  if (bmi < 18.5) return { status: "Thiếu cân", color: "bg-blue-100 text-blue-800" };
+  if (bmi >= 18.5 && bmi < 25) return { status: "Bình thường", color: "bg-green-100 text-green-800" };
+  if (bmi >= 25 && bmi < 30) return { status: "Thừa cân", color: "bg-yellow-100 text-yellow-800" };
+  return { status: "Béo phì", color: "bg-red-100 text-red-800" };
 };
 
 // Anonymize patient name
@@ -120,25 +174,6 @@ const MedicalRecords: React.FC = () => {
     setSelectedRecord(record);
     setOpenDialog(true);
   }, []);
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-      case "confirmed":
-        return <CheckCircle className="h-4 w-4" />;
-      case "pending":
-        return <Clock className="h-4 w-4" />;
-      case "cancelled":
-        return <XCircle className="h-4 w-4" />;
-      case "re-examination":
-        return <Activity className="h-4 w-4" />;
-      case "checked-in":
-      case "checked-out":
-        return <MapPin className="h-4 w-4" />;
-      default:
-        return <AlertCircle className="h-4 w-4" />;
-    }
-  };
 
   // Filter records based on search term
   const filteredRecords = medicalRecords.filter((record: Result) => {
@@ -573,6 +608,12 @@ const MedicalRecords: React.FC = () => {
                         {selectedRecord.resultDescription || "Không có"}
                       </p>
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Người thực hiện xét nghiệm</label>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.testerName || "Không có"}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -597,7 +638,20 @@ const MedicalRecords: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">BMI</label>
-                      <p className="text-gray-800 bg-white p-3 rounded-xl border">{selectedRecord.bmi || "Chưa có"}</p>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.weight && selectedRecord.height ? (
+                          <span className="flex items-center gap-2">
+                            <span className="font-medium">
+                              {selectedRecord.bmi || calculateBMI(selectedRecord.weight, selectedRecord.height)}
+                            </span>
+                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                              getBMIStatus(selectedRecord.weight, selectedRecord.height).color
+                            }`}>
+                              {getBMIStatus(selectedRecord.weight, selectedRecord.height).status}
+                            </span>
+                          </span>
+                        ) : "Chưa có"}
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Huyết áp</label>
@@ -640,21 +694,56 @@ const MedicalRecords: React.FC = () => {
                       </p>
                     </div>
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Người thực hiện</label>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.testerName || "Chưa có"}
+                      </p>
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Kết quả xét nghiệm</label>
                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {selectedRecord.testResult || "Chưa có"}
+                        {selectedRecord.testResult ? (
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
+                            selectedRecord.testResult === 'positive' ? 'bg-red-100 text-red-800' :
+                            selectedRecord.testResult === 'negative' ? 'bg-green-100 text-green-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {formatTestResult(selectedRecord.testResult)}
+                          </span>
+                        ) : "Chưa có"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Đơn vị đo</label>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.unit || "Chưa có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Tải lượng virus</label>
                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {selectedRecord.viralLoad ? `${selectedRecord.viralLoad} copies/mL` : "Chưa có"}
+                        {selectedRecord.viralLoad ? `${selectedRecord.viralLoad} ${selectedRecord.unit || 'copies/mL'}` : "Chưa có"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Khoảng tham chiếu VL</label>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.viralLoadReference || "Chưa có"}
                       </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Diễn giải tải lượng virus</label>
                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {selectedRecord.viralLoadInterpretation || "Chưa có"}
+                        {selectedRecord.viralLoadInterpretation ? (
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
+                            selectedRecord.viralLoadInterpretation === 'undetectable' ? 'bg-green-100 text-green-800' :
+                            selectedRecord.viralLoadInterpretation === 'low' ? 'bg-yellow-100 text-yellow-800' :
+                            selectedRecord.viralLoadInterpretation === 'high' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {formatViralLoadInterpretation(selectedRecord.viralLoadInterpretation)}
+                          </span>
+                        ) : "Chưa có"}
                       </p>
                     </div>
                     <div>
@@ -664,12 +753,79 @@ const MedicalRecords: React.FC = () => {
                       </p>
                     </div>
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Khoảng tham chiếu CD4</label>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.cd4Reference || "Chưa có"}
+                      </p>
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Diễn giải CD4</label>
                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {selectedRecord.cd4Interpretation || "Chưa có"}
+                        {selectedRecord.cd4Interpretation ? (
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-sm font-medium ${
+                            selectedRecord.cd4Interpretation === 'normal' ? 'bg-green-100 text-green-800' :
+                            selectedRecord.cd4Interpretation === 'low' ? 'bg-yellow-100 text-yellow-800' :
+                            selectedRecord.cd4Interpretation === 'very_low' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {formatCD4Interpretation(selectedRecord.cd4Interpretation)}
+                          </span>
+                        ) : "Chưa có"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Kháng nguyên P24</label>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.p24Antigen !== undefined ? 
+                          (selectedRecord.p24Antigen > 0 ? 
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                              Dương tính ({selectedRecord.p24Antigen})
+                            </span> :
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                              Âm tính
+                            </span>
+                          ) : "Chưa có"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Kháng thể HIV</label>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.hivAntibody !== undefined ? 
+                          (selectedRecord.hivAntibody > 0 ? 
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                              Dương tính ({selectedRecord.hivAntibody})
+                            </span> :
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                              Âm tính
+                            </span>
+                          ) : "Chưa có"}
                       </p>
                     </div>
                   </div>
+
+                  {/* Co-infections section */}
+                  {selectedRecord.coInfections && selectedRecord.coInfections.length > 0 && (
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
+                        <AlertTriangle className="h-4 w-4 text-orange-500" />
+                        Các bệnh nhiễm kèm
+                      </label>
+                      <div className="bg-orange-50 rounded-xl border border-orange-200">
+                        <div className="p-3">
+                          <div className="flex flex-wrap gap-2">
+                            {selectedRecord.coInfections.map((infection: string, index: number) => (
+                              <span 
+                                key={index} 
+                                className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800"
+                              >
+                                {infection}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* ARV Regimen Information */}
@@ -831,6 +987,18 @@ const MedicalRecords: React.FC = () => {
                           {getStatusIcon(selectedRecord.bookingId.status)}
                           <span className="ml-1">{translateBookingStatus(selectedRecord.bookingId.status)}</span>
                         </span>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Dịch vụ</label>
+                        <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                          {selectedRecord.bookingId.serviceId?.serviceName || selectedRecord.serviceId?.serviceName || "Chưa có"}
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả dịch vụ</label>
+                        <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                          {selectedRecord.bookingId.serviceId?.serviceDescription || selectedRecord.serviceId?.serviceDescription || "Chưa có"}
+                        </p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Ngày khám</label>

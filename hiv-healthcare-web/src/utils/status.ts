@@ -1,3 +1,13 @@
+import React from "react";
+import { 
+  CheckCircle, 
+  Clock, 
+  XCircle, 
+  Activity, 
+  MapPin, 
+  AlertCircle 
+} from "lucide-react";
+
 export function getBookingStatusColor(status: string): string {
   switch (status) {
     case 'completed':
@@ -18,6 +28,7 @@ export function getBookingStatusColor(status: string): string {
       return 'from-gray-400 to-gray-600'; // Mặc định xám
   }
 }
+
 export function translateBookingStatus(status: string): string {
   switch (status) {
     case 'confirmed':
@@ -36,5 +47,24 @@ export function translateBookingStatus(status: string): string {
       return 'Tái khám';
     default:
       return status;
+  }
+}
+
+export function getStatusIcon(status: string): React.ReactElement {
+  switch (status) {
+    case "completed":
+    case "confirmed":
+      return React.createElement(CheckCircle, { className: "h-4 w-4" });
+    case "pending":
+      return React.createElement(Clock, { className: "h-4 w-4" });
+    case "cancelled":
+      return React.createElement(XCircle, { className: "h-4 w-4" });
+    case "re-examination":
+      return React.createElement(Activity, { className: "h-4 w-4" });
+    case "checked-in":
+    case "checked-out":
+      return React.createElement(MapPin, { className: "h-4 w-4" });
+    default:
+      return React.createElement(AlertCircle, { className: "h-4 w-4" });
   }
 }

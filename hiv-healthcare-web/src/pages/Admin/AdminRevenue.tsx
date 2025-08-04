@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getAllPayments } from '../../api/paymentApi';
 import type { Payment } from '../../types/payment';
+import type { Booking } from '../../types/booking';
 import { Table, Tag, Select, message, Input, Button } from 'antd';
 import { DollarSign, CheckCircle, Clock, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +23,7 @@ const AdminRevenue: React.FC = () => {
     setLoading(true);
     try {
       const data = await getAllPayments();
+      console.log("🔍 Frontend received payments data:", data);
       // Đảm bảo dữ liệu từ backend luôn có bookingIds được populate
       setPayments(Array.isArray(data) ? data : []);
     } catch (err: any) {
@@ -34,11 +36,12 @@ const AdminRevenue: React.FC = () => {
 
   const filteredPayments = (Array.isArray(payments) ? payments : []).filter((p) => {
     const matchStatus = statusFilter === 'all' || p.status === statusFilter;
+    const firstBooking = Array.isArray(p.bookingIds) && p.bookingIds.length > 0 && typeof p.bookingIds[0] === 'object' ? p.bookingIds[0] : null;
     const matchSearch =
       p.orderCode.toString().includes(search) ||
       (p.orderName && p.orderName.toLowerCase().includes(search.toLowerCase())) ||
       (p.paymentID && p.paymentID.toLowerCase().includes(search.toLowerCase())) ||
-      (p.bookingIds?.[0]?.customerName && p.bookingIds[0].customerName.toLowerCase().includes(search.toLowerCase()));
+      (firstBooking?.customerName && firstBooking.customerName.toLowerCase().includes(search.toLowerCase()));
     return matchStatus && matchSearch;
   });
 
@@ -87,10 +90,12 @@ const AdminRevenue: React.FC = () => {
     },
     {
       title: 'Khách hàng',
-      dataIndex: ['bookingIds', 0, 'customerName'],
       key: 'customerName',
       width: 150,
-      render: (customerName: string) => <span className="font-medium">{customerName || '---'}</span>,
+      render: (record: Payment) => {
+        const firstBooking = Array.isArray(record.bookingIds) && record.bookingIds.length > 0 && typeof record.bookingIds[0] === 'object' ? record.bookingIds[0] : null;
+        return <span className="font-medium">{firstBooking?.customerName || '---'}</span>;
+      },
     },
     {
       title: 'Trạng thái',
@@ -120,27 +125,26 @@ const AdminRevenue: React.FC = () => {
           ? new Date(updatedAt).toLocaleString('vi-VN')
           : '---',
     },
-    /*
     {
       title: 'Thời gian khám',
-      dataIndex: ['bookingIds', 0, 'startTime'],
       key: 'startTime',
       width: 150,
-      render: (startTime: string, record: any) => {
-        const booking = record.bookingIds?.[0];
-        if (!booking) return '---';
-        const date = booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString('vi-VN') : '';
-        return `${date} ${startTime} - ${booking.endTime}`;
+      render: (record: Payment) => {
+        const firstBooking = Array.isArray(record.bookingIds) && record.bookingIds.length > 0 && typeof record.bookingIds[0] === 'object' ? record.bookingIds[0] : null;
+        if (!firstBooking) return '---';
+        const date = firstBooking.bookingDate ? new Date(firstBooking.bookingDate).toLocaleDateString('vi-VN') : '';
+        return `${date} ${firstBooking.startTime} - ${firstBooking.endTime}`;
       },
     },
     {
       title: 'Bác sĩ',
-      dataIndex: ['bookingIds', 0, 'doctorName'],
       key: 'doctorName',
       width: 150,
-      render: (doctorName: string) => <span>{doctorName || '---'}</span>,
+      render: (record: Payment) => {
+        const firstBooking = Array.isArray(record.bookingIds) && record.bookingIds.length > 0 && typeof record.bookingIds[0] === 'object' ? record.bookingIds[0] : null;
+        return <span>{firstBooking?.doctorName || '---'}</span>;
+      },
     },
-    */
     {
       title: 'Hành động',
       key: 'action',
