@@ -52,3 +52,8 @@ export const getResultsByDoctorName = async (doctorName: string): Promise<Result
   const res = await apiClient.get(API_ENDPOINTS.RESULTS_BY_DOCTOR_NAME(doctorName));
   return res.data;
 };
+
+export const getResultsByBookingId = async (bookingId: string): Promise<Result[]> => {
+  const res = await apiClient.get(API_ENDPOINTS.RESULT_BY_BOOKING_ID(bookingId));
+  return res.data;
+};

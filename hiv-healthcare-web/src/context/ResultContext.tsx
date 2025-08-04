@@ -12,6 +12,7 @@ import {
   editResult,
   getResultsByUserId,
   getResultsByDoctorName,
+  getResultsByBookingId,
 } from "../api/resultApi";
 import type { Result } from "../types/result";
 export interface NewResultPayload {
@@ -55,6 +56,7 @@ interface ResultContextProps {
   updateResult: (id: string, data: Partial<Result>) => Promise<Result | null>;
   getByUserId: (userId: string) => Promise<Result[]>;
   getByDoctorName: (doctorName: string) => Promise<Result[]>;
+  getByBookingId: (bookingId: string) => Promise<Result[]>;
 }
 
 const ResultContext = createContext<ResultContextProps | undefined>(undefined);
@@ -143,6 +145,23 @@ export const ResultProvider: React.FC<{ children: React.ReactNode }> = ({
     },
     []
   );
+  
+  const getByBookingId = useCallback(
+    async (bookingId: string): Promise<Result[]> => {
+      setLoading(true);
+      try {
+        const bookingResults = await getResultsByBookingId(bookingId);
+        setResults(bookingResults);
+        return bookingResults;
+      } catch (err) {
+        console.error(`❌ Failed to get results for booking ${bookingId}:`, err);
+        return [];
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     fetchResults();
@@ -159,6 +178,7 @@ export const ResultProvider: React.FC<{ children: React.ReactNode }> = ({
         updateResult,
         getByUserId,
         getByDoctorName,
+        getByBookingId,
       }}
     >
       {children}

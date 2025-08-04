@@ -1,45 +1,6 @@
-// import { Booking } from "./booking";
-// import { ARVRegimen } from "./arvRegimen";
-
-// export interface Result {
-//   _id: string;
-//   resultName: string;
-//   resultDescription?: string;
-
-//   // 🩺 Thông tin khám
-//   symptoms?: string;
-//   weight?: number;
-//   height?: number;
-//   bmi?: number;
-//   bloodPressure?: string;
-//   pulse?: number;
-//   temperature?: number;
-
-//   // 🧪 Nếu là lab test
-//   sampleType?: string;
-//   testMethod?: string;
-//   resultType?: 'positive-negative' | 'quantitative' | 'other';
-//   testResult?: string;
-//   testValue?: number;
-//   unit?: string;
-//   referenceRange?: string;
-//   testerName?: string; // tên người thực hiện test
-
-//   // 💊 Nếu là khám ARV
-//   reExaminationDate?: Date;
-//   medicationTime?: string;
-//   medicationSlot?: string;
-//   arvregimenId?: ARVRegimen;
-
-//   // 🔗 Liên kết Booking
-//   bookingId: Booking;
-
-//   createdAt: Date;
-//   updatedAt: Date;
-// }
-
 import { Booking } from "./booking";
 import { ARVRegimen } from "./arvRegimen";
+import { Service } from "./service";
 
 // 🧬 Interface mô tả kết quả xét nghiệm hoặc điều trị ARV
 export interface Result {
@@ -60,7 +21,7 @@ export interface Result {
   reExaminationDate?: Date; // Ngày tái khám dự kiến
   medicationTime?: string; // Giờ uống thuốc dạng chuỗi, ví dụ "08:00; 20:00"
   medicationSlot?: string; // Buổi uống thuốc, ví dụ "Sáng và Tối"
-  serviceId?: import("./service").Service; // Thông tin dịch vụ xét nghiệm
+  serviceId?: Service; // Thông tin dịch vụ xét nghiệm
 
   // 🔗 Booking liên kết
   bookingId: Booking;

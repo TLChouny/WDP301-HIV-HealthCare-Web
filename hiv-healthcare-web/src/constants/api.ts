@@ -1,7 +1,7 @@
 // api.ts
 
-export const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
-// export const BASE_URL = "http://localhost:5000/api";
+// export const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
+export const BASE_URL = "http://localhost:5000/api";
 
 export const API_ENDPOINTS = {
   // ===== USER =====
@@ -64,6 +64,7 @@ export const API_ENDPOINTS = {
   // ===== RESULT =====
   RESULTS: "/results",
   RESULT_BY_ID: (id: string) => `/results/${id}`,
+  RESULT_BY_BOOKING_ID: (bookingId: string) => `/results/booking/${bookingId}`,
   CREATE_RESULT: "/results",
   EDIT_RESULT: (id: string) => `/results/${id}`,
   RESULTS_BY_USER_ID: (userId: string) => `/results/user/${userId}`,

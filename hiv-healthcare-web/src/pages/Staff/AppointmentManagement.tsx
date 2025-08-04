@@ -98,9 +98,8 @@ const StatusButton: React.FC<{
 
   return (
     <span
-      className={`inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold ${
-        statusStyles[status] || "bg-gray-100 text-gray-700 border-gray-200"
-      }`}
+      className={`inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold ${statusStyles[status] || "bg-gray-100 text-gray-700 border-gray-200"
+        }`}
     >
       {getStatusIcon(status)}
       {translateBookingStatus(status)}
@@ -202,7 +201,10 @@ const StaffAppointmentManagement: React.FC = () => {
   const filteredBookings = useMemo(
     () =>
       bookings.filter((booking) => {
-        const serviceId = typeof booking.serviceId === "object" ? booking.serviceId._id : booking.serviceId
+        const serviceId =
+          typeof booking.serviceId === "object" && booking.serviceId !== null
+            ? booking.serviceId._id
+            : booking.serviceId
         const matchesService =
           !onlineConsultationService || (onlineConsultationService && serviceId !== onlineConsultationService._id)
         const matchesSearch =
@@ -425,9 +427,9 @@ const StaffAppointmentManagement: React.FC = () => {
                                 <span className="text-lg font-bold text-teal-600">
                                   {servicePrice
                                     ? Number(servicePrice).toLocaleString("vi-VN", {
-                                        style: "currency",
-                                        currency: "VND",
-                                      })
+                                      style: "currency",
+                                      currency: "VND",
+                                    })
                                     : "Miễn phí"}
                                 </span>
                               </div>
@@ -445,7 +447,7 @@ const StaffAppointmentManagement: React.FC = () => {
                               <CreditCard className="w-4 h-4 text-teal-600" />
                               <span>
                                 Thanh toán:{" "}
-                                {booking.status === "checked-out" || booking.status ==="checked-in" || booking.status ==="completed" || booking.status ==="re-examination"? (
+                                {booking.status === "checked-out" || booking.status === "checked-in" || booking.status === "completed" || booking.status === "re-examination" ? (
                                   <span className="font-semibold text-green-700">Đã thanh toán</span>
                                 ) : (
                                   <span className="font-semibold text-red-700">Chưa thanh toán</span>

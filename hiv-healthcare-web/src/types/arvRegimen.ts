@@ -17,3 +17,5 @@ export interface ARVRegimen {
   createdAt?: string; // ISO date string
   updatedAt?: string;
 }
+
+export type ARVRegimenCreateInput = Omit<ARVRegimen, '_id' | 'createdAt' | 'updatedAt'>;

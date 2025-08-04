@@ -1,5 +1,5 @@
 import type React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Eye,
   Calendar,
@@ -22,12 +22,15 @@ import {
   Heart,
   TestTube,
   User,
+  Search,
 } from "lucide-react";
 import { useResult } from "../../context/ResultContext";
 import { useAuth } from "../../context/AuthContext";
 import type { User as UserType } from "../../types/user";
 import type { Result } from "../../types/result";
 import { getBookingStatusColor, translateBookingStatus } from "../../utils/status";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Format frequency value (e.g., "2" → "2 lần/ngày")
 const formatFrequency = (freq: string | undefined): string => {
@@ -54,72 +57,73 @@ const formatMedicationTimes = (medicationTime: string | undefined, medicationSlo
   return times.map((time, i) => `${slots[i]}: ${time}`).join(", ");
 };
 
-// Hàm định dạng resultType
+// Format resultType
 const formatResultType = (resultType: string | undefined): string => {
   if (!resultType) return "Chưa có";
   const resultTypeMap: { [key: string]: string } = {
-    'positive-negative': 'Dương tính/ Âm tính',
-    'quantitative': 'Định lượng',
-    'other': 'Khác',
-    'dương tính/ âm tính': 'Dương tính/ Âm tính',
-    'định lượng': 'Định lượng',
-    'khác': 'Khác',
+    "positive-negative": "Dương tính/Âm tính",
+    quantitative: "Định lượng",
+    other: "Khác",
   };
-  return resultTypeMap[resultType.toLowerCase()] || resultType; // Trả về giá trị gốc nếu không tìm thấy
+  return resultTypeMap[resultType.toLowerCase()] || resultType;
+};
+
+// Anonymize patient name
+const anonymizeName = (name: string): string => {
+  if (!name) return "Không xác định";
+  const words = name.trim().split(" ");
+  if (words.length === 1) {
+    return words[0].charAt(0) + "*".repeat(words[0].length - 1);
+  }
+  return (
+    words[0].charAt(0) +
+    "*".repeat(words[0].length - 1) +
+    " " +
+    words[words.length - 1].charAt(0) +
+    "*".repeat(words[words.length - 1].length - 1)
+  );
 };
 
 const MedicalRecords: React.FC = () => {
   const { getByUserId, loading } = useResult();
   const { getUserById, user } = useAuth();
-  const [medicalRecords, setMedicalRecords] = useState<{ [key: string]: Result[] }>({});
+  const [medicalRecords, setMedicalRecords] = useState<Result[]>([]);
   const [userInfo, setUserInfo] = useState<UserType | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<Result | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const recordsPerPage = 3;
 
   useEffect(() => {
     const fetchData = async () => {
       if (!user?._id) {
-        console.error("User ID not available");
+        setError("Không tìm thấy thông tin người dùng");
+        toast.error("Không tìm thấy thông tin người dùng");
         return;
       }
       try {
+        setError(null);
         const [userData, resultsData] = await Promise.all([getUserById(user._id), getByUserId(user._id)]);
         setUserInfo(userData);
-        console.log("Fetched user:", userData);
-        // Group results by serviceName
-        const groupedResults: { [key: string]: Result[] } = {};
-        resultsData.forEach((result: Result) => {
-          const serviceName = result.bookingId?.serviceId?.serviceName || "Khác";
-          if (!groupedResults[serviceName]) {
-            groupedResults[serviceName] = [];
-          }
-          groupedResults[serviceName].push(result);
-        });
-        setMedicalRecords(groupedResults);
-        console.log("Grouped results:", groupedResults);
-      } catch (error) {
-        console.error("Lỗi fetch:", error);
-        setMedicalRecords({});
+        setMedicalRecords(resultsData.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      } catch (err: any) {
+        setError(err.message || "Không thể tải hồ sơ bệnh án");
+        toast.error(err.message || "Không thể tải hồ sơ bệnh án");
       }
     };
     fetchData();
   }, [getByUserId, getUserById, user?._id]);
 
-  const handleViewRecord = (record: Result) => {
+  const handleViewRecord = useCallback((record: Result) => {
     setSelectedRecord(record);
     setOpenDialog(true);
-  };
-
-  const getStatusColor = (status: string) => {
-    return getBookingStatusColor(status);
-  };
+  }, []);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "completed":
-        return <CheckCircle className="h-4 w-4" />;
       case "confirmed":
         return <CheckCircle className="h-4 w-4" />;
       case "pending":
@@ -129,7 +133,6 @@ const MedicalRecords: React.FC = () => {
       case "re-examination":
         return <Activity className="h-4 w-4" />;
       case "checked-in":
-        return <MapPin className="h-4 w-4" />;
       case "checked-out":
         return <MapPin className="h-4 w-4" />;
       default:
@@ -137,15 +140,25 @@ const MedicalRecords: React.FC = () => {
     }
   };
 
+  // Filter records based on search term
+  const filteredRecords = medicalRecords.filter((record: Result) => {
+    const serviceName = record.bookingId?.serviceId?.serviceName || "Khác";
+    const doctorName = record.bookingId?.doctorName || "";
+    const resultName = record.resultName || "";
+    const term = searchTerm.trim().toLowerCase();
+    return (
+      serviceName.toLowerCase().includes(term) ||
+      doctorName.toLowerCase().includes(term) ||
+      resultName.toLowerCase().includes(term)
+    );
+  });
+
   // Pagination logic
-  const allRecords = Object.entries(medicalRecords)
-    .flatMap(([_, results]) => results)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  const totalRecords = allRecords.length;
+  const totalRecords = filteredRecords.length;
   const totalPages = Math.ceil(totalRecords / recordsPerPage);
   const startIndex = (currentPage - 1) * recordsPerPage;
   const endIndex = startIndex + recordsPerPage;
-  const currentRecords = allRecords.slice(startIndex, endIndex);
+  const currentRecords = filteredRecords.slice(startIndex, endIndex);
 
   const handleNextPage = () => {
     if (currentPage < totalPages) {
@@ -184,266 +197,316 @@ const MedicalRecords: React.FC = () => {
           <p className="text-gray-600">Quản lý và theo dõi lịch sử khám bệnh của bạn</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Panel - Patient Info */}
-          <div className="lg:col-span-1">
-            {userInfo && (
-              <div className="bg-white rounded-2xl shadow border p-6 h-fit">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
-                    <User className="h-5 w-5 text-white" />
-                  </div>
-                  <h2 className="text-xl font-semibold text-gray-800">Thông Tin Bệnh Nhân</h2>
-                </div>
-
-                <div className="text-center mb-6">
-                  <div className="w-20 h-20 bg-gradient-to-r from-teal-600 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                    {userInfo.avatar ? (
-                      <img
-                        src={userInfo.avatar}
-                        alt={userInfo.userName || "Avatar"}
-                        className="w-full h-full object-cover rounded-2xl"
-                      />
-                    ) : (
-                      <span className="text-white text-2xl font-bold">
-                        {userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : "?"}
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-800">{userInfo.userName || "Chưa cập nhật"}</h3>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                    <Mail className="h-5 w-5 text-teal-600" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500">Email</p>
-                      <p className="font-medium text-gray-800">{userInfo.email || "Chưa cập nhật"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                    <Phone className="h-5 w-5 text-teal-600" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500">Số điện thoại</p>
-                      <p className="font-medium text-gray-800">{userInfo.phone_number || "Chưa cập nhật"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                    <Calendar className="h-5 w-5 text-teal-600" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500">Ngày sinh</p>
-                      <p className="font-medium text-gray-800">
-                        {userInfo.dateOfBirth
-                          ? new Date(userInfo.dateOfBirth).toLocaleDateString("vi-VN")
-                          : "Chưa cập nhật"}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                    <div className="h-5 w-5 flex items-center justify-center">
-                      <span className="text-teal-600 text-lg">⚥</span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500">Giới tính</p>
-                      <p className="font-medium text-gray-800">{userInfo.gender || "Chưa cập nhật"}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                    <MapPin className="h-5 w-5 text-teal-600" />
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-500">Địa chỉ</p>
-                      <p className="font-medium text-gray-800">{userInfo.address || "Chưa cập nhật"}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 p-4 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl text-white">
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-5 w-5" />
-                    <span className="font-medium">Tổng số lần khám</span>
-                  </div>
-                  <p className="text-2xl font-bold mt-1">{totalRecords}</p>
-                </div>
-              </div>
-            )}
+        {/* Search Bar */}
+        <div className="bg-white rounded-2xl shadow border p-6 mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo dịch vụ, bác sĩ hoặc tên kết quả..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+            />
           </div>
+        </div>
 
-          {/* Right Panel - Medical Records */}
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow border">
-              <div className="p-6 border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
-                    <Stethoscope className="h-5 w-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-800">Lịch Sử Khám Bệnh</h2>
-                    <p className="text-gray-600">Chi tiết các lần khám và kết quả điều trị</p>
-                  </div>
-                </div>
-              </div>
+        {/* Error State */}
+        {error && (
+          <div className="bg-white rounded-2xl shadow border p-12 text-center">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+              <AlertTriangle className="h-10 w-10 text-red-600 mx-auto mb-4" />
+              <p className="text-red-700 font-medium text-lg">Lỗi tải dữ liệu</p>
+              <p className="text-red-600 text-sm mt-2">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-4 px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-all text-base font-semibold"
+              >
+                Thử lại
+              </button>
+            </div>
+          </div>
+        )}
 
-              <div className="p-6">
-                {currentRecords.length > 0 ? (
-                  <div className="space-y-6">
-                    {currentRecords.map((record: Result) => (
-                      <div
-                        key={record._id}
-                        className="border border-gray-100 rounded-2xl overflow-hidden hover:shadow-md transition-all"
-                      >
-                        <div className="bg-gradient-to-r from-blue-50 to-teal-50 p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
-                              <Stethoscope className="h-4 w-4 text-white" />
-                            </div>
-                            <h3 className="font-semibold text-gray-800 text-lg">
-                              {record.bookingId?.serviceId?.serviceName || "Khác"}
-                            </h3>
-                          </div>
-                        </div>
-
-                        <div className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                                <div className="flex items-center gap-2">
-                                  <Calendar className="h-4 w-4 text-teal-600" />
-                                  <span className="font-medium text-gray-800">
-                                    {record.reExaminationDate
-                                      ? new Date(record.reExaminationDate).toLocaleDateString("vi-VN")
-                                      : "Không tái khám"}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Stethoscope className="h-4 w-4 text-teal-600" />
-                                  <span className="text-gray-700">
-                                    {record.bookingId?.doctorName || "Chưa xác định"}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Activity className="h-4 w-4 text-teal-600" />
-                                  <span className="text-gray-700">{record.resultName || "Chưa có tên"}</span>
-                                </div>
-                                {record.bookingId?.status && (
-                                  <span
-                                    className={`inline-flex items-center px-2.5 py-1 w-[6vw] rounded-full text-sm font-medium bg-gradient-to-r ${getStatusColor(
-                                      record.bookingId.status
-                                    )} text-white whitespace-nowrap`}
-                                  >
-                                    {getStatusIcon(record.bookingId.status)}
-                                    <span className="ml-1">
-                                      {translateBookingStatus(record.bookingId.status)}
-                                    </span>
-                                  </span>
-                                )}
-                              </div>
-                              <p className="text-gray-600 text-sm line-clamp-2 mb-2">
-                                {record.resultDescription || "Không có mô tả"}
-                              </p>
-                              {record.arvregimenId?.drugs && record.arvregimenId.drugs.length > 0 && (
-                                <div className="mt-4">
-                                  <label className="block text-sm font-medium text-gray-700 mb-2">Thông tin thuốc</label>
-                                  <div className="overflow-x-auto">
-                                    <table className="min-w-full border border-gray-200 rounded-xl">
-                                      <thead className="bg-gradient-to-r from-blue-50 to-teal-50">
-                                        <tr>
-                                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
-                                            Tên thuốc
-                                          </th>
-                                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
-                                            Liều dùng
-                                          </th>
-                                          <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
-                                            Tần suất
-                                          </th>
-                                        </tr>
-                                      </thead>
-                                      <tbody className="bg-white">
-                                        {record.arvregimenId.drugs.map((drug: string, index: number) => {
-                                          const frequencies = record.arvregimenId?.frequency
-                                            ? record.arvregimenId.frequency.split(";")
-                                            : [];
-                                          return (
-                                            <tr key={index} className="border-t border-gray-100">
-                                              <td className="px-4 py-2 text-sm text-gray-800">{drug}</td>
-                                              <td className="px-4 py-2 text-sm text-gray-800">
-                                                {record.arvregimenId?.dosages[index] || "Chưa có"}
-                                              </td>
-                                              <td className="px-4 py-2 text-sm text-gray-800">
-                                                {formatFrequency(frequencies[index])}
-                                              </td>
-                                            </tr>
-                                          );
-                                        })}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-
-                            <button
-                              onClick={() => handleViewRecord(record)}
-                              className="ml-4 inline-flex items-center gap-2 px-4 py-2 mt-8 text-sm font-medium text-white bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl hover:from-teal-700 hover:to-blue-700 transition-all shadow-sm"
-                            >
-                              <Eye className="h-4 w-4" />
-                              Chi tiết
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="w-20 h-20 bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                      <FileText className="h-10 w-10 text-teal-600" />
+        {!error && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Panel - Patient Info */}
+            <div className="lg:col-span-1">
+              {userInfo && (
+                <div className="bg-white rounded-2xl shadow border p-6 h-fit">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
+                      <User className="h-5 w-5 text-white" />
                     </div>
-                    <h3 className="text-lg font-medium text-gray-800 mb-2">Chưa có hồ sơ khám bệnh</h3>
-                    <p className="text-gray-500">Hồ sơ khám bệnh sẽ được hiển thị tại đây sau khi bạn thực hiện khám</p>
+                    <h2 className="text-xl font-semibold text-gray-800">Thông Tin Bệnh Nhân</h2>
                   </div>
-                )}
-              </div>
 
-              {/* Pagination Controls */}
-              {totalRecords > recordsPerPage && (
-                <div className="p-4 border-t border-gray-100 flex justify-between items-center">
-                  <button
-                    onClick={handlePreviousPage}
-                    disabled={currentPage === 1}
-                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${currentPage === 1
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700"
-                      }`}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Trang trước
-                  </button>
+                  <div className="text-center mb-6">
+                    <div className="w-20 h-20 bg-gradient-to-r from-teal-600 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4 overflow-hidden">
+                      {userInfo.avatar ? (
+                        <img
+                          src={userInfo.avatar}
+                          alt={userInfo.userName || "Avatar"}
+                          className="w-full h-full object-cover rounded-2xl"
+                        />
+                      ) : (
+                        <span className="text-white text-2xl font-bold">
+                          {userInfo.userName ? userInfo.userName.charAt(0).toUpperCase() : "?"}
+                        </span>
+                      )}
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800">{userInfo.userName || "Chưa cập nhật"}</h3>
+                  </div>
 
-                  <span className="text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-xl">
-                    Trang {currentPage} / {totalPages}
-                  </span>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                      <Mail className="h-5 w-5 text-teal-600" />
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500">Email</p>
+                        <p className="font-medium text-gray-800">{userInfo.email || "Chưa cập nhật"}</p>
+                      </div>
+                    </div>
 
-                  <button
-                    onClick={handleNextPage}
-                    disabled={currentPage === totalPages}
-                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${currentPage === totalPages
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700"
-                      }`}
-                  >
-                    Trang sau
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
+                    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                      <Phone className="h-5 w-5 text-teal-600" />
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500">Số điện thoại</p>
+                        <p className="font-medium text-gray-800">{userInfo.phone_number || "Chưa cập nhật"}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                      <Calendar className="h-5 w-5 text-teal-600" />
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500">Ngày sinh</p>
+                        <p className="font-medium text-gray-800">
+                          {userInfo.dateOfBirth
+                            ? new Date(userInfo.dateOfBirth).toLocaleDateString("vi-VN")
+                            : "Chưa cập nhật"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                      <div className="h-5 w-5 flex items-center justify-center">
+                        <span className="text-teal-600 text-lg">⚥</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500">Giới tính</p>
+                        <p className="font-medium text-gray-800">{userInfo.gender || "Chưa cập nhật"}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                      <MapPin className="h-5 w-5 text-teal-600" />
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-500">Địa chỉ</p>
+                        <p className="font-medium text-gray-800">{userInfo.address || "Chưa cập nhật"}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 p-4 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl text-white">
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-5 w-5" />
+                      <span className="font-medium">Tổng số lần khám</span>
+                    </div>
+                    <p className="text-2xl font-bold mt-1">{totalRecords}</p>
+                  </div>
                 </div>
               )}
             </div>
+
+            {/* Right Panel - Medical Records */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-2xl shadow border">
+                <div className="p-6 border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
+                      <Stethoscope className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-semibold text-gray-800">Lịch Sử Khám Bệnh</h2>
+                      <p className="text-gray-600">Chi tiết các lần khám và kết quả điều trị</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6">
+                  {currentRecords.length > 0 ? (
+                    <div className="space-y-6">
+                      {currentRecords.map((record: Result) => {
+                        const isAnonymous = record.bookingId?.isAnonymous || false;
+                        const doctorName = isAnonymous
+                          ? anonymizeName(record.bookingId?.doctorName || "")
+                          : record.bookingId?.doctorName || "Chưa xác định";
+                        return (
+                          <div
+                            key={record._id}
+                            className="border border-gray-100 rounded-2xl overflow-hidden hover:shadow-md transition-all"
+                          >
+                            <div className="bg-gradient-to-r from-blue-50 to-teal-50 p-4">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl flex items-center justify-center">
+                                  <Stethoscope className="h-4 w-4 text-white" />
+                                </div>
+                                <h3 className="font-semibold text-gray-800 text-lg">
+                                  {record.bookingId?.serviceId?.serviceName || "Khác"}
+                                </h3>
+                              </div>
+                            </div>
+
+                            <div className="p-4">
+                              <div className="flex items-center justify-between">
+                                <div className="flex-1">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                                    <div className="flex items-center gap-2">
+                                      <Calendar className="h-4 w-4 text-teal-600" />
+                                      <span className="font-medium text-gray-800">
+                                        {record.reExaminationDate
+                                          ? new Date(record.reExaminationDate).toLocaleDateString("vi-VN")
+                                          : "Không tái khám"}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Stethoscope className="h-4 w-4 text-teal-600" />
+                                      <span className="text-gray-700">{doctorName}</span>
+                                      {isAnonymous && (
+                                        <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-medium">
+                                          Ẩn danh
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Activity className="h-4 w-4 text-teal-600" />
+                                      <span className="text-gray-700">{record.resultName || "Chưa có tên"}</span>
+                                    </div>
+                                    {record.bookingId?.status && (
+                                      <span
+                                        className={`inline-flex items-center w-[12vh] px-2.5 py-1 rounded-full text-sm font-medium bg-gradient-to-r ${getBookingStatusColor(
+                                          record.bookingId.status
+                                        )} text-white whitespace-nowrap`}
+                                      >
+                                        {getStatusIcon(record.bookingId.status)}
+                                        <span className="ml-1">{translateBookingStatus(record.bookingId.status)}</span>
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-gray-600 text-sm line-clamp-2 mb-2">
+                                    {record.symptoms || "Không có triệu chứng"}
+                                  </p>
+                                  {record.arvregimenId?.drugs && record.arvregimenId.drugs.length > 0 && (
+                                    <div className="mt-4">
+                                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Thông tin thuốc
+                                      </label>
+                                      <div className="overflow-x-auto">
+                                        <table className="min-w-full border border-gray-200 rounded-xl">
+                                          <thead className="bg-gradient-to-r from-blue-50 to-teal-50">
+                                            <tr>
+                                              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+                                                Tên thuốc
+                                              </th>
+                                              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+                                                Liều dùng
+                                              </th>
+                                              <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">
+                                                Tần suất
+                                              </th>
+                                            </tr>
+                                          </thead>
+                                          <tbody className="bg-white">
+                                            {record.arvregimenId.drugs.map((drug: string, index: number) => {
+                                              const frequencies = record.arvregimenId?.frequency
+                                                ? record.arvregimenId.frequency.split(";")
+                                                : [];
+                                              return (
+                                                <tr key={index} className="border-t border-gray-100">
+                                                  <td className="px-4 py-2 text-sm text-gray-800">{drug}</td>
+                                                  <td className="px-4 py-2 text-sm text-gray-800">
+                                                    {record.arvregimenId?.dosages[index] || "Chưa có"}
+                                                  </td>
+                                                  <td className="px-4 py-2 text-sm text-gray-800">
+                                                    {formatFrequency(frequencies[index])}
+                                                  </td>
+                                                </tr>
+                                              );
+                                            })}
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <button
+                                  onClick={() => handleViewRecord(record)}
+                                  className="ml-4 inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-teal-600 to-blue-600 rounded-xl hover:from-teal-700 hover:to-blue-700 transition-all shadow-sm"
+                                >
+                                  <Eye className="h-4 w-4" />
+                                  Chi tiết
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-20 h-20 bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <FileText className="h-10 w-10 text-teal-600" />
+                      </div>
+                      <h3 className="text-lg font-medium text-gray-800 mb-2">
+                        {searchTerm ? "Không tìm thấy hồ sơ nào" : "Chưa có hồ sơ khám bệnh"}
+                      </h3>
+                      <p className="text-gray-500">
+                        {searchTerm
+                          ? "Thử thay đổi từ khóa tìm kiếm"
+                          : "Hồ sơ khám bệnh sẽ được hiển thị tại đây sau khi bạn thực hiện khám"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Pagination Controls */}
+                {totalRecords > recordsPerPage && (
+                  <div className="p-4 border-t border-gray-100 flex justify-between items-center">
+                    <button
+                      onClick={handlePreviousPage}
+                      disabled={currentPage === 1}
+                      className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${
+                        currentPage === 1
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700"
+                      }`}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Trang trước
+                    </button>
+
+                    <span className="text-sm text-gray-600 bg-gray-50 px-3 py-1 rounded-xl">
+                      Trang {currentPage} / {totalPages}
+                    </span>
+
+                    <button
+                      onClick={handleNextPage}
+                      disabled={currentPage === totalPages}
+                      className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl transition-all ${
+                        currentPage === totalPages
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-gradient-to-r from-teal-600 to-blue-600 text-white hover:from-teal-700 hover:to-blue-700"
+                      }`}
+                    >
+                      Trang sau
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Detailed Record Dialog */}
         {openDialog && selectedRecord && (
@@ -466,7 +529,7 @@ const MedicalRecords: React.FC = () => {
 
               <div className="p-6 space-y-6">
                 {/* General Information */}
-                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6">
+                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-100">
                   <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <Activity className="h-5 w-5 text-teal-600" />
                     Thông Tin Chung
@@ -493,6 +556,18 @@ const MedicalRecords: React.FC = () => {
                       </p>
                     </div>
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Nhận xét của bác sĩ</label>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.notes || "Không có"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú diễn giải</label>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.interpretationNote || "Không có"}
+                      </p>
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả kết quả</label>
                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.resultDescription || "Không có"}
@@ -502,7 +577,7 @@ const MedicalRecords: React.FC = () => {
                 </div>
 
                 {/* Vital Signs */}
-                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6">
+                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-100">
                   <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <Heart className="h-5 w-5 text-teal-600" />
                     Dấu Hiệu Sinh Tồn
@@ -546,7 +621,7 @@ const MedicalRecords: React.FC = () => {
                 </div>
 
                 {/* Lab Test Information */}
-                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6">
+                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-100">
                   <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <TestTube className="h-5 w-5 text-teal-600" />
                     Xét Nghiệm
@@ -565,29 +640,33 @@ const MedicalRecords: React.FC = () => {
                       </p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Loại kết quả xét nghiệm</label>
-                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {formatResultType(selectedRecord.resultType)}
-                      </p>
-                    </div>
-                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Kết quả xét nghiệm</label>
                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
                         {selectedRecord.testResult || "Chưa có"}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Giá trị xét nghiệm</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Tải lượng virus</label>
                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {selectedRecord.testValue
-                          ? `${selectedRecord.testValue} ${selectedRecord.unit || ""}`
-                          : "Chưa có"}
+                        {selectedRecord.viralLoad ? `${selectedRecord.viralLoad} copies/mL` : "Chưa có"}
                       </p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Khoảng tham chiếu</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Diễn giải tải lượng virus</label>
                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {selectedRecord.referenceRange || "Chưa có"}
+                        {selectedRecord.viralLoadInterpretation || "Chưa có"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Số lượng CD4</label>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.cd4Count ? `${selectedRecord.cd4Count} cells/mm³` : "Chưa có"}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Diễn giải CD4</label>
+                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                        {selectedRecord.cd4Interpretation || "Chưa có"}
                       </p>
                     </div>
                   </div>
@@ -595,7 +674,7 @@ const MedicalRecords: React.FC = () => {
 
                 {/* ARV Regimen Information */}
                 {selectedRecord.arvregimenId && (
-                  <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6">
+                  <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-100">
                     <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
                       <Pill className="h-5 w-5 text-teal-600" />
                       Thông Tin Phác Đồ ARV
@@ -606,6 +685,24 @@ const MedicalRecords: React.FC = () => {
                           <label className="block text-sm font-medium text-gray-700 mb-1">Tên phác đồ</label>
                           <p className="text-gray-800 bg-white p-3 rounded-xl border font-medium">
                             {selectedRecord.arvregimenId.arvName || "Chưa có"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Mã phác đồ</label>
+                          <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                            {selectedRecord.arvregimenId.regimenCode || "Chưa có"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Tuyến điều trị</label>
+                          <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                            {selectedRecord.arvregimenId.treatmentLine || "Chưa có"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Đối tượng</label>
+                          <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                            {selectedRecord.arvregimenId.recommendedFor || "Chưa có"}
                           </p>
                         </div>
                         <div>
@@ -641,6 +738,8 @@ const MedicalRecords: React.FC = () => {
                                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Tên thuốc</th>
                                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Liều dùng</th>
                                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Tần suất</th>
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Chống chỉ định</th>
+                                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Tác dụng phụ</th>
                                 </tr>
                               </thead>
                               <tbody className="bg-white">
@@ -656,6 +755,12 @@ const MedicalRecords: React.FC = () => {
                                       </td>
                                       <td className="px-4 py-3 text-sm text-gray-800">
                                         {formatFrequency(frequencies[index])}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-gray-800">
+                                        {selectedRecord.arvregimenId?.contraindications[index] || "Chưa có"}
+                                      </td>
+                                      <td className="px-4 py-3 text-sm text-gray-800">
+                                        {selectedRecord.arvregimenId?.sideEffects[index] || "Chưa có"}
                                       </td>
                                     </tr>
                                   );
@@ -704,7 +809,7 @@ const MedicalRecords: React.FC = () => {
 
                 {/* Booking Information */}
                 {selectedRecord.bookingId && (
-                  <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6">
+                  <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-100">
                     <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
                       <Calendar className="h-5 w-5 text-teal-600" />
                       Thông Tin Đặt Lịch
@@ -719,12 +824,12 @@ const MedicalRecords: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
                         <span
-                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r ${getStatusColor(
+                          className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r ${getBookingStatusColor(
                             selectedRecord.bookingId.status
                           )} text-white`}
                         >
                           {getStatusIcon(selectedRecord.bookingId.status)}
-                          {translateBookingStatus(selectedRecord.bookingId.status)} {/* Sử dụng translateBookingStatus */}
+                          <span className="ml-1">{translateBookingStatus(selectedRecord.bookingId.status)}</span>
                         </span>
                       </div>
                       <div>
@@ -738,13 +843,17 @@ const MedicalRecords: React.FC = () => {
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Thời gian</label>
                         <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                          {selectedRecord.bookingId.startTime} - {selectedRecord.bookingId.endTime || "Chưa xác định"}
+                          {selectedRecord.bookingId.startTime && selectedRecord.bookingId.endTime
+                            ? `${selectedRecord.bookingId.startTime} - ${selectedRecord.bookingId.endTime}`
+                            : "Chưa xác định"}
                         </p>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Bác sĩ</label>
                         <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                          {selectedRecord.bookingId.doctorName || "Chưa xác định"}
+                          {selectedRecord.bookingId.isAnonymous
+                            ? anonymizeName(selectedRecord.bookingId.doctorName || "Chưa xác định")
+                            : selectedRecord.bookingId.doctorName || "Chưa xác định"}
                         </p>
                       </div>
                       <div>
@@ -752,17 +861,17 @@ const MedicalRecords: React.FC = () => {
                         <p className="text-gray-800 bg-white p-3 rounded-xl border">
                           {selectedRecord.bookingId.startTime && selectedRecord.bookingId.endTime
                             ? (() => {
-                              const bookingDate = selectedRecord.bookingId.bookingDate;
-                              const datePart = new Date(bookingDate).toISOString().split("T")[0];
-                              const start = new Date(`${datePart}T${selectedRecord.bookingId.startTime}:00`);
-                              const end = new Date(`${datePart}T${selectedRecord.bookingId.endTime}:00`);
-                              if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-                                return "Không hợp lệ";
-                              }
-                              const diffMs = end.getTime() - start.getTime();
-                              const diffMinutes = Math.round(diffMs / 60000);
-                              return `${diffMinutes} phút`;
-                            })()
+                                const bookingDate = selectedRecord.bookingId.bookingDate;
+                                const datePart = new Date(bookingDate).toISOString().split("T")[0];
+                                const start = new Date(`${datePart}T${selectedRecord.bookingId.startTime}:00`);
+                                const end = new Date(`${datePart}T${selectedRecord.bookingId.endTime}:00`);
+                                if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                                  return "Không hợp lệ";
+                                }
+                                const diffMs = end.getTime() - start.getTime();
+                                const diffMinutes = Math.round(diffMs / 60000);
+                                return `${diffMinutes} phút`;
+                              })()
                             : "Chưa xác định"}
                         </p>
                       </div>
@@ -794,7 +903,7 @@ const MedicalRecords: React.FC = () => {
                 )}
 
                 {/* Timestamps */}
-                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6">
+                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-100">
                   <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
                     <Clock className="h-5 w-5 text-teal-600" />
                     Thông Tin Thời Gian
@@ -835,6 +944,7 @@ const MedicalRecords: React.FC = () => {
           </div>
         )}
       </div>
+      <ToastContainer />
     </div>
   );
 };
