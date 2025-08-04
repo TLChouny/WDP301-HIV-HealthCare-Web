@@ -94,7 +94,7 @@ const UserAppointments: React.FC = () => {
         status: "pending",
         returnUrl: `${window.location.origin}/payment-success`,
         cancelUrl: `${window.location.origin}/payment-cancel`,
-        bookingIds: [selectedPaymentBooking._id!],
+        bookingIds: [selectedPaymentBooking], // truyền cả object Booking
       })
       if (payment.checkoutUrl) {
         window.open(payment.checkoutUrl, "_blank")

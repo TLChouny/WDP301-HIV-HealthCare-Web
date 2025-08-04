@@ -1,22 +1,7 @@
+import { Booking } from "./booking";
+
 // File types/payment.ts
 export type PaymentStatus = "pending" | "success" | "failed" | "cancelled";
-
-export interface Booking {
-  _id: string;
-  bookingCode: string;
-  serviceId: string;
-  bookingDate: string;
-  startTime: string;
-  endTime: string;
-  doctorName: string;
-  customerID: string;
-  customerName: string; // Bổ sung
-  customerEmail?: string; // Bổ sung
-  customerPhone?: string; // Bổ sung
-  notes: string;
-  status: "pending" | "confirmed" | "canceled";
-  isAnonymous: boolean;
-}
 
 export interface Payment {
   _id?: string;
