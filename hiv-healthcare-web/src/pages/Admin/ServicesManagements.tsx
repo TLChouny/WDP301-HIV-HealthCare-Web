@@ -40,6 +40,8 @@ const ServicesManagements: React.FC = () => {
 
   const [search, setSearch] = useState('');
 
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+
   const [imageUrl, setImageUrl] = useState('');
 
   const [editImageUrl, setEditImageUrl] = useState('');
@@ -94,11 +96,14 @@ const ServicesManagements: React.FC = () => {
 
 
 
-  const filteredServices = services.filter((service) =>
+  const filteredServices = services.filter((service) => {
 
-    service.serviceName.toLowerCase().includes(search.toLowerCase())
-
-  );
+    const matchSearch = service.serviceName.toLowerCase().includes(search.toLowerCase());
+    const matchCategory = categoryFilter === 'all' || 
+      (typeof service.categoryId === 'object' ? service.categoryId._id : service.categoryId) === categoryFilter;
+    
+    return matchSearch && matchCategory;
+  });
 
 
 
@@ -350,6 +355,38 @@ const ServicesManagements: React.FC = () => {
 
             </div>
 
+            <div className="w-full md:w-64">
+
+              <Select
+
+                placeholder="Chọn danh mục"
+
+                value={categoryFilter}
+
+                onChange={setCategoryFilter}
+
+                className="w-full"
+
+                allowClear
+
+              >
+
+                <Select.Option value="all">Tất cả danh mục</Select.Option>
+
+                {categories.map((category) => (
+
+                  <Select.Option key={category._id} value={category._id}>
+
+                    {category.categoryName}
+
+                  </Select.Option>
+
+                ))}
+
+              </Select>
+
+            </div>
+
           </div>
 
         </div>
@@ -546,7 +583,7 @@ const ServicesManagements: React.FC = () => {
 
           footer={null}
 
-          destroyOnClose
+          destroyOnHidden
 
         >
 
@@ -688,7 +725,7 @@ const ServicesManagements: React.FC = () => {
 
           footer={null}
 
-          destroyOnClose
+          destroyOnHidden
 
         >
 

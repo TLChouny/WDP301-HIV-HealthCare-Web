@@ -56,3 +56,11 @@ export const getAllPayments = async (): Promise<Payment[]> => {
   }
   return [];
 };
+
+/**
+ * Lấy thông tin chi tiết thanh toán theo ID
+ */
+export const getPaymentById = async (id: string): Promise<Payment> => {
+  const res = await axios.get(`${BASE_URL}${API_ENDPOINTS.GET_PAYMENT_BY_ID(id)}`);
+  return res.data;
+};
