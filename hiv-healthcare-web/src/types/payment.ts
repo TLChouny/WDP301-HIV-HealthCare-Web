@@ -1,5 +1,3 @@
-import { Booking } from "./booking";
-
 // File types/payment.ts
 export type PaymentStatus = "pending" | "success" | "failed" | "cancelled";
 
@@ -18,7 +16,7 @@ export interface Payment {
   cancelUrl?: string;
   checkoutUrl?: string;
   qrCode?: string;
-  bookingIds: Booking[]; // Cập nhật kiểu dữ liệu để chứa Booking object đầy đủ
+  bookingIds: string[]; // Cập nhật kiểu dữ liệu để chứa Booking object đầy đủ
   createdAt?: string;
   updatedAt?: string;
 }
