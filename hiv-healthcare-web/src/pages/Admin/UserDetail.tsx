@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User as UserIcon, Edit, Trash2 } from 'lucide-react';
-import { getAllUsers, updateUser, deleteUser } from '../../api/authApi';
+import { ArrowLeft, User as UserIcon } from 'lucide-react';
+import { getAllUsers, updateUser } from '../../api/authApi';
 import type { User } from '../../types/user';
-import { Modal, message, Select, Input, Button, Form } from 'antd';
+import { Modal, message, Select, Input, Button, Form, Switch } from 'antd';
 
 const UserDetail: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
@@ -13,7 +13,7 @@ const UserDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [editForm, setEditForm] = useState<{ userName: string; role: string; phone_number: string }>({ userName: '', role: 'user', phone_number: '' });
+  const [editForm, setEditForm] = useState<{ userName: string; role: string; phone_number: string; isVerified: boolean }>({ userName: '', role: 'user', phone_number: '', isVerified: true });
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
 
@@ -48,6 +48,8 @@ const UserDetail: React.FC = () => {
         return 'bg-blue-100 text-blue-800';
       case 'staff':
         return 'bg-green-100 text-green-800';
+      case 'tester':
+        return 'bg-orange-100 text-orange-800';
       case 'user':
         return 'bg-gray-100 text-gray-800';
       default:
@@ -63,6 +65,8 @@ const UserDetail: React.FC = () => {
         return 'Bác sĩ';
       case 'staff':
         return 'Nhân viên';
+      case 'tester':
+        return 'Kĩ thuật viên';
       case 'user':
         return 'Người dùng';
       default:
@@ -100,6 +104,7 @@ const UserDetail: React.FC = () => {
       userName: user.userName || '',
       role: user.role,
       phone_number: user.phone_number || '',
+      isVerified: user.isVerified || false,
     });
     setIsModalOpen(true);
     setTimeout(() => {
@@ -108,6 +113,7 @@ const UserDetail: React.FC = () => {
         role: user.role,
         phone_number: user.phone_number || '',
         userDescription: user.userDescription || '',
+        isVerified: user.isVerified || false,
       });
     }, 0);
   };
@@ -117,6 +123,7 @@ const UserDetail: React.FC = () => {
       userName: values.userName,
       role: values.role,
       phone_number: values.phone_number,
+      isVerified: values.isVerified,
     };
     if (values.role === 'doctor') {
       payload.userDescription = values.userDescription;
@@ -230,7 +237,7 @@ const UserDetail: React.FC = () => {
         open={isModalOpen}
         onCancel={() => setIsModalOpen(false)}
         footer={null}
-        destroyOnClose
+         destroyOnHidden
       >
         <Form
           form={form}
@@ -289,6 +296,7 @@ const UserDetail: React.FC = () => {
               <Select.Option value="admin">Quản trị viên</Select.Option>
               <Select.Option value="doctor">Bác sĩ</Select.Option>
               <Select.Option value="staff">Nhân viên</Select.Option>
+              <Select.Option value="tester">Kĩ thuật viên</Select.Option>
               <Select.Option value="user">Người dùng</Select.Option>
             </Select>
           </Form.Item>
@@ -314,8 +322,15 @@ const UserDetail: React.FC = () => {
             <Input />
           </Form.Item>
 
-          <Form.Item label="Trạng thái">
-            <Input value="Đang hoạt động" disabled />
+          <Form.Item
+            label="Trạng thái"
+            name="isVerified"
+            valuePropName="checked"
+          >
+            <Switch 
+              checkedChildren="Đang hoạt động" 
+              unCheckedChildren="Không hoạt động"
+            />
           </Form.Item>
 
           <div className="flex justify-end space-x-2 mt-6">
