@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getAllBlogs, createBlog, updateBlog, deleteBlog } from '../../api/blogApi';
 import { getAllCategories } from '../../api/categoryApi';
-import { Button, Modal, Form, Input, message, Select, Upload } from 'antd';
+import { Button, Modal, Form, Input, message, Select, Upload, Pagination } from 'antd';
 import { Plus, Edit, Trash2, Search, Upload as UploadIcon, BookOpen } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -22,6 +22,8 @@ const BlogManagement: React.FC = () => {
   const [search, setSearch] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [editImageUrl, setEditImageUrl] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchBlogs = async () => {
     setLoading(true);
@@ -52,6 +54,17 @@ const BlogManagement: React.FC = () => {
   const filteredBlogs = blogs.filter((blog) =>
     blog.blogTitle.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Tính toán dữ liệu cho phân trang
+  const paginatedBlogs = filteredBlogs.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
+  const handlePageChange = (page: number, size?: number) => {
+    setCurrentPage(page);
+    if (size) setPageSize(size);
+  };
 
   const handleAddBlog = async (values: Partial<Blog>) => {
     setAdding(true);
@@ -139,8 +152,7 @@ const BlogManagement: React.FC = () => {
   }
 
   return (
-    // THAY ĐỔI Ở ĐÂY: Thêm background gradient
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
+    <div className="bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow flex flex-col md:flex-row md:items-center md:justify-between p-8 mb-8 gap-6">
@@ -175,72 +187,89 @@ const BlogManagement: React.FC = () => {
           </div>
         </div>
         {/* Blog List */}
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
+        <div className="bg-white rounded-lg shadow">
           {loading ? (
             <div className="p-8 text-center text-gray-500">Đang tải dữ liệu...</div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: 900 }}>
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tiêu đề</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tác giả</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Danh mục</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ảnh</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày tạo</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredBlogs.map((blog) => {
-                  const category = categories.find((c) => c._id === blog.categoryId);
-                  return (
-                    <tr key={blog._id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap max-w-[180px] overflow-hidden text-ellipsis">
-                        <div className="text-sm font-medium text-gray-900" title={blog.blogTitle}>
-                          {blog.blogTitle.length > 20 ? blog.blogTitle.slice(0, 20) + '...' : blog.blogTitle}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{blog.blogAuthor || ''}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {typeof blog.categoryId === 'object' && blog.categoryId !== null
-                            ? (blog.categoryId as any).categoryName
-                            : categories.find((c) => c._id === blog.categoryId)?.categoryName || ''}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {blog.blogImage && (
-                          <img src={blog.blogImage} alt="blog" className="w-16 h-10 object-cover rounded" />
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {blog.createdAt ? new Date(blog.createdAt).toLocaleString('vi-VN') : ''}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
-                          <Button
-                            type="link"
-                            className="text-blue-600"
-                            icon={<Edit className="w-5 h-5" />}
-                            onClick={() => handleEditBlog(blog)}
-                          />
-                          <Button
-                            type="link"
-                            className="text-red-600"
-                            icon={<Trash2 className="w-5 h-5" style={{ color: 'red' }} />}
-                            onClick={() => handleDeleteBlog(blog)}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tiêu đề</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tác giả</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Danh mục</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ảnh</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày tạo</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paginatedBlogs.map((blog) => {
+                    const category = categories.find((c) => c._id === blog.categoryId);
+                    return (
+                      <tr key={blog._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap max-w-[180px] overflow-hidden text-ellipsis">
+                          <div className="text-sm font-medium text-gray-900" title={blog.blogTitle}>
+                            {blog.blogTitle.length > 20 ? blog.blogTitle.slice(0, 20) + '...' : blog.blogTitle}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">{blog.blogAuthor || ''}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-500">
+                            {typeof blog.categoryId === 'object' && blog.categoryId !== null
+                              ? (blog.categoryId as any).categoryName
+                              : categories.find((c) => c._id === blog.categoryId)?.categoryName || ''}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {blog.blogImage && (
+                            <img src={blog.blogImage} alt="blog" className="w-16 h-10 object-cover rounded" />
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {blog.createdAt ? new Date(blog.createdAt).toLocaleString('vi-VN') : ''}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex space-x-2">
+                            <Button
+                              type="link"
+                              className="text-blue-600"
+                              icon={<Edit className="w-5 h-5" />}
+                              onClick={() => handleEditBlog(blog)}
+                            />
+                            <Button
+                              type="link"
+                              className="text-red-600"
+                              icon={<Trash2 className="w-5 h-5" style={{ color: 'red' }} />}
+                              onClick={() => handleDeleteBlog(blog)}
+                            />
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
+        {/* Pagination */}
+        {filteredBlogs.length > 0 && (
+          <div className="mt-6 flex justify-center">
+            <Pagination
+              current={currentPage}
+              total={filteredBlogs.length}
+              pageSize={pageSize}
+              showSizeChanger
+              showQuickJumper
+              showTotal={(total, range) => `${range[0]}-${range[1]} của ${total} blog`}
+              onChange={handlePageChange}
+              onShowSizeChange={handlePageChange}
+            />
+          </div>
+        )}
         {/* Modal for Add Blog */}
         <Modal
           title="Thêm blog mới"

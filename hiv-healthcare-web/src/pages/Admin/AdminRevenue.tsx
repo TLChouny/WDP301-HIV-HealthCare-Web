@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { getAllPayments } from '../../api/paymentApi';
 import type { Payment } from '../../types/payment';
-import { Table, Tag, Select, message, Input } from 'antd';
-import { DollarSign, CheckCircle, Clock } from 'lucide-react';
+import { Table, Tag, Select, message, Input, Button } from 'antd';
+import { DollarSign, CheckCircle, Clock, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const { Option } = Select;
 
@@ -11,6 +12,7 @@ const AdminRevenue: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPayments();
@@ -109,13 +111,26 @@ const AdminRevenue: React.FC = () => {
       render: (date: string) => new Date(date).toLocaleString('vi-VN'),
     },
     {
+      title: 'Thời gian thanh toán',
+      dataIndex: 'updatedAt',
+      key: 'updatedAt',
+      width: 170,
+      render: (updatedAt: string, record: Payment) =>
+        record.status === 'success'
+          ? new Date(updatedAt).toLocaleString('vi-VN')
+          : '---',
+    },
+    /*
+    {
       title: 'Thời gian khám',
       dataIndex: ['bookingIds', 0, 'startTime'],
       key: 'startTime',
       width: 150,
       render: (startTime: string, record: any) => {
         const booking = record.bookingIds?.[0];
-        return booking ? `${booking.bookingDate} ${startTime} - ${booking.endTime}` : '---';
+        if (!booking) return '---';
+        const date = booking.bookingDate ? new Date(booking.bookingDate).toLocaleDateString('vi-VN') : '';
+        return `${date} ${startTime} - ${booking.endTime}`;
       },
     },
     {
@@ -124,6 +139,22 @@ const AdminRevenue: React.FC = () => {
       key: 'doctorName',
       width: 150,
       render: (doctorName: string) => <span>{doctorName || '---'}</span>,
+    },
+    */
+    {
+      title: 'Hành động',
+      key: 'action',
+      width: 150,
+      render: (text: string, record: Payment) => (
+                 <Button
+           type="link"
+           onClick={() => navigate(`/admin/revenue/${record.orderCode}`)}
+           icon={<Eye className="h-4 w-4" />}
+           className="text-blue-600 hover:text-blue-900"
+         >
+           Xem chi tiết
+         </Button>
+      ),
     },
   ];
 

@@ -47,7 +47,7 @@ const AdminProfile: React.FC = () => {
         setFormData({
           userName: detailedUser.userName || "",
           phone_number: detailedUser.phone_number || "",
-          gender: detailedUser.gender || "",
+          gender: getGenderDisplay(detailedUser.gender || ""),
           address: detailedUser.address || "",
           dateOfBirth: detailedUser.dateOfBirth || "",
           userDescription: detailedUser.userDescription || "",
@@ -65,9 +65,29 @@ const AdminProfile: React.FC = () => {
     fetchUserData();
   }, [user?._id, getUserById, logout, loading]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Hàm chuyển đổi gender từ tiếng Anh sang tiếng Việt
+  const getGenderDisplay = (gender: string) => {
+    switch (gender) {
+      case 'male': return 'Nam';
+      case 'female': return 'Nữ';
+      case 'other': return 'Khác';
+      default: return gender;
+    }
+  };
+
+  // Hàm chuyển đổi gender từ tiếng Việt sang tiếng Anh
+  const getGenderValue = (genderDisplay: string) => {
+    switch (genderDisplay) {
+      case 'Nam': return 'male';
+      case 'Nữ': return 'female';
+      case 'Khác': return 'other';
+      default: return genderDisplay;
+    }
   };
 
   const handleDateChange = (date: Date | null) => {
@@ -79,8 +99,8 @@ const AdminProfile: React.FC = () => {
 
   const validateForm = () => {
     if (!formData.userName.trim()) return "Vui lòng nhập tên quản trị viên!";
-    if (formData.gender && !["male", "female", "other"].includes(formData.gender))
-      return "Giới tính phải là 'male', 'female', hoặc 'other'!";
+    if (formData.gender && !["Nam", "Nữ", "Khác"].includes(formData.gender))
+      return "Giới tính phải là 'Nam', 'Nữ', hoặc 'Khác'!";
     if (formData.phone_number && !/^\d{10}$/.test(formData.phone_number))
       return "Số điện thoại phải là 10 chữ số!";
     return null;
@@ -105,7 +125,7 @@ const AdminProfile: React.FC = () => {
       const updatePayload = {
         userName: formData.userName.trim(),
         phone_number: formData.phone_number || undefined,
-        gender: (formData.gender as Gender) || undefined,
+        gender: (getGenderValue(formData.gender) as Gender) || undefined,
         address: formData.address || undefined,
         dateOfBirth: formData.dateOfBirth || undefined,
         userDescription: formData.userDescription || undefined,
@@ -136,7 +156,7 @@ const AdminProfile: React.FC = () => {
     setFormData({
       userName: userData.userName || "",
       phone_number: userData.phone_number || "",
-      gender: userData.gender || "",
+      gender: getGenderDisplay(userData.gender || ""),
       address: userData.address || "",
       dateOfBirth: userData.dateOfBirth || "",
       userDescription: userData.userDescription || "",
@@ -220,15 +240,26 @@ const AdminProfile: React.FC = () => {
             <div className="space-y-2">
               <label className="block text-sm font-semibold text-gray-700">Giới tính</label>
               <div className="relative">
-                <input
-                  type="text"
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleInputChange}
-                  readOnly={!isEditing}
-                  className={`w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg ${isEditing ? "border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100" : "bg-gray-50 border-gray-200 text-gray-600"}`}
-                  placeholder="male, female, hoặc other"
-                />
+                {isEditing ? (
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleInputChange}
+                    className="w-full rounded-xl border-2 py-4 px-4 pl-12 text-lg border-gray-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100"
+                  >
+                    <option value="">Chọn giới tính</option>
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
+                    <option value="Khác">Khác</option>
+                  </select>
+                ) : (
+                  <input
+                    type="text"
+                    value={formData.gender || "Chưa cập nhật"}
+                    readOnly
+                    className="w-full rounded-xl border-2 border-gray-200 bg-gray-50 py-4 px-4 pl-12 text-lg text-gray-600"
+                  />
+                )}
                 <UserIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               </div>
             </div>
