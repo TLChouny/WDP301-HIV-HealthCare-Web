@@ -63,6 +63,11 @@ const TesterLayout: React.FC = () => {
       name: 'Quản lý Bệnh nhân',
       path: '/tester/patient-testing-management',
       icon: <Users className="w-5 h-5" />
+    },
+    {
+      name: 'Hồ sơ xét nghiệm',
+      path: '/tester/test-medical-records',
+      icon: <FileText className="w-5 h-5" />
     }
   ];
 

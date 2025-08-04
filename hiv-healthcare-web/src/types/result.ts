@@ -60,6 +60,7 @@ export interface Result {
   reExaminationDate?: Date; // Ngày tái khám dự kiến
   medicationTime?: string; // Giờ uống thuốc dạng chuỗi, ví dụ "08:00; 20:00"
   medicationSlot?: string; // Buổi uống thuốc, ví dụ "Sáng và Tối"
+  serviceId?: import("./service").Service; // Thông tin dịch vụ xét nghiệm
 
   // 🔗 Booking liên kết
   bookingId: Booking;

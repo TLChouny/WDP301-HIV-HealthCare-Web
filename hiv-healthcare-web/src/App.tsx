@@ -47,6 +47,7 @@ import AdminRevenueDetail from './pages/Admin/AdminRevenueDetail';
 // Tester Pages
 import TestManagement from './pages/Tester/TestManagement';
 import PatientTestingManagement from './pages/Tester/PatientTestingManagement';
+import TestMedicalRecords from './pages/Tester/TestMedicalRecords';
 
 // Doctor Pages
 // import DoctorDashboard from './pages/Doctor/DoctorDashboard';
@@ -243,6 +244,7 @@ const App: React.FC = () => {
                         <Route element={<TesterLayout />}>
                           <Route path="test-management" element={<TestManagement />} />
                           <Route path="patient-testing-management" element={<PatientTestingManagement />} />
+                          <Route path="test-medical-records" element={<TestMedicalRecords />} />
                         </Route>
                       </Route>
 

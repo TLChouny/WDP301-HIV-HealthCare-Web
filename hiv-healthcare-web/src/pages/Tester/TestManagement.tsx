@@ -138,17 +138,6 @@ const StatusButton: React.FC<{
       );
     }
 
-    // Ngăn doctor thay đổi trạng thái từ "pending" sang "checked-in" cho các dịch vụ khác
-    // if (userRole === "doctor" && status === "pending" && !isOnlineConsultation) {
-    //   return (
-    //     <span className="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold bg-gray-200 text-gray-500 border border-gray-200 cursor-not-allowed">
-    //       <Clock className="w-4 h-4 mr-2" />
-    //       {translateBookingStatus(status)}
-    //     </span>
-    //   );
-    // }
-
-    // Cho phép chuyển từ "pending" hoặc "checked-out" sang "checked-in" cho các vai trò khác hoặc trạng thái mặc định
     if (
       (userRole === "doctor" || status === "checked-out") &&
       status !== "completed"
@@ -303,25 +292,7 @@ const TestManagement: React.FC = () => {
     [bookings]
   );
 
-  // Map medication slots to time input labels
-  const slotToTimeCount: { [key: string]: string[] } = {
-    Sáng: ["Sáng"],
-    Trưa: ["Trưa"],
-    Tối: ["Tối"],
-    "Sáng và Trưa": ["Sáng", "Trưa"],
-    "Trưa và Tối": ["Trưa", "Tối"],
-    "Sáng và Tối": ["Sáng", "Tối"],
-    "Sáng, Trưa và Tối": ["Sáng", "Trưa", "Tối"],
-  };
-
-  // Update medicationTimes when medicationSlot changes
-  useEffect(() => {
-    const timeSlots = slotToTimeCount[medicationSlot] || [];
-    setMedicationTimes((prev) => {
-      const newTimes = timeSlots.map((_, i) => prev[i] || "");
-      return newTimes;
-    });
-  }, [medicationSlot]);
+  // ...existing code...
 
   // Calculate BMI when weight or height changes
   useEffect(() => {
@@ -511,58 +482,11 @@ const TestManagement: React.FC = () => {
     setHivAntibody("");
   }, []);
 
-  // Map frequency display text to numeric values for storage
-  const mapFrequencyToNumeric = useCallback((freq: string): string => {
-    switch (freq) {
-      case "Một lần/ngày":
-        return "1";
-      case "Hai lần/ngày":
-        return "2";
-      case "Ba lần/ngày":
-        return "3";
-      case "Khác":
-        return "0";
-      default:
-        return freq || "0";
-    }
-  }, []);
+  // ...existing code...
 
-  // Tự định nghĩa kiểu Value nếu chưa có
-  type ValuePiece = Date | null;
-  type Value = ValuePiece | [ValuePiece, ValuePiece];
-  const handleCalendarChange = useCallback(
-    (value: Value, event: React.MouseEvent<HTMLButtonElement>) => {
-      if (value instanceof Date) {
-        setCalendarDate(value);
-        setSelectedDate(value);
-      } else if (Array.isArray(value)) {
-        const [start] = value;
-        if (start instanceof Date) {
-          setCalendarDate(start);
-          setSelectedDate(start);
-        }
-      } else {
-        setCalendarDate(null);
-        setSelectedDate(null);
-      }
-    },
-    []
-  );
+  // ...existing code...
 
-  // Determine if ARV section should be shown
-  const showArvSection = useMemo(() => {
-    if (
-      !selectedBooking ||
-      !selectedBooking.serviceId ||
-      typeof selectedBooking.serviceId !== "object"
-    ) {
-      return false;
-    }
-    return (
-      selectedBooking.serviceId.isArvTest &&
-      !selectedBooking.serviceId.isLabTest
-    );
-  }, [selectedBooking]);
+  // ...existing code...
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 p-6">
@@ -871,7 +795,21 @@ const TestManagement: React.FC = () => {
                 Lịch hẹn theo ngày
               </h3>
               <CalendarComponent
-                onChange={handleCalendarChange}
+                onChange={(value: any, event: any) => {
+                  if (value instanceof Date) {
+                    setCalendarDate(value);
+                    setSelectedDate(value);
+                  } else if (Array.isArray(value)) {
+                    const [start] = value;
+                    if (start instanceof Date) {
+                      setCalendarDate(start);
+                      setSelectedDate(start);
+                    }
+                  } else {
+                    setCalendarDate(null);
+                    setSelectedDate(null);
+                  }
+                }}
                 value={calendarDate}
                 selectRange={false} // Đảm bảo không dùng selectRange
                 locale="vi-VN"
@@ -931,8 +869,7 @@ const TestManagement: React.FC = () => {
                   toast.error("Phiếu xét nghiệm đã được gửi!");
                   return;
                 }
-                // Đã bỏ kiểm tra trạng thái gửi hồ sơ
-                // Đã bỏ kiểm tra kết luận xét nghiệm
+
                 try {
                   // Chuẩn bị dữ liệu gửi đi
                   const baseResult: any = {
@@ -1034,6 +971,10 @@ const TestManagement: React.FC = () => {
                     baseResult.hivAntibody = hivAntibody
                       ? Number.parseFloat(hivAntibody)
                       : undefined;
+                    // Nếu có giá trị kháng nguyên hoặc kháng thể thì gửi diễn giải bằng tiếng Việt
+                    if (p24Antigen !== "" || hivAntibody !== "") {
+                      baseResult.comboInterpretation = "Có dấu hiệu nhiễm HIV";
+                    }
                   }
                   await addResult(baseResult);
                   setMedicalRecordSent((prev) => ({
@@ -1127,6 +1068,7 @@ const TestManagement: React.FC = () => {
                         className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
                         value={symptoms}
                         onChange={(e) => setSymptoms(e.target.value)}
+                        placeholder="Nhập triệu chứng (nếu có)"
                       />
                     </div>
                   </div>
@@ -1235,6 +1177,18 @@ const TestManagement: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Phương pháp xét nghiệm
+                      </label>
+                      <input
+                        type="text"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        value={testMethod}
+                        onChange={(e) => setTestMethod(e.target.value)}
+                        placeholder="VD: PCR, Test nhanh"
+                      />
+                    </div>
+                    {/* <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Đơn vị
                       </label>
                       <input
@@ -1244,7 +1198,7 @@ const TestManagement: React.FC = () => {
                         onChange={(e) => setUnit(e.target.value)}
                         placeholder="e.g., copies/mL, %"
                       />
-                    </div>
+                    </div> */}
 
                     {/* Nếu là Combo thì hiển thị thêm các trường đặc biệt */}
                     {selectedBooking &&
@@ -1279,6 +1233,11 @@ const TestManagement: React.FC = () => {
                               placeholder="e.g., 0.8"
                             />
                           </div>
+                          {(p24Antigen !== "" || hivAntibody !== "") && (
+                            <div className="col-span-2">
+                              <span className="text-red-600 font-semibold">Có dấu hiệu nhiễm HIV</span>
+                            </div>
+                          )}
                         </>
                     )}
 
@@ -1422,11 +1381,6 @@ const TestManagement: React.FC = () => {
                       )}
                   </div>
                 </div>
-
-                {/* ARV Treatment - Conditionally Rendered */}
-                {/* ...không hiển thị phần ARV... */}
-
-                {/* Đã ẩn phần chọn trạng thái gửi hồ sơ theo yêu cầu */}
               </div>
               <div className="mt-8 flex justify-end gap-3">
                 <button
