@@ -270,12 +270,56 @@ const TestManagement: React.FC = () => {
   // HIV Combo (Ag/Ab) specific fields
   const [p24Antigen, setP24Antigen] = useState("");
   const [hivAntibody, setHivAntibody] = useState("");
+  const [comboInterpretation, setComboInterpretation] = useState("");
+  
+  // Tự động cập nhật diễn giải HIV Combo khi nhập p24 Antigen và HIV Antibody
+  useEffect(() => {
+    if (
+      selectedBooking &&
+      typeof selectedBooking.serviceId === "object" &&
+      selectedBooking.serviceId.serviceName === "Xét nghiệm HIV Combo (Ag/Ab)"
+    ) {
+      if (p24Antigen !== "" && hivAntibody !== "") {
+        const p24Value = Number.parseFloat(p24Antigen);
+        const antibodyValue = Number.parseFloat(hivAntibody);
+        
+        if (isNaN(p24Value) || isNaN(antibodyValue)) {
+          setComboInterpretation("");
+          return;
+        }
+        
+        const isP24Positive = p24Value > 1;
+        const isAntibodyPositive = antibodyValue > 1;
+        
+        if (!isP24Positive && !isAntibodyPositive) {
+          setComboInterpretation("Âm tính (độ tin cậy cao nếu sau 4–6 tuần)");
+        } else if (isP24Positive && !isAntibodyPositive) {
+          setComboInterpretation("Nghi ngờ nhiễm HIV giai đoạn rất sớm");
+        } else if (!isP24Positive && isAntibodyPositive) {
+          setComboInterpretation("Nghi ngờ nhiễm HIV (giai đoạn sau cửa sổ)");
+        } else if (isP24Positive && isAntibodyPositive) {
+          setComboInterpretation("Khả năng cao nhiễm HIV");
+        }
+      } else {
+        setComboInterpretation("");
+      }
+    }
+  }, [p24Antigen, hivAntibody, selectedBooking]);
   const [medicalRecordSent, setMedicalRecordSent] = useState<{
     [bookingId: string]: boolean;
   }>({});
   const [selectedStatusForSubmit, setSelectedStatusForSubmit] = useState<
     "re-examination" | "completed" | null
   >(null);
+
+  // State cho validation errors
+  const [validationErrors, setValidationErrors] = useState({
+    weight: "",
+    height: "",
+    bloodPressure: "",
+    pulse: "",
+    temperature: ""
+  });
 
   const hasResult =
     selectedBooking &&
@@ -373,6 +417,137 @@ const TestManagement: React.FC = () => {
     },
     [anonymizeName]
   );
+
+  // Hàm validation cho các trường input
+  const validateExamInfo = () => {
+    const errors = {
+      weight: "",
+      height: "",
+      bloodPressure: "",
+      pulse: "",
+      temperature: ""
+    };
+
+    // Validate cân nặng
+    if (weight && Number(weight) < 0) {
+      errors.weight = "Cân nặng không được là số âm";
+    } else if (weight && (Number(weight) < 2 || Number(weight) > 300)) {
+      errors.weight = "Cân nặng phải từ 2 đến 300 kg";
+    }
+
+    // Validate chiều cao  
+    if (height && Number(height) < 0) {
+      errors.height = "Chiều cao không được là số âm";
+    } else if (height && (Number(height) < 30 || Number(height) > 250)) {
+      errors.height = "Chiều cao phải từ 30 đến 250 cm";
+    }
+
+    // Validate huyết áp
+    if (bloodPressure) {
+      const bpMatch = bloodPressure.match(/^(\d{2,3})\/(\d{2,3})$/);
+      if (!bpMatch) {
+        errors.bloodPressure = "Huyết áp phải đúng định dạng: số trên/số dưới (ví dụ: 120/80)";
+      } else {
+        const systolic = Number(bpMatch[1]);
+        const diastolic = Number(bpMatch[2]);
+        if (systolic < 0 || diastolic < 0) {
+          errors.bloodPressure = "Huyết áp không được là số âm";
+        } else if (
+          systolic < 60 || systolic > 300 ||
+          diastolic < 30 || diastolic > 200
+        ) {
+          errors.bloodPressure = "Huyết áp không hợp lệ. Số trên: 60-300, số dưới: 30-200";
+        }
+      }
+    }
+
+    // Validate mạch
+    if (pulse && Number(pulse) < 0) {
+      errors.pulse = "Mạch không được là số âm";
+    } else if (pulse && (Number(pulse) < 30 || Number(pulse) > 220)) {
+      errors.pulse = "Mạch phải từ 30 đến 220 lần/phút";
+    }
+
+    // Validate nhiệt độ (cho cơ thể con người)
+    if (temperature && Number(temperature) < 0) {
+      errors.temperature = "Nhiệt độ không được là số âm";
+    } else if (temperature && (Number(temperature) < 35 || Number(temperature) > 42)) {
+      errors.temperature = "Nhiệt độ cơ thể phải từ 35°C đến 42°C";
+    }
+
+    setValidationErrors(errors);
+    return Object.values(errors).every(error => error === "");
+  };
+
+  // Hàm xử lý thay đổi input với validation
+  const handleWeightChange = (value: string) => {
+    setWeight(value);
+    if (value && Number(value) < 0) {
+      setValidationErrors(prev => ({ ...prev, weight: "Cân nặng không được là số âm" }));
+    } else if (value && (Number(value) < 2 || Number(value) > 300)) {
+      setValidationErrors(prev => ({ ...prev, weight: "Cân nặng phải từ 2 đến 300 kg" }));
+    } else {
+      setValidationErrors(prev => ({ ...prev, weight: "" }));
+    }
+  };
+
+  const handleHeightChange = (value: string) => {
+    setHeight(value);
+    if (value && Number(value) < 0) {
+      setValidationErrors(prev => ({ ...prev, height: "Chiều cao không được là số âm" }));
+    } else if (value && (Number(value) < 30 || Number(value) > 250)) {
+      setValidationErrors(prev => ({ ...prev, height: "Chiều cao phải từ 30 đến 250 cm" }));
+    } else {
+      setValidationErrors(prev => ({ ...prev, height: "" }));
+    }
+  };
+
+  const handleBloodPressureChange = (value: string) => {
+    setBloodPressure(value);
+    if (value) {
+      const bpMatch = value.match(/^(\d{2,3})\/(\d{2,3})$/);
+      if (!bpMatch) {
+        setValidationErrors(prev => ({ ...prev, bloodPressure: "Huyết áp phải đúng định dạng: số trên/số dưới (ví dụ: 120/80)" }));
+      } else {
+        const systolic = Number(bpMatch[1]);
+        const diastolic = Number(bpMatch[2]);
+        if (systolic < 0 || diastolic < 0) {
+          setValidationErrors(prev => ({ ...prev, bloodPressure: "Huyết áp không được là số âm" }));
+        } else if (
+          systolic < 60 || systolic > 300 ||
+          diastolic < 30 || diastolic > 200
+        ) {
+          setValidationErrors(prev => ({ ...prev, bloodPressure: "Huyết áp không hợp lệ. Số trên: 60-300, số dưới: 30-200" }));
+        } else {
+          setValidationErrors(prev => ({ ...prev, bloodPressure: "" }));
+        }
+      }
+    } else {
+      setValidationErrors(prev => ({ ...prev, bloodPressure: "" }));
+    }
+  };
+
+  const handlePulseChange = (value: string) => {
+    setPulse(value);
+    if (value && Number(value) < 0) {
+      setValidationErrors(prev => ({ ...prev, pulse: "Mạch không được là số âm" }));
+    } else if (value && (Number(value) < 30 || Number(value) > 220)) {
+      setValidationErrors(prev => ({ ...prev, pulse: "Mạch phải từ 30 đến 220 lần/phút" }));
+    } else {
+      setValidationErrors(prev => ({ ...prev, pulse: "" }));
+    }
+  };
+
+  const handleTemperatureChange = (value: string) => {
+    setTemperature(value);
+    if (value && Number(value) < 0) {
+      setValidationErrors(prev => ({ ...prev, temperature: "Nhiệt độ không được là số âm" }));
+    } else if (value && (Number(value) < 35 || Number(value) > 42)) {
+      setValidationErrors(prev => ({ ...prev, temperature: "Nhiệt độ cơ thể phải từ 35°C đến 42°C" }));
+    } else {
+      setValidationErrors(prev => ({ ...prev, temperature: "" }));
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -480,6 +655,15 @@ const TestManagement: React.FC = () => {
     setSideEffects([]);
     setP24Antigen("");
     setHivAntibody("");
+    setComboInterpretation("");
+    // Reset validation errors
+    setValidationErrors({
+      weight: "",
+      height: "",
+      bloodPressure: "",
+      pulse: "",
+      temperature: ""
+    });
   }, []);
 
   // ...existing code...
@@ -752,47 +936,50 @@ const TestManagement: React.FC = () => {
                                 )}
                               </span>
                             </div>
-                            <button
-                              onClick={() => {
-                                setSelectedBooking(booking);
-                                setMedicalDate(
-                                  new Date(booking.bookingDate)
-                                    .toISOString()
-                                    .slice(0, 10)
-                                );
-                                setMedicalType(
-                                  booking.serviceId?.serviceName || ""
-                                );
-                                setOpenMedicalModal(true);
-                              }}
-                              title={
-                                booking.status === "pending"
-                                  ? "Không thể tạo phiếu xét nghiệm khi trạng thái là Chờ xác nhận"
-                                  : "Tạo phiếu xét nghiệm"
-                              }
-                              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md
-                                ${booking.status === "pending"
-                                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                  : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
-                                }`}
-                              disabled={booking.status === "pending"}
-                            >
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="w-4 h-4 inline mr-2"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
+                            {/* Ẩn nút Tạo phiếu xét nghiệm nếu đã gửi xét nghiệm thành công hoặc đã có kết quả */}
+                            {!(results.some((r) => r.bookingId && r.bookingId._id === booking._id) || medicalRecordSent[booking._id!]) && (
+                              <button
+                                onClick={() => {
+                                  setSelectedBooking(booking);
+                                  setMedicalDate(
+                                    new Date(booking.bookingDate)
+                                      .toISOString()
+                                      .slice(0, 10)
+                                  );
+                                  setMedicalType(
+                                    booking.serviceId?.serviceName || ""
+                                  );
+                                  setOpenMedicalModal(true);
+                                }}
+                                title={
+                                  booking.status === "pending"
+                                    ? "Không thể tạo phiếu xét nghiệm khi trạng thái là Chờ xác nhận"
+                                    : "Tạo phiếu xét nghiệm"
+                                }
+                                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 shadow-md
+                                  ${booking.status === "pending"
+                                    ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                                    : "bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                                  }`}
+                                disabled={booking.status === "pending"}
                               >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M12 4v16m8-8H4"
-                                />
-                              </svg>
-                              Tạo phiếu xét nghiệm
-                            </button>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="w-4 h-4 inline mr-2"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 4v16m8-8H4"
+                                  />
+                                </svg>
+                                Tạo phiếu xét nghiệm
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -882,6 +1069,13 @@ const TestManagement: React.FC = () => {
                 }
                 if (medicalRecordSent[bookingId]) {
                   toast.error("Phiếu xét nghiệm đã được gửi!");
+                  return;
+                }
+
+                // Validate tất cả các trường thông tin khám
+                const isValidExamInfo = validateExamInfo();
+                if (!isValidExamInfo) {
+                  toast.error("Vui lòng kiểm tra lại thông tin khám!");
                   return;
                 }
 
@@ -986,9 +1180,10 @@ const TestManagement: React.FC = () => {
                     baseResult.hivAntibody = hivAntibody
                       ? Number.parseFloat(hivAntibody)
                       : undefined;
-                    // Nếu có giá trị kháng nguyên hoặc kháng thể thì gửi diễn giải bằng tiếng Việt
-                    if (p24Antigen !== "" || hivAntibody !== "") {
-                      baseResult.comboInterpretation = "Có dấu hiệu nhiễm HIV";
+                    
+                    // Sử dụng diễn giải đã được tính toán tự động
+                    if (comboInterpretation) {
+                      baseResult.comboInterpretation = comboInterpretation;
                     }
                   }
                   await addResult(baseResult);
@@ -1102,11 +1297,18 @@ const TestManagement: React.FC = () => {
                       <input
                         type="number"
                         step="0.1"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                          validationErrors.weight 
+                            ? "border-red-500 bg-red-50" 
+                            : "border-gray-200"
+                        }`}
                         value={weight}
-                        onChange={(e) => setWeight(e.target.value)}
+                        onChange={(e) => handleWeightChange(e.target.value)}
                         min="0"
                       />
+                      {validationErrors.weight && (
+                        <p className="text-red-500 text-xs mt-1">{validationErrors.weight}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1115,11 +1317,18 @@ const TestManagement: React.FC = () => {
                       <input
                         type="number"
                         step="0.1"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                          validationErrors.height 
+                            ? "border-red-500 bg-red-50" 
+                            : "border-gray-200"
+                        }`}
                         value={height}
-                        onChange={(e) => setHeight(e.target.value)}
+                        onChange={(e) => handleHeightChange(e.target.value)}
                         min="0"
                       />
+                      {validationErrors.height && (
+                        <p className="text-red-500 text-xs mt-1">{validationErrors.height}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1138,11 +1347,18 @@ const TestManagement: React.FC = () => {
                       </label>
                       <input
                         type="text"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                          validationErrors.bloodPressure 
+                            ? "border-red-500 bg-red-50" 
+                            : "border-gray-200"
+                        }`}
                         value={bloodPressure}
-                        onChange={(e) => setBloodPressure(e.target.value)}
-                        placeholder="e.g., 120/80 mmHg"
+                        onChange={(e) => handleBloodPressureChange(e.target.value)}
+                        placeholder="e.g., 120/80"
                       />
+                      {validationErrors.bloodPressure && (
+                        <p className="text-red-500 text-xs mt-1">{validationErrors.bloodPressure}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1150,11 +1366,18 @@ const TestManagement: React.FC = () => {
                       </label>
                       <input
                         type="number"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                          validationErrors.pulse 
+                            ? "border-red-500 bg-red-50" 
+                            : "border-gray-200"
+                        }`}
                         value={pulse}
-                        onChange={(e) => setPulse(e.target.value)}
+                        onChange={(e) => handlePulseChange(e.target.value)}
                         min="0"
                       />
+                      {validationErrors.pulse && (
+                        <p className="text-red-500 text-xs mt-1">{validationErrors.pulse}</p>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1163,11 +1386,19 @@ const TestManagement: React.FC = () => {
                       <input
                         type="number"
                         step="0.1"
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        className={`w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent ${
+                          validationErrors.temperature 
+                            ? "border-red-500 bg-red-50" 
+                            : "border-gray-200"
+                        }`}
                         value={temperature}
-                        onChange={(e) => setTemperature(e.target.value)}
+                        onChange={(e) => handleTemperatureChange(e.target.value)}
                         min="0"
+                        placeholder="35-42°C"
                       />
+                      {validationErrors.temperature && (
+                        <p className="text-red-500 text-xs mt-1">{validationErrors.temperature}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1231,8 +1462,17 @@ const TestManagement: React.FC = () => {
                               value={p24Antigen}
                               onChange={(e) => setP24Antigen(e.target.value)}
                               min="0"
-                              placeholder="e.g., 1.2"
+                              placeholder="Ví dụ: 1.2"
                             />
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-2">
+                              <p className="text-xs text-blue-700 mb-1">
+                                <strong>Ngưỡng:</strong> {'>'}1 = Dương tính, ≤1 = Âm tính
+                              </p>
+                              <p className="text-xs text-blue-600">
+                                Kháng nguyên P24 xuất hiện sớm trong giai đoạn nhiễm HIV cấp tính, 
+                                thường phát hiện được từ tuần 2-4 sau khi nhiễm.
+                              </p>
+                            </div>
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1245,12 +1485,28 @@ const TestManagement: React.FC = () => {
                               value={hivAntibody}
                               onChange={(e) => setHivAntibody(e.target.value)}
                               min="0"
-                              placeholder="e.g., 0.8"
+                              placeholder="Ví dụ: 0.8"
                             />
+                            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-2">
+                              <p className="text-xs text-green-700 mb-1">
+                                <strong>Ngưỡng:</strong> {'>'}1 = Dương tính, ≤1 = Âm tính
+                              </p>
+                              <p className="text-xs text-green-600">
+                                Kháng thể HIV xuất hiện muộn hơn, thường từ tuần 4-6 sau khi nhiễm, 
+                                khi hệ miễn dịch đã sản sinh phản ứng.
+                              </p>
+                            </div>
                           </div>
-                          {(p24Antigen !== "" || hivAntibody !== "") && (
+                          {comboInterpretation && (
                             <div className="col-span-2">
-                              <span className="text-red-600 font-semibold">Có dấu hiệu nhiễm HIV</span>
+                              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                <h4 className="font-semibold text-blue-800 mb-2">
+                                  Diễn giải kết quả:
+                                </h4>
+                                <p className="text-blue-700 font-medium">
+                                  {comboInterpretation}
+                                </p>
+                              </div>
                             </div>
                           )}
                         </>
@@ -1381,11 +1637,11 @@ const TestManagement: React.FC = () => {
                               className="w-full border border-gray-200 rounded-xl px-4 py-3 bg-gray-100"
                               value={
                                 cd4Interpretation === "normal"
-                                  ? "Bình thường"
+                                  ? "Hệ miễn dịch bình thường"
                                   : cd4Interpretation === "low"
-                                    ? "Thấp"
+                                    ? "Hệ miễn dịch yếu"
                                     : cd4Interpretation === "very_low"
-                                      ? "Rất thấp"
+                                      ? "Hệ miễn dịch rất yếu"
                                       : ""
                               }
                               readOnly
