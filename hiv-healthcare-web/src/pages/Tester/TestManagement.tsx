@@ -1587,7 +1587,7 @@ const TestManagement: React.FC = () => {
                                   : viralLoadInterpretation === "low"
                                     ? "Thấp"
                                     : viralLoadInterpretation === "high"
-                                      ? "Cao"
+                                      ? "Tải lượng cao"
                                       : ""
                               }
                               readOnly
