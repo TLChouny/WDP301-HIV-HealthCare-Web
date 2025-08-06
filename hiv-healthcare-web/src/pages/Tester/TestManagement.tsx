@@ -156,6 +156,7 @@ const TestManagement: React.FC = () => {
   const [cd4Count, setCd4Count] = useState("");
   const [cd4Reference, setCd4Reference] = useState("");
   const [cd4Interpretation, setCd4Interpretation] = useState("");
+  const [coInfections, setCoInfections] = useState<string[]>([]);
 
   // ...existing code...
   const [reExaminationDate, setReExaminationDate] = useState("");
@@ -656,6 +657,11 @@ const TestManagement: React.FC = () => {
     setP24Antigen("");
     setHivAntibody("");
     setComboInterpretation("");
+    // Reset CD4 fields
+    setCd4Count("");
+    setCd4Reference("");
+    setCd4Interpretation("");
+    setCoInfections([]);
     // Reset validation errors
     setValidationErrors({
       weight: "",
@@ -1166,6 +1172,7 @@ const TestManagement: React.FC = () => {
                       else if (cd4Interp === "Rất thấp") cd4Interp = "very_low";
                     }
                     baseResult.cd4Interpretation = cd4Interp || undefined;
+                    baseResult.coInfections = coInfections.length > 0 ? coInfections : undefined;
                   }
                   // Nếu là Xét nghiệm HIV Combo (Ag/Ab) thì gửi thêm các trường đặc biệt
                   if (
@@ -1668,6 +1675,29 @@ const TestManagement: React.FC = () => {
                               readOnly
                               placeholder="Diễn giải tự động"
                             />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Nhiễm trùng cơ hội
+                            </label>
+                            <div className="space-y-2">
+                              <textarea
+                                className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent resize-none"
+                                rows={3}
+                                value={coInfections.join(', ')}
+                                onChange={(e) => {
+                                  const infections = e.target.value
+                                    .split(',')
+                                    .map(item => item.trim())
+                                    .filter(item => item.length > 0);
+                                  setCoInfections(infections);
+                                }}
+                                placeholder="Nhập các nhiễm trùng cơ hội, phân cách bằng dấu phẩy (vd: Candida, Tuberculosis, PCP)"
+                              />
+                              <p className="text-xs text-gray-500">
+                                Phân cách các nhiễm trùng cơ hội bằng dấu phẩy
+                              </p>
+                            </div>
                           </div>
                         </>
                       )}

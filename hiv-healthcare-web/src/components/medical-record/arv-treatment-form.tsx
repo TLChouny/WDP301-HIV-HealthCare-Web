@@ -114,7 +114,7 @@ const ArvTreatmentForm: React.FC<ArvTreatmentFormProps> = ({
               className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
               value={arvRegimenId}
               onChange={(e) => setArvRegimenId(e.target.value)}
-              disabled={!!hasResult}
+              disabled={!!hasResult && !isArvTest}
             >
               <option value="">-- Chọn phác đồ ARV --</option>
               {regimens.map((regimen) => (
@@ -130,56 +130,56 @@ const ArvTreatmentForm: React.FC<ArvTreatmentFormProps> = ({
             </label>
             <input
               type="text"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
               value={arvName}
               onChange={(e) => setArvName(e.target.value)}
               placeholder="Nhập tên phác đồ"
               required
-              disabled={!!hasResult}
+              disabled={true}
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Mã phác đồ</label>
             <input
               type="text"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
               value={regimenCode}
               onChange={(e) => setRegimenCode(e.target.value)}
               placeholder="Nhập mã phác đồ (nếu có)"
-              disabled={!!hasResult}
+              disabled={true}
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Tuyến điều trị</label>
             <input
               type="text"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
               value={treatmentLine}
               onChange={(e) => setTreatmentLine(e.target.value)}
               placeholder="Nhập tuyến điều trị (nếu có)"
-              disabled={!!hasResult}
+              disabled={true}
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Đối tượng</label>
             <input
               type="text"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
               value={recommendedFor}
               onChange={(e) => setRecommendedFor(e.target.value)}
               placeholder="Nhập đối tượng (nếu có)"
-              disabled={!!hasResult}
+              disabled={true}
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
             <textarea
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-100"
               value={arvDescription}
               onChange={(e) => setArvDescription(e.target.value)}
               placeholder="Nhập mô tả phác đồ (nếu có)"
               rows={4}
-              disabled={!!hasResult}
+              disabled={true}
             />
           </div>
           <div>
@@ -191,7 +191,7 @@ const ArvTreatmentForm: React.FC<ArvTreatmentFormProps> = ({
               value={medicationSlot}
               onChange={(e) => setMedicationSlot(e.target.value)}
               required
-              disabled={!!hasResult}
+              disabled={!!hasResult && !isArvTest}
             >
               <option value="">-- Chọn khe thời gian --</option>
               <option value="Sáng">Sáng</option>
@@ -205,9 +205,9 @@ const ArvTreatmentForm: React.FC<ArvTreatmentFormProps> = ({
           </div>
           {medicationSlot && slotToTimeCount[medicationSlot]?.length > 0 && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              {/* <label className="block text-sm font-medium text-gray-700 mb-1">
                 Thời gian uống thuốc <span className="text-red-500">*</span>
-              </label>
+              </label> */}
               {slotToTimeCount[medicationSlot].map((slot, index) => (
                 <div key={index} className="mb-2">
                   <label className="block text-xs font-medium text-gray-600 mb-1">Thời gian {slot}</label>
@@ -222,7 +222,7 @@ const ArvTreatmentForm: React.FC<ArvTreatmentFormProps> = ({
                       setMedicationTimes(updatedTimes)
                     }}
                     required
-                    disabled={!!hasResult}
+                    disabled={!!hasResult && !isArvTest}
                   />
                 </div>
               ))}
@@ -239,7 +239,7 @@ const ArvTreatmentForm: React.FC<ArvTreatmentFormProps> = ({
               onChange={(e) => setReExaminationDate(e.target.value)}
               required
               min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10)}
-              disabled={!!hasResult}
+              disabled={!!hasResult && !isArvTest}
             />
           </div>
           <div className="bg-white rounded-2xl p-4 border border-gray-100">

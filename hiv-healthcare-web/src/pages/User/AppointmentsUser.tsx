@@ -493,6 +493,19 @@ const UserAppointments: React.FC = () => {
                         </a>
                       </div>
                     )}
+                    {selectedAppointment.serviceId?.serviceName === "Tư vấn trực tuyến" && selectedAppointment.doctorNote && (
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú của bác sĩ</label>
+                        <div className="text-gray-800 bg-amber-50 border border-amber-200 p-3 rounded-xl">
+                          <div className="flex items-start gap-2">
+                            <div className="w-5 h-5 bg-amber-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <User className="h-3 w-3 text-amber-600" />
+                            </div>
+                            <p className="text-sm leading-relaxed">{selectedAppointment.doctorNote}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     {selectedAppointment.notes && (
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>

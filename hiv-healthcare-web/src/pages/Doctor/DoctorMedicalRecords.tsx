@@ -581,6 +581,12 @@ const DoctorMedicalRecords: React.FC = () => {
                                       </p>
                                     </div>
                                     <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Khoảng tham chiếu VL</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.viralLoadReference || "Chưa có"}
+                                      </p>
+                                    </div>
+                                    <div>
                                       <label className="block text-sm font-medium text-gray-700 mb-1">Diễn giải tải lượng virus</label>
                                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
                                         {record.viralLoadInterpretation || "Chưa có"}
@@ -593,10 +599,60 @@ const DoctorMedicalRecords: React.FC = () => {
                                       </p>
                                     </div>
                                     <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Khoảng tham chiếu CD4</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.cd4Reference || "Chưa có"}
+                                      </p>
+                                    </div>
+                                    <div>
                                       <label className="block text-sm font-medium text-gray-700 mb-1">Diễn giải CD4</label>
                                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
                                         {record.cd4Interpretation || "Chưa có"}
                                       </p>
+                                    </div>
+                                    {/* Show P24 Antigen and HIV Antibody for Combo tests */}
+                                    {record.p24Antigen !== undefined && (
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Kháng nguyên P24</label>
+                                        <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                          {record.p24Antigen || "Chưa có"}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {record.hivAntibody !== undefined && (
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Kháng thể HIV</label>
+                                        <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                          {record.hivAntibody || "Chưa có"}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {record.interpretationNote && (
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú diễn giải</label>
+                                        <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                          {record.interpretationNote}
+                                        </p>
+                                      </div>
+                                    )}
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Nhiễm trùng cơ hội</label>
+                                      <div className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.coInfections && record.coInfections.length > 0 ? (
+                                          <div className="space-y-1">
+                                            {record.coInfections.map((infection, index) => (
+                                              <span
+                                                key={index}
+                                                className="inline-block bg-red-100 text-red-800 px-2 py-1 rounded-lg text-sm mr-2 mb-1"
+                                              >
+                                                {infection}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        ) : (
+                                          "Không có"
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
                                 </div>

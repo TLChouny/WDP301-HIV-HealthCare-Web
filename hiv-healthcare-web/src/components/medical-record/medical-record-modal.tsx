@@ -286,6 +286,12 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
         
         setIsSubmitting(true)
         
+        console.log("=== DEBUG: Form submission data ===");
+        console.log("notes value:", notes);
+        // console.log("consultationNote value:", consultationNote);
+        console.log("isLabTest:", isLabTest);
+        console.log("isArvTest:", isArvTest);
+        
         // Chuẩn bị dữ liệu kết quả
         const resultData = {
             resultName: diagnosis || (isArvTest ? "Kết quả xét nghiệm ARV" : "Kết quả khám"),
@@ -319,9 +325,12 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
             p24Antigen: p24Antigen ? Number(p24Antigen.replace(",", ".")) : undefined,
             hivAntibody: hivAntibody ? Number(hivAntibody.replace(",", ".")) : undefined,
             interpretationNote: interpretationNote || undefined,
-            notes: isLabTest ? notes : undefined,
-            consultationNote: (isLabTest || isArvTest) ? consultationNote : undefined,
+            notes: notes,
+            // consultationNote: (isLabTest || isArvTest) ? consultationNote : undefined,
         }
+
+        console.log("=== DEBUG: Complete resultData ===");
+        console.log(JSON.stringify(resultData, null, 2));
 
         let arvregimenId = "default" // Fallback value
         if (showArvSection && !isLabTest) {
@@ -387,8 +396,12 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
             if (isLabTest && labResult?._id) {
                 // Chỉ cập nhật field notes (ghi chú mới)
                 const updateData = {
-                    notes: notes || undefined,
+                    notes: notes,
                 };
+
+                console.log("=== DEBUG: Updating lab result ===");
+                console.log("labResult._id:", labResult._id);
+                console.log("updateData:", updateData);
 
                 // Sử dụng as any để tránh các vấn đề về kiểu dữ liệu
                 await updateResult(labResult._id, updateData as any);
@@ -427,8 +440,8 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
                     p24Antigen: p24Antigen ? Number(p24Antigen.replace(",", ".")) : undefined,
                     hivAntibody: hivAntibody ? Number(hivAntibody.replace(",", ".")) : undefined,
                     interpretationNote: interpretationNote || notes || undefined,
-                    notes: isLabTest ? notes : undefined,
-                    consultationNote: (isLabTest || isArvTest) ? consultationNote : undefined,
+                    notes: notes,
+                    // consultationNote: (isLabTest || isArvTest) ? consultationNote : undefined,
                 });
 
                 setMedicalRecordSent((prev) => ({
@@ -459,18 +472,18 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
     const [userResults, setUserResults] = useState<Result[]>([]);
     const [labResult, setLabResult] = useState<Result | null>(null)
     const [notes, setNotes] = useState("")
-    const [consultationNote, setConsultationNote] = useState("")
+    // const [consultationNote, setConsultationNote] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [selectedHistoryResult, setSelectedHistoryResult] = useState<Result | null>(null)
     
     // Reset consultationNote when modal closes
-    useEffect(() => {
-        if (!openMedicalModal) {
-            setConsultationNote("")
-        }
-    }, [openMedicalModal])
+    // useEffect(() => {
+    //     if (!openMedicalModal) {
+    //         setConsultationNote("")
+    //     }
+    // }, [openMedicalModal])
     
-    console.log("Debug flags:", { isLabTest, isArvTest, hasLabResult: !!labResult });
+    // console.log("Debug flags:", { isLabTest, isArvTest, hasLabResult: !!labResult });
 
     useEffect(() => {
         const fetchUserResults = async () => {
@@ -542,7 +555,7 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
             setBmi(labResult.bmi?.toString() || "");
             // Use interpretationNote instead of notes which is missing in the response
             setNotes(labResult.interpretationNote || "");
-            setConsultationNote(labResult.interpretationNote || "");
+            // setConsultationNote(labResult.interpretationNote || "");
             console.log("Loaded notes from database:", labResult.interpretationNote);
             setMedicationSlot(labResult.medicationSlot || "");
             setMedicationTimes(labResult.medicationTime ? labResult.medicationTime.split(";") : []);
@@ -928,13 +941,27 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
                             <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
                                 <h3 className="text-lg font-semibold text-gray-700 mb-4">Nội dung tư vấn</h3>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú tư vấn</label>
+                                    {/* <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú tư vấn</label> */}
                                     <textarea
                                         className="w-full border rounded-xl p-3 text-sm"
                                         rows={4}
                                         placeholder="Nhập nội dung tư vấn cho bệnh nhân..."
-                                        value={consultationNote}
-                                        onChange={(e) => setConsultationNote(e.target.value)}
+                                        value={notes}
+                                        onChange={(e) => setNotes(e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        {!isLabTest && !isArvTest && (
+                            <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                                <h3 className="text-lg font-semibold text-gray-700 mb-4">Ghi chú</h3>
+                                <div>
+                                    <textarea
+                                        className="w-full border rounded-xl p-3 text-sm"
+                                        rows={4}
+                                        placeholder="Nhập ghi chú cho hồ sơ bệnh án..."
+                                        value={notes}
+                                        onChange={(e) => setNotes(e.target.value)}
                                     />
                                 </div>
                             </div>

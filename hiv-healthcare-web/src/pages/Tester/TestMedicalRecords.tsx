@@ -400,12 +400,29 @@ const TestMedicalRecords: React.FC = () => {
                             {record.cd4Reference || "Chưa có"}
                           </p>
                         </div>
-                        {/* <div>
+                        <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Diễn giải CD4</label>
                           <p className="text-gray-800 bg-white p-3 rounded-xl border">
                             {record.cd4Interpretation || "Chưa có"}
                           </p>
-                        </div> */}
+                        </div>
+                        {record.coInfections && record.coInfections.length > 0 && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Nhiễm trùng cơ hội</label>
+                            <div className="text-gray-800 bg-white p-3 rounded-xl border">
+                              <div className="flex flex-wrap gap-2">
+                                {record.coInfections.map((infection: string, index: number) => (
+                                  <span
+                                    key={index}
+                                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800"
+                                  >
+                                    {infection}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">Kháng nguyên P24</label>
                           <p className="text-gray-800 bg-white p-3 rounded-xl border">
