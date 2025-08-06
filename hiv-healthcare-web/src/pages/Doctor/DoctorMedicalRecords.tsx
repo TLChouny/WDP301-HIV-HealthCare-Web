@@ -478,11 +478,21 @@ const DoctorMedicalRecords: React.FC = () => {
                                       <p className="text-gray-800 bg-white p-3 rounded-xl border">{record.symptoms || "Không có"}</p>
                                     </div>
                                     <div>
-                                      <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả kết quả (nếu có ARV)</label>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả kết quả</label>
                                       <p className="text-gray-800 bg-white p-3 rounded-xl border">
                                         {record.resultDescription || "Không có"}
                                       </p>
                                     </div>
+                                    {/* Show testerName for Lab Tests */}
+                                    {typeof record.bookingId?.serviceId === 'object' && 
+                                     record.bookingId.serviceId?.isLabTest === true && (
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Người thực hiện xét nghiệm</label>
+                                        <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                          {record.testerName || "Chưa có"}
+                                        </p>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
 
@@ -549,6 +559,15 @@ const DoctorMedicalRecords: React.FC = () => {
                                         {record.testMethod || "Chưa có"}
                                       </p>
                                     </div>
+                                    {/* Show testerName for Lab Tests */}
+                                    {typeof record.bookingId?.serviceId === 'object' && record.bookingId.serviceId?.isLabTest === true && (
+                                      <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Người thực hiện xét nghiệm</label>
+                                        <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                          {record.testerName || "Chưa có"}
+                                        </p>
+                                      </div>
+                                    )}
                                     <div>
                                       <label className="block text-sm font-medium text-gray-700 mb-1">Kết quả xét nghiệm</label>
                                       <p className="text-gray-800 bg-white p-3 rounded-xl border">

@@ -320,7 +320,7 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
             hivAntibody: hivAntibody ? Number(hivAntibody.replace(",", ".")) : undefined,
             interpretationNote: interpretationNote || undefined,
             notes: isLabTest ? notes : undefined,
-            consultationNote: isLabTest ? consultationNote : undefined,
+            consultationNote: (isLabTest || isArvTest) ? consultationNote : undefined,
         }
 
         let arvregimenId = "default" // Fallback value
@@ -428,7 +428,7 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
                     hivAntibody: hivAntibody ? Number(hivAntibody.replace(",", ".")) : undefined,
                     interpretationNote: interpretationNote || notes || undefined,
                     notes: isLabTest ? notes : undefined,
-                    consultationNote: isLabTest ? consultationNote : undefined,
+                    consultationNote: (isLabTest || isArvTest) ? consultationNote : undefined,
                 });
 
                 setMedicalRecordSent((prev) => ({
@@ -462,6 +462,13 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
     const [consultationNote, setConsultationNote] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [selectedHistoryResult, setSelectedHistoryResult] = useState<Result | null>(null)
+    
+    // Reset consultationNote when modal closes
+    useEffect(() => {
+        if (!openMedicalModal) {
+            setConsultationNote("")
+        }
+    }, [openMedicalModal])
     
     console.log("Debug flags:", { isLabTest, isArvTest, hasLabResult: !!labResult });
 
@@ -566,7 +573,9 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
             <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-                <h2 className="text-2xl font-bold mb-6 text-gray-900 text-center">Tạo hồ sơ bệnh án</h2>
+                <h2 className="text-2xl font-bold mb-6 text-gray-900 text-center">
+                    {isLabTest ? "Xem kết quả xét nghiệm" : "Tạo hồ sơ bệnh án"}
+                </h2>
                 <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-4 mb-6 border border-blue-100">
                     <p className="text-lg font-semibold text-gray-800 mb-2">
                         Bệnh nhân: {selectedBooking.customerName} (Mã booking: {selectedBooking.bookingCode})
@@ -788,70 +797,86 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
 
                             </div>
                         )}
+
+                        {isLabTest && !labResult && (
+                            <div className="p-4 border rounded-lg bg-yellow-50 mb-6">
+                                <h3 className="text-lg font-bold text-gray-800 mb-2">Thông báo</h3>
+                                <p className="text-gray-600">Kết quả xét nghiệm chưa có dữ liệu. Chỉ có thể xem thông tin sau khi có kết quả.</p>
+                            </div>
+                        )}
                         
                         {!isArvTest && (
                             <>
-                                <GeneralInfoForm
-                                    medicalDate={medicalDate}
-                                    setMedicalDate={setMedicalDate}
-                                    medicalType={medicalType}
-                                    setMedicalType={setMedicalType}
-                                    weight={weight ? Number(weight) : undefined}
-                                    setWeight={(w) => setWeight(String(w))}
-                                    height={height ? Number(height) : undefined}
-                                    setHeight={(h) => setHeight(String(h))}
-                                    bmi={bmi ? Number(bmi) : undefined}
-                                    labResult={labResult}
-                                    isArvTest={isArvTest}
-                                />
-                                <ExamInfoForm
-                                    bloodPressure={bloodPressure}
-                                    setBloodPressure={setBloodPressure}
-                                    pulse={pulse}
-                                    setPulse={setPulse}
-                                    temperature={temperature}
-                                    setTemperature={setTemperature}
-                                    symptoms={symptoms}
-                                    setSymptoms={setSymptoms}
-                                    diagnosis={diagnosis}
-                                    setDiagnosis={setDiagnosis}
-                                />
-                                <LabTestInfoForm
-                                    sampleType={sampleType}
-                                    setSampleType={setSampleType}
-                                    testMethod={testMethod}
-                                    setTestMethod={setTestMethod}
-                                    resultType={resultType}
-                                    setResultType={setResultType}
-                                    testResult={testResult}
-                                    setTestResult={setTestResult}
-                                    testValue={testValue}
-                                    setTestValue={setTestValue}
-                                    unit={unit}
-                                    setUnit={setUnit}
-                                    referenceRange={referenceRange}
-                                    setReferenceRange={setReferenceRange}
-                                    viralLoad={typeof viralLoad === "number" ? String(viralLoad) : viralLoad}
-                                    setViralLoad={(v) => setViralLoad(v === "" ? 0 : Number(v))}
-                                    viralLoadReference={viralLoadReference}
-                                    setViralLoadReference={setViralLoadReference}
-                                    viralLoadInterpretation={viralLoadInterpretation}
-                                    setViralLoadInterpretation={(v) => setViralLoadInterpretation(v === "" ? "undetectable" : v as "undetectable" | "low" | "high")}
-                                    cd4Count={typeof cd4Count === "number" ? String(cd4Count) : cd4Count}
-                                    setCd4Count={(v) => setCd4Count(v === "" ? 0 : Number(v))}
-                                    cd4Reference={cd4Reference}
-                                    setCd4Reference={setCd4Reference}
-                                    cd4Interpretation={cd4Interpretation}
-                                    setCd4Interpretation={(v) => setCd4Interpretation(v === "" ? "normal" : v as "normal" | "low" | "very_low")}
-                                    coInfections={coInfections}
-                                    setCoInfections={setCoInfections}
-                                    interpretationNote={interpretationNote}
-                                    setInterpretationNote={setInterpretationNote}
-                                    p24Antigen={p24Antigen}
-                                    setP24Antigen={setP24Antigen}
-                                    hivAntibody={hivAntibody}
-                                    setHivAntibody={setHivAntibody}
-                                />
+                                <div className={`relative ${isLabTest ? 'pointer-events-none' : ''}`} 
+                                     title={isLabTest ? "Chỉ đọc - Không thể chỉnh sửa đối với xét nghiệm" : ""}>
+                                    <GeneralInfoForm
+                                        medicalDate={medicalDate}
+                                        setMedicalDate={setMedicalDate}
+                                        medicalType={medicalType}
+                                        setMedicalType={setMedicalType}
+                                        weight={weight ? Number(weight) : undefined}
+                                        setWeight={(w) => setWeight(String(w))}
+                                        height={height ? Number(height) : undefined}
+                                        setHeight={(h) => setHeight(String(h))}
+                                        bmi={bmi ? Number(bmi) : undefined}
+                                        labResult={labResult}
+                                        isArvTest={isArvTest}
+                                    />
+                                </div>
+                                <div className={`relative ${isLabTest ? 'pointer-events-none' : ''}`} 
+                                     title={isLabTest ? "Chỉ đọc - Không thể chỉnh sửa đối với xét nghiệm" : ""}>
+                                    <ExamInfoForm
+                                        bloodPressure={bloodPressure}
+                                        setBloodPressure={setBloodPressure}
+                                        pulse={pulse}
+                                        setPulse={setPulse}
+                                        temperature={temperature}
+                                        setTemperature={setTemperature}
+                                        symptoms={symptoms}
+                                        setSymptoms={setSymptoms}
+                                        diagnosis={diagnosis}
+                                        setDiagnosis={setDiagnosis}
+                                    />
+                                </div>
+                                <div className={`relative ${isLabTest ? 'pointer-events-none' : ''}`} 
+                                     title={isLabTest ? "Chỉ đọc - Không thể chỉnh sửa đối với xét nghiệm" : ""}>
+                                    <LabTestInfoForm
+                                        sampleType={sampleType}
+                                        setSampleType={setSampleType}
+                                        testMethod={testMethod}
+                                        setTestMethod={setTestMethod}
+                                        resultType={resultType}
+                                        setResultType={setResultType}
+                                        testResult={testResult}
+                                        setTestResult={setTestResult}
+                                        testValue={testValue}
+                                        setTestValue={setTestValue}
+                                        unit={unit}
+                                        setUnit={setUnit}
+                                        referenceRange={referenceRange}
+                                        setReferenceRange={setReferenceRange}
+                                        viralLoad={typeof viralLoad === "number" ? String(viralLoad) : viralLoad}
+                                        setViralLoad={(v) => setViralLoad(v === "" ? 0 : Number(v))}
+                                        viralLoadReference={viralLoadReference}
+                                        setViralLoadReference={setViralLoadReference}
+                                        viralLoadInterpretation={viralLoadInterpretation}
+                                        setViralLoadInterpretation={(v) => setViralLoadInterpretation(v === "" ? "undetectable" : v as "undetectable" | "low" | "high")}
+                                        cd4Count={typeof cd4Count === "number" ? String(cd4Count) : cd4Count}
+                                        setCd4Count={(v) => setCd4Count(v === "" ? 0 : Number(v))}
+                                        cd4Reference={cd4Reference}
+                                        setCd4Reference={setCd4Reference}
+                                        cd4Interpretation={cd4Interpretation}
+                                        setCd4Interpretation={(v) => setCd4Interpretation(v === "" ? "normal" : v as "normal" | "low" | "very_low")}
+                                        coInfections={coInfections}
+                                        setCoInfections={setCoInfections}
+                                        interpretationNote={interpretationNote}
+                                        setInterpretationNote={setInterpretationNote}
+                                        p24Antigen={p24Antigen}
+                                        setP24Antigen={setP24Antigen}
+                                        hivAntibody={hivAntibody}
+                                        setHivAntibody={setHivAntibody}
+                                    />
+                                </div>
                             </>
                         )}
                         {isArvTest && showArvSection && (
@@ -888,6 +913,7 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
                                 setHivLoad={setHivLoad}
                                 regimens={regimens}
                                 hasResult={hasResult}
+                                isArvTest={isArvTest}
                                 arvError={arvError}
                                 slotToTimeCount={slotToTimeCount}
                                 addDrugRow={addDrugRow}
@@ -897,6 +923,21 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
                                 addSideEffect={addSideEffect}
                                 removeSideEffect={removeSideEffect}
                             />
+                        )}
+                        {isArvTest && (
+                            <div className="bg-gray-50 rounded-xl p-6 border border-gray-100">
+                                <h3 className="text-lg font-semibold text-gray-700 mb-4">Nội dung tư vấn</h3>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú tư vấn</label>
+                                    <textarea
+                                        className="w-full border rounded-xl p-3 text-sm"
+                                        rows={4}
+                                        placeholder="Nhập nội dung tư vấn cho bệnh nhân..."
+                                        value={consultationNote}
+                                        onChange={(e) => setConsultationNote(e.target.value)}
+                                    />
+                                </div>
+                            </div>
                         )}
                         {!isLabTest && (
                             <StatusSelectionForm
@@ -916,17 +957,19 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
                         >
                             Đóng
                         </button>
-                        <button
-                            type="submit"
-                            className={`px-6 py-3 rounded-xl text-white font-semibold transition-all ${
-                                isSubmitting 
-                                ? "bg-gray-400 cursor-not-allowed" 
-                                : "bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
-                            }`}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? "Đang lưu..." : "Lưu hồ sơ"}
-                        </button>
+                        {(!isLabTest || (isLabTest && labResult)) && (
+                            <button
+                                type="submit"
+                                className={`px-6 py-3 rounded-xl text-white font-semibold transition-all ${
+                                    isSubmitting 
+                                    ? "bg-gray-400 cursor-not-allowed" 
+                                    : "bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700"
+                                }`}
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? "Đang lưu..." : isLabTest ? "Cập nhật ghi chú" : "Lưu hồ sơ"}
+                            </button>
+                        )}
                     </div>
                 </form>
             </div>

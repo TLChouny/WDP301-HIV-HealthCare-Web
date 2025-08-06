@@ -584,45 +584,51 @@ const MedicalRecords: React.FC = () => {
                           : "Không tái khám"}
                       </p>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Triệu chứng</label>
-                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {selectedRecord.symptoms || "Không có"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nhận xét của bác sĩ</label>
-                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {selectedRecord.notes || "Không có"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú diễn giải</label>
-                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {selectedRecord.interpretationNote || "Không có"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả kết quả</label>
-                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {selectedRecord.resultDescription || "Không có"}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Người thực hiện xét nghiệm</label>
-                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                        {selectedRecord.testerName || "Không có"}
-                      </p>
-                    </div>
+                    {/* Additional fields - Hide for ARV tests */}
+                    {!selectedRecord.bookingId?.serviceId?.isArvTest && (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Triệu chứng</label>
+                          <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                            {selectedRecord.symptoms || "Không có"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Nhận xét của bác sĩ</label>
+                          <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                            {selectedRecord.notes || "Không có"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú diễn giải</label>
+                          <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                            {selectedRecord.interpretationNote || "Không có"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả kết quả</label>
+                          <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                            {selectedRecord.resultDescription || "Không có"}
+                          </p>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Người thực hiện xét nghiệm</label>
+                          <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                            {selectedRecord.testerName || "Không có"}
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                {/* Vital Signs */}
-                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-100">
-                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <Heart className="h-5 w-5 text-teal-600" />
-                    Dấu Hiệu Sinh Tồn
-                  </h4>
+                {/* Vital Signs - Hide for ARV tests */}
+                {!selectedRecord.bookingId?.serviceId?.isArvTest && (
+                  <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-100">
+                    <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <Heart className="h-5 w-5 text-teal-600" />
+                      Chỉ Số Cơ Thể
+                    </h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Cân nặng</label>
@@ -673,13 +679,15 @@ const MedicalRecords: React.FC = () => {
                     </div>
                   </div>
                 </div>
+                )}
 
-                {/* Lab Test Information */}
-                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-100">
-                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                    <TestTube className="h-5 w-5 text-teal-600" />
-                    Xét Nghiệm
-                  </h4>
+                {/* Lab Test Information - Hide for ARV tests */}
+                {!selectedRecord.bookingId?.serviceId?.isArvTest && (
+                  <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-2xl p-6 border border-blue-100">
+                    <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <TestTube className="h-5 w-5 text-teal-600" />
+                      Xét Nghiệm
+                    </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Loại mẫu xét nghiệm</label>
@@ -827,6 +835,7 @@ const MedicalRecords: React.FC = () => {
                     </div>
                   )}
                 </div>
+                )}
 
                 {/* ARV Regimen Information */}
                 {selectedRecord.arvregimenId && (

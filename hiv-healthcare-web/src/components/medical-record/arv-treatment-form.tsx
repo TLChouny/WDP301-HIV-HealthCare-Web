@@ -37,6 +37,7 @@ interface ArvTreatmentFormProps {
   setHivLoad: (load: string) => void
   regimens: ARVRegimen[]
   hasResult: boolean
+  isArvTest?: boolean
   arvError: string | null
   slotToTimeCount: { [key: string]: string[] }
   addDrugRow: () => void
@@ -80,6 +81,7 @@ const ArvTreatmentForm: React.FC<ArvTreatmentFormProps> = ({
   setHivLoad,
   regimens,
   hasResult,
+  isArvTest = false,
   arvError,
   slotToTimeCount,
   addDrugRow,
