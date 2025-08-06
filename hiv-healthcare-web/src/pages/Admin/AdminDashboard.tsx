@@ -229,18 +229,22 @@ const AdminDashboard = () => {
     // Tính doanh thu cho từng dịch vụ
     allPayments.forEach(payment => {
       if (payment.status === "success" && payment.amount) {
-        // Tìm booking tương ứng với payment
-        const relatedBooking = allBookings.find(booking => 
-          booking.bookingCode === String(payment.orderCode)
-        )
+        // Lấy booking từ bookingIds array (đã được populate từ backend)
+        const bookings = Array.isArray(payment.bookingIds) && payment.bookingIds.length > 0 
+          ? payment.bookingIds 
+          : []
         
-        if (relatedBooking?.serviceId) {
-          const serviceId = typeof relatedBooking.serviceId === 'string' 
-            ? relatedBooking.serviceId 
-            : relatedBooking.serviceId._id
-          
-          serviceRevenue[serviceId] = (serviceRevenue[serviceId] || 0) + payment.amount
-        }
+        bookings.forEach(booking => {
+          if (booking && typeof booking === 'object' && booking.serviceId) {
+            const serviceId = typeof booking.serviceId === 'string' 
+              ? booking.serviceId 
+              : booking.serviceId._id
+            
+            // Chia đều số tiền cho các booking (nếu có nhiều booking trong 1 payment)
+            const amountPerBooking = payment.amount / bookings.length
+            serviceRevenue[serviceId] = (serviceRevenue[serviceId] || 0) + amountPerBooking
+          }
+        })
       }
     })
     
@@ -248,34 +252,54 @@ const AdminDashboard = () => {
     return Object.entries(serviceRevenue)
       .map(([serviceId, revenue]) => {
         const service = allServices.find(s => s._id === serviceId)
+        
+        // Đếm số booking cho service này từ payment data
+        let bookingCount = 0
+        allPayments.forEach(payment => {
+          if (Array.isArray(payment.bookingIds) && payment.bookingIds.length > 0) {
+            payment.bookingIds.forEach(booking => {
+              if (booking && typeof booking === 'object' && booking.serviceId) {
+                const bookingServiceId = typeof booking.serviceId === 'string' 
+                  ? booking.serviceId 
+                  : booking.serviceId._id
+                if (bookingServiceId === serviceId) {
+                  bookingCount++
+                }
+              }
+            })
+          }
+        })
+        
         return {
           serviceId,
           serviceName: service?.serviceName || "Dịch vụ không xác định",
           revenue,
-          bookingCount: allBookings.filter(booking => {
-            const bookingServiceId = typeof booking.serviceId === 'string' 
-              ? booking.serviceId 
-              : booking.serviceId._id
-            return bookingServiceId === serviceId
-          }).length
+          bookingCount
         }
       })
       .sort((a, b) => b.revenue - a.revenue)
       .slice(0, 5) // Top 5 dịch vụ
-  }, [allPayments, allServices, allBookings])
+  }, [allPayments, allServices])
 
   // Thống kê dịch vụ được đặt nhiều nhất
   const topBookedServices = useMemo(() => {
-    if (!allBookings.length || !allServices.length) return []
+    if (!allPayments.length || !allServices.length) return []
     
     const serviceBookingCount: { [key: string]: number } = {}
     
-    allBookings.forEach(booking => {
-      const serviceId = typeof booking.serviceId === 'string' 
-        ? booking.serviceId 
-        : booking.serviceId._id
-      
-      serviceBookingCount[serviceId] = (serviceBookingCount[serviceId] || 0) + 1
+    // Đếm booking cho từng dịch vụ từ payment data
+    allPayments.forEach(payment => {
+      if (Array.isArray(payment.bookingIds) && payment.bookingIds.length > 0) {
+        payment.bookingIds.forEach(booking => {
+          if (booking && typeof booking === 'object' && booking.serviceId) {
+            const serviceId = typeof booking.serviceId === 'string' 
+              ? booking.serviceId 
+              : booking.serviceId._id
+            
+            serviceBookingCount[serviceId] = (serviceBookingCount[serviceId] || 0) + 1
+          }
+        })
+      }
     })
     
     return Object.entries(serviceBookingCount)
@@ -290,7 +314,7 @@ const AdminDashboard = () => {
       })
       .sort((a, b) => b.bookingCount - a.bookingCount)
       .slice(0, 5) // Top 5 dịch vụ
-  }, [allBookings, allServices])
+  }, [allPayments, allServices])
 
   const handleDateRangeChange = (dates: [dayjs.Dayjs | null, dayjs.Dayjs | null] | null) => {
     if (dates?.[0] && dates?.[1]) {
