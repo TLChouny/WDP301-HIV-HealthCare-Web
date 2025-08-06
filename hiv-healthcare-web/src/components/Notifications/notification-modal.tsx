@@ -280,7 +280,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ isOpen, onClose, 
                 <button
                   onClick={() => {
                     // Navigate to profile or booking details
-                    window.location.href = "/user/profile"
+                    window.location.href = "/user/appointments"
                   }}
                   className="flex-1 bg-gradient-to-r from-teal-600 to-blue-600 hover:from-teal-700 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105"
                 >
