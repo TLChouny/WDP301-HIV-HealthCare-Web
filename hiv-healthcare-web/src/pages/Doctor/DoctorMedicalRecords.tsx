@@ -278,200 +278,315 @@ const DoctorMedicalRecords: React.FC = () => {
 
                     {expandedRecords[record._id!] && (
                       <div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                          <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                            <Calendar className="h-5 w-5 text-teal-600" />
-                            <div>
-                              <p className="text-sm text-gray-500">Ngày tái khám</p>
-                              <p className="font-medium text-gray-800">
-                                {record.reExaminationDate
-                                  ? new Date(record.reExaminationDate).toLocaleDateString("vi-VN")
-                                  : "Chưa xác định"}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                            <User className="h-5 w-5 text-teal-600" />
-                            <div>
-                              <p className="text-sm text-gray-500">Bệnh nhân</p>
-                              <p className="font-medium text-gray-800">
-                                {patientInfo.name}{" "}
-                                {patientInfo.isAnonymous && (
-                                  <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-medium">
-                                    Ẩn danh
-                                  </span>
-                                )}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                            <FileText className="h-5 w-5 text-teal-600" />
-                            <div>
-                              <p className="text-sm text-gray-500">Mã đặt lịch</p>
-                              <p className="font-medium text-gray-800">{record.bookingId?.bookingCode || "Chưa có"}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                            <Stethoscope className="h-5 w-5 text-teal-600" />
-                            <div>
-                              <p className="text-sm text-gray-500">Bác sĩ</p>
-                              <p className="font-medium text-gray-800">{record.bookingId?.doctorName || "Chưa xác định"}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                            <Calendar className="h-5 w-5 text-teal-600" />
-                            <div>
-                              <p className="text-sm text-gray-500">Ngày khám</p>
-                              <p className="font-medium text-gray-800">
-                                {record.bookingId?.bookingDate
-                                  ? new Date(record.bookingId.bookingDate).toLocaleDateString("vi-VN")
-                                  : "Chưa xác định"}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                            <Clock className="h-5 w-5 text-teal-600" />
-                            <div>
-                              <p className="text-sm text-gray-500">Thời gian</p>
-                              <p className="font-medium text-gray-800">
-                                {record.bookingId?.startTime && record.bookingId?.endTime
-                                  ? `${record.bookingId.startTime} - ${record.bookingId.endTime}`
-                                  : "Chưa xác định"}
-                              </p>
-                            </div>
-                          </div>
-                          {record.bookingId?.status && (
-                            <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
-                              <div className="flex-1">
-                                <p className="text-sm text-gray-500">Trạng thái</p>
-                                <span
-                                  className={`inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold border ${statusStyles[record.bookingId.status] || "bg-gray-100 text-gray-600 border-gray-200"}`}
-                                >
-                                  {getStatusIcon(record.bookingId.status)}
-                                  <span className="ml-2">{translateBookingStatus(record.bookingId.status)}</span>
-                                </span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
+                        {(() => {
+                          // Check if this is an ARV test booking
+                          const isArvTest = typeof record.bookingId?.serviceId === 'object' && 
+                                          record.bookingId.serviceId?.isArvTest === true;
+                          
+                          if (isArvTest) {
+                            // For ARV test bookings, only show basic info and the 3 required sections
+                            return (
+                              <>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                    <Calendar className="h-5 w-5 text-teal-600" />
+                                    <div>
+                                      <p className="text-sm text-gray-500">Ngày tái khám</p>
+                                      <p className="font-medium text-gray-800">
+                                        {record.reExaminationDate
+                                          ? new Date(record.reExaminationDate).toLocaleDateString("vi-VN")
+                                          : "Chưa xác định"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                    <User className="h-5 w-5 text-teal-600" />
+                                    <div>
+                                      <p className="text-sm text-gray-500">Bệnh nhân</p>
+                                      <p className="font-medium text-gray-800">
+                                        {patientInfo.name}{" "}
+                                        {patientInfo.isAnonymous && (
+                                          <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-medium">
+                                            Ẩn danh
+                                          </span>
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                    <FileText className="h-5 w-5 text-teal-600" />
+                                    <div>
+                                      <p className="text-sm text-gray-500">Mã đặt lịch</p>
+                                      <p className="font-medium text-gray-800">{record.bookingId?.bookingCode || "Chưa có"}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                    <Stethoscope className="h-5 w-5 text-teal-600" />
+                                    <div>
+                                      <p className="text-sm text-gray-500">Bác sĩ</p>
+                                      <p className="font-medium text-gray-800">{record.bookingId?.doctorName || "Chưa xác định"}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                    <Calendar className="h-5 w-5 text-teal-600" />
+                                    <div>
+                                      <p className="text-sm text-gray-500">Ngày khám</p>
+                                      <p className="font-medium text-gray-800">
+                                        {record.bookingId?.bookingDate
+                                          ? new Date(record.bookingId.bookingDate).toLocaleDateString("vi-VN")
+                                          : "Chưa xác định"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                    <Clock className="h-5 w-5 text-teal-600" />
+                                    <div>
+                                      <p className="text-sm text-gray-500">Thời gian</p>
+                                      <p className="font-medium text-gray-800">
+                                        {record.bookingId?.startTime && record.bookingId?.endTime
+                                          ? `${record.bookingId.startTime} - ${record.bookingId.endTime}`
+                                          : "Chưa xác định"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {record.bookingId?.status && (
+                                    <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                      <div className="flex-1">
+                                        <p className="text-sm text-gray-500">Trạng thái</p>
+                                        <span
+                                          className={`inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold border ${statusStyles[record.bookingId.status] || "bg-gray-100 text-gray-600 border-gray-200"}`}
+                                        >
+                                          {getStatusIcon(record.bookingId.status)}
+                                          <span className="ml-2">{translateBookingStatus(record.bookingId.status)}</span>
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
 
-                        {/* General Information */}
-                        <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-6 mb-6 border border-blue-100">
-                          <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                            <Activity className="h-5 w-5 text-teal-600" />
-                            Thông Tin Chung
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Triệu chứng</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">{record.symptoms || "Không có"}</p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả kết quả (nếu có ARV)</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.resultDescription || "Không có"}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
+                                {/* General Information - Always show for ARV tests */}
+                                {/* <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-6 mb-6 border border-blue-100">
+                                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                    <Activity className="h-5 w-5 text-teal-600" />
+                                    Thông Tin Chung
+                                  </h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Triệu chứng</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">{record.symptoms || "Không có"}</p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả kết quả (nếu có ARV)</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.resultDescription || "Không có"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div> */}
+                              </>
+                            );
+                          } else {
+                            // For non-ARV test bookings, show all sections as before
+                            return (
+                              <>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                    <Calendar className="h-5 w-5 text-teal-600" />
+                                    <div>
+                                      <p className="text-sm text-gray-500">Ngày tái khám</p>
+                                      <p className="font-medium text-gray-800">
+                                        {record.reExaminationDate
+                                          ? new Date(record.reExaminationDate).toLocaleDateString("vi-VN")
+                                          : "Chưa xác định"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                    <User className="h-5 w-5 text-teal-600" />
+                                    <div>
+                                      <p className="text-sm text-gray-500">Bệnh nhân</p>
+                                      <p className="font-medium text-gray-800">
+                                        {patientInfo.name}{" "}
+                                        {patientInfo.isAnonymous && (
+                                          <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full font-medium">
+                                            Ẩn danh
+                                          </span>
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                    <FileText className="h-5 w-5 text-teal-600" />
+                                    <div>
+                                      <p className="text-sm text-gray-500">Mã đặt lịch</p>
+                                      <p className="font-medium text-gray-800">{record.bookingId?.bookingCode || "Chưa có"}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                    <Stethoscope className="h-5 w-5 text-teal-600" />
+                                    <div>
+                                      <p className="text-sm text-gray-500">Bác sĩ</p>
+                                      <p className="font-medium text-gray-800">{record.bookingId?.doctorName || "Chưa xác định"}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                    <Calendar className="h-5 w-5 text-teal-600" />
+                                    <div>
+                                      <p className="text-sm text-gray-500">Ngày khám</p>
+                                      <p className="font-medium text-gray-800">
+                                        {record.bookingId?.bookingDate
+                                          ? new Date(record.bookingId.bookingDate).toLocaleDateString("vi-VN")
+                                          : "Chưa xác định"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                    <Clock className="h-5 w-5 text-teal-600" />
+                                    <div>
+                                      <p className="text-sm text-gray-500">Thời gian</p>
+                                      <p className="font-medium text-gray-800">
+                                        {record.bookingId?.startTime && record.bookingId?.endTime
+                                          ? `${record.bookingId.startTime} - ${record.bookingId.endTime}`
+                                          : "Chưa xác định"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  {record.bookingId?.status && (
+                                    <div className="flex items-center gap-2 p-3 bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl">
+                                      <div className="flex-1">
+                                        <p className="text-sm text-gray-500">Trạng thái</p>
+                                        <span
+                                          className={`inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-semibold border ${statusStyles[record.bookingId.status] || "bg-gray-100 text-gray-600 border-gray-200"}`}
+                                        >
+                                          {getStatusIcon(record.bookingId.status)}
+                                          <span className="ml-2">{translateBookingStatus(record.bookingId.status)}</span>
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
 
-                        {/* Vital Signs */}
-                        <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-6 mb-6 border border-blue-100">
-                          <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                            <Heart className="h-5 w-5 text-teal-600" />
-                            Chỉ Số Cơ Thể
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Cân nặng</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.weight ? `${record.weight} kg` : "Chưa có"}
-                              </p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Chiều cao</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.height ? `${record.height} m` : "Chưa có"}
-                              </p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">BMI</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">{record.bmi || "Chưa có"}</p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Huyết áp</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.bloodPressure || "Chưa có"}
-                              </p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Mạch</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.pulse ? `${record.pulse} lần/phút` : "Chưa có"}
-                              </p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Nhiệt độ</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.temperature ? `${record.temperature} °C` : "Chưa có"}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
+                                {/* General Information */}
+                                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-6 mb-6 border border-blue-100">
+                                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                    <Activity className="h-5 w-5 text-teal-600" />
+                                    Thông Tin Chung
+                                  </h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Triệu chứng</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">{record.symptoms || "Không có"}</p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Mô tả kết quả (nếu có ARV)</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.resultDescription || "Không có"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
 
-                        {/* Lab Test Information */}
-                        <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-6 mb-6 border border-blue-100">
-                          <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                            <TestTube className="h-5 w-5 text-teal-600" />
-                            Xét Nghiệm
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Loại mẫu xét nghiệm</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.sampleType || "Chưa có"}
-                              </p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Phương pháp xét nghiệm</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.testMethod || "Chưa có"}
-                              </p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Kết quả xét nghiệm</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.testResult || "Chưa có"}
-                              </p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Tải lượng virus</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.viralLoad ? `${record.viralLoad} copies/mL` : "Chưa có"}
-                              </p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Diễn giải tải lượng virus</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.viralLoadInterpretation || "Chưa có"}
-                              </p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Số lượng CD4</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.cd4Count ? `${record.cd4Count} cells/mm³` : "Chưa có"}
-                              </p>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Diễn giải CD4</label>
-                              <p className="text-gray-800 bg-white p-3 rounded-xl border">
-                                {record.cd4Interpretation || "Chưa có"}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
+                                {/* Vital Signs */}
+                                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-6 mb-6 border border-blue-100">
+                                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                    <Heart className="h-5 w-5 text-teal-600" />
+                                    Chỉ Số Cơ Thể
+                                  </h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Cân nặng</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.weight ? `${record.weight} kg` : "Chưa có"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Chiều cao</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.height ? `${record.height} m` : "Chưa có"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">BMI</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">{record.bmi || "Chưa có"}</p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Huyết áp</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.bloodPressure || "Chưa có"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Mạch</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.pulse ? `${record.pulse} lần/phút` : "Chưa có"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Nhiệt độ</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.temperature ? `${record.temperature} °C` : "Chưa có"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
 
-                        {/* ARV Regimen Information */}
+                                {/* Lab Test Information */}
+                                <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-6 mb-6 border border-blue-100">
+                                  <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                                    <TestTube className="h-5 w-5 text-teal-600" />
+                                    Xét Nghiệm
+                                  </h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Loại mẫu xét nghiệm</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.sampleType || "Chưa có"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Phương pháp xét nghiệm</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.testMethod || "Chưa có"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Kết quả xét nghiệm</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.testResult || "Chưa có"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Tải lượng virus</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.viralLoad ? `${record.viralLoad} copies/mL` : "Chưa có"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Diễn giải tải lượng virus</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.viralLoadInterpretation || "Chưa có"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Số lượng CD4</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.cd4Count ? `${record.cd4Count} cells/mm³` : "Chưa có"}
+                                      </p>
+                                    </div>
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 mb-1">Diễn giải CD4</label>
+                                      <p className="text-gray-800 bg-white p-3 rounded-xl border">
+                                        {record.cd4Interpretation || "Chưa có"}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              </>
+                            );
+                          }
+                        })()}
+
+                        {/* ARV Regimen Information - Show for all records that have arvregimenId */}
                         {record.arvregimenId && (
                           <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-6 mb-6 border border-blue-100">
                             <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -605,7 +720,7 @@ const DoctorMedicalRecords: React.FC = () => {
                           </div>
                         )}
 
-                        {/* Notes and Interpretation */}
+                        {/* Notes and Interpretation - Always show */}
                         <div className="bg-gradient-to-r from-blue-50 to-teal-50 rounded-xl p-6 mb-6 border border-blue-100">
                           <h4 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
                             <FileText className="h-5 w-5 text-teal-600" />
