@@ -870,8 +870,8 @@ const TestManagement: React.FC = () => {
                                 )}
                               </span>
                             </div>
-                            {/* Ẩn nút Tạo phiếu xét nghiệm nếu đã gửi xét nghiệm thành công hoặc đã có kết quả */}
-                            {!(results.some((r) => r.bookingId && r.bookingId._id === booking._id) || medicalRecordSent[booking._id!]) && (
+                            {/* Ẩn nút Tạo phiếu xét nghiệm nếu đã gửi xét nghiệm thành công, đã có kết quả hoặc trạng thái là checked-out */}
+                            {!(results.some((r) => r.bookingId && r.bookingId._id === booking._id) || medicalRecordSent[booking._id!] || booking.status === "checked-out") && (
                               <button
                                 onClick={() => {
                                   setSelectedBooking(booking);
