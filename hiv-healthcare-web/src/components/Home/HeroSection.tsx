@@ -33,6 +33,15 @@ const HeroSection: React.FC = () => {
       navigate("/appointment?serviceId=6884c1b3dc415d604a31d5f5");
     } catch (error: any) {
       console.error("❌ Error checking bookings:", error);
+      
+      // Nếu là lỗi 404 (user chưa có booking nào), cho phép đặt lịch
+      if (error.response?.status === 404) {
+        console.log("✅ User chưa có booking nào, cho phép đặt lịch mới");
+        navigate("/appointment?serviceId=6884c1b3dc415d604a31d5f5");
+        return;
+      }
+      
+      // Các lỗi khác thì hiển thị thông báo
       toast.error("Không thể kiểm tra lịch hẹn. Vui lòng thử lại sau.");
     }
   };
