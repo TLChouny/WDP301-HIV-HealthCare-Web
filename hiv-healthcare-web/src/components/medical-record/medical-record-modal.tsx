@@ -272,7 +272,7 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
         if (!diagnosis) {
             if (isArvTest) {
                 // Nếu là ARV test, tự động đặt tên
-                setDiagnosis("Kết quả xét nghiệm ARV")
+                setDiagnosis("Kết quả điều trị ARV")
             } else {
                 toast.error("Vui lòng nhập chẩn đoán!")
                 return
@@ -294,7 +294,7 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
         
         // Chuẩn bị dữ liệu kết quả
         const resultData = {
-            resultName: diagnosis || (isArvTest ? "Kết quả xét nghiệm ARV" : "Kết quả khám"),
+            resultName: diagnosis || (isArvTest ? "Kết quả điều trị ARV" : "Kết quả khám"),
             resultDescription: showArvSection ? hivLoad || undefined : undefined,
             bookingId,
             arvregimenId: "default", // Giá trị mặc định, sẽ được cập nhật nếu có phác đồ ARV
@@ -409,7 +409,7 @@ const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
             } else {
                 // Tạo kết quả mới cho trường hợp không phải lab test hoặc chưa có kết quả
                 await addResult({
-                    resultName: diagnosis || (isArvTest ? "Kết quả xét nghiệm ARV" : "Kết quả khám"),
+                    resultName: diagnosis || (isArvTest ? "Kết quả điều trị ARV" : "Kết quả khám"),
                     resultDescription: showArvSection ? hivLoad || undefined : undefined,
                     bookingId,
                     arvregimenId,

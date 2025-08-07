@@ -23,7 +23,6 @@ import CalendarComponent from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import type { Booking } from "../../types/booking";
 import { useBooking } from "../../context/BookingContext";
-import { useArv } from "../../context/ArvContext";
 import { useResult } from "../../context/ResultContext";
 import { useAuth } from "../../context/AuthContext";
 
@@ -151,7 +150,7 @@ const StatusButton: React.FC<{
     }
   };
 
-const TestManagement: React.FC = () => {
+const TestManagement: React.FC = () => {              
   // CD4 specific fields
   const [cd4Count, setCd4Count] = useState("");
   const [cd4Reference, setCd4Reference] = useState("");
@@ -161,9 +160,8 @@ const TestManagement: React.FC = () => {
   // ...existing code...
   const [reExaminationDate, setReExaminationDate] = useState("");
   const { getAll, update } = useBooking();
-  const { regimens, create: createArv } = useArv();
   const { addResult, results } = useResult();
-  const { user, getUserById } = useAuth();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -200,11 +198,6 @@ const TestManagement: React.FC = () => {
   // State for Result fields
   const [medicalDate, setMedicalDate] = useState("");
   const [medicalType, setMedicalType] = useState("");
-  const [diagnosis, setDiagnosis] = useState("");
-  const [arvRegimen, setArvRegimen] = useState("");
-  const [hivLoad, setHivLoad] = useState("");
-  const [medicationTime, setMedicationTime] = useState("");
-  const [medicationTimes, setMedicationTimes] = useState<string[]>([]);
   const [symptoms, setSymptoms] = useState("");
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
@@ -214,17 +207,10 @@ const TestManagement: React.FC = () => {
   const [temperature, setTemperature] = useState("");
   const [sampleType, setSampleType] = useState("");
   const [testMethod, setTestMethod] = useState("");
-  const [resultType, setResultType] = useState<
-    "positive-negative" | "quantitative" | "other" | ""
-  >("");
   const [testResult, setTestResult] = useState<
     "positive" | "negative" | "invalid" | ""
   >("");
-  const [testValue, setTestValue] = useState("");
   const [unit, setUnit] = useState("");
-  const [referenceRange, setReferenceRange] = useState("");
-  const [medicationSlot, setMedicationSlot] = useState("");
-  const [regimenCode, setRegimenCode] = useState("");
   // PCR HIV specific fields
   const [viralLoad, setViralLoad] = useState("");
   const [viralLoadReference, setViralLoadReference] = useState("");
@@ -259,15 +245,6 @@ const TestManagement: React.FC = () => {
   const [testerName, setTesterName] = useState("");
   // Thêm trường tên kết quả
   const [resultName, setResultName] = useState("");
-  const [treatmentLine, setTreatmentLine] = useState<
-    "First-line" | "Second-line" | "Third-line" | ""
-  >("");
-  const [recommendedFor, setRecommendedFor] = useState("");
-  const [drugs, setDrugs] = useState<string[]>([]);
-  const [dosages, setDosages] = useState<string[]>([]);
-  const [frequencies, setFrequencies] = useState<string[]>([]);
-  const [contraindications, setContraindications] = useState<string[]>([]);
-  const [sideEffects, setSideEffects] = useState<string[]>([]);
   // HIV Combo (Ag/Ab) specific fields
   const [p24Antigen, setP24Antigen] = useState("");
   const [hivAntibody, setHivAntibody] = useState("");
@@ -309,9 +286,6 @@ const TestManagement: React.FC = () => {
   const [medicalRecordSent, setMedicalRecordSent] = useState<{
     [bookingId: string]: boolean;
   }>({});
-  const [selectedStatusForSubmit, setSelectedStatusForSubmit] = useState<
-    "re-examination" | "completed" | null
-  >(null);
 
   // State cho validation errors
   const [validationErrors, setValidationErrors] = useState({
@@ -354,34 +328,6 @@ const TestManagement: React.FC = () => {
       setBmi("");
     }
   }, [weight, height]);
-
-  // Populate ARV fields when a regimen is selected
-  useEffect(() => {
-    if (arvRegimen) {
-      const selectedRegimen = regimens.find((r) => r.arvName === arvRegimen);
-      if (selectedRegimen) {
-        setRegimenCode(selectedRegimen.regimenCode || "");
-        setTreatmentLine(selectedRegimen.treatmentLine || "");
-        setRecommendedFor(selectedRegimen.recommendedFor || "");
-        setDrugs(selectedRegimen.drugs || []);
-        setDosages(selectedRegimen.dosages || []);
-        setFrequencies(
-          selectedRegimen.frequency ? selectedRegimen.frequency.split(";") : []
-        );
-        setContraindications(selectedRegimen.contraindications || []);
-        setSideEffects(selectedRegimen.sideEffects || []);
-      }
-    } else {
-      setRegimenCode("");
-      setTreatmentLine("");
-      setRecommendedFor("");
-      setDrugs([]);
-      setDosages([]);
-      setFrequencies([]);
-      setContraindications([]);
-      setSideEffects([]);
-    }
-  }, [arvRegimen, regimens]);
 
   const anonymizeName = useCallback((name: string): string => {
     if (!name) return "Không xác định";
@@ -624,13 +570,7 @@ const TestManagement: React.FC = () => {
 
   const handleCloseMedicalModal = useCallback(() => {
     setOpenMedicalModal(false);
-    setDiagnosis("");
-    setArvRegimen("");
-    setHivLoad("");
-    setMedicationTime("");
-    setMedicationTimes([]);
     setReExaminationDate("");
-    setSelectedStatusForSubmit(null);
     setSymptoms("");
     setWeight("");
     setHeight("");
@@ -640,20 +580,8 @@ const TestManagement: React.FC = () => {
     setTemperature("");
     setSampleType("");
     setTestMethod("");
-    setResultType("");
     setTestResult("");
-    setTestValue("");
     setUnit("");
-    setReferenceRange("");
-    setMedicationSlot("");
-    setRegimenCode("");
-    setTreatmentLine("");
-    setRecommendedFor("");
-    setDrugs([]);
-    setDosages([]);
-    setFrequencies([]);
-    setContraindications([]);
-    setSideEffects([]);
     setP24Antigen("");
     setHivAntibody("");
     setComboInterpretation("");
